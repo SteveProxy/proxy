@@ -3,6 +3,7 @@ export interface ISpotify {
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
+    scope: string[];
     username: string;
     market: string;
     clientId: string;

@@ -86,7 +86,7 @@ export class Spotify extends Plugin {
                         underlined: true,
                         clickEvent: {
                             action: "open_url",
-                            value: `https://accounts.spotify.com/${this.state.market.toLowerCase()}/authorize?client_id=${this.state.clientId}&state=${generateID(6)}&redirect_uri=${this.state?.redirectUrl}&response_type=code&scope=user-read-private%20user-modify-playback-state%20user-read-currently-playing`
+                            value: `https://accounts.spotify.com/${this.state.market.toLowerCase()}/authorize?client_id=${this.state.clientId}&state=${generateID(6)}&redirect_uri=${this.state.redirectUrl}&response_type=code&scope=${encodeURIComponent(this.state.scope.join(" "))}`
                         }
                     }),
                     new RawJSONBuilder()
@@ -96,7 +96,7 @@ export class Spotify extends Plugin {
     }
 
     getCurrentPlaying(): void {
-        this.client.get(`/me/player/currently-playing?access_token=${this.state.accessToken}&market=${this.state.market}`)
+        this.client.get(`/me/player/?access_token=${this.state.accessToken}&market=${this.state.market}`)
             .then(({ data }) => this.currentPlaying = data)
             .catch((error) => {
                 switch (error?.response?.status) {
@@ -162,18 +162,25 @@ export class Spotify extends Plugin {
                 Authorization: `Basic ${Buffer.from(`${this.state.clientId}:${this.state.clientSecret}`).toString("base64")}`
             }
         })
-            .then(async ({ data: { access_token, refresh_token, expires_in } }) => {
-                await db.set(`plugins.${this.meta.name}.accessToken`, access_token)
-                    .set(`plugins.${this.meta.name}.expiresIn`, Date.now() + expires_in * 1000)
-                    .write();
+            .then(async ({ data: { access_token, refresh_token, expires_in, scope } }) => {
+                scope = scope.split(" ")
+                    .sort()
+                    .toString();
 
-                if (refresh_token) {
-                    await db.set(`plugins.${this.meta.name}.refreshToken`, refresh_token)
+                if (scope === this.state.scope.sort().toString()) {
+                    await db.set(`plugins.${this.meta.name}.accessToken`, access_token)
+                        .set(`plugins.${this.meta.name}.expiresIn`, Date.now() + expires_in * 1000)
                         .write();
-                }
 
-                this.stop();
-                this.start();
+                    if (refresh_token) {
+                        await db.set(`plugins.${this.meta.name}.refreshToken`, refresh_token)
+                            .write();
+                    }
+
+                    this.restart();
+                } else {
+                    this.proxy.client.context.send(`${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`);
+                }
             })
             .catch(async (error) => {
                 switch (error?.response?.status) {
@@ -200,8 +207,7 @@ export class Spotify extends Plugin {
                         await db.set(`plugins.${this.meta.name}.code`, code)
                             .write();
 
-                        this.stop();
-                        this.start();
+                        this.restart();
                     } else {
                         this.proxy.client.context.send(`${this.meta.prefix} §eВы уже авторизованы!`);
                     }
@@ -250,5 +256,10 @@ export class Spotify extends Plugin {
         if (this.getCurrentPlayingInterval) {
             clearInterval(this.getCurrentPlayingInterval);
         }
+    }
+
+    restart(): void {
+        this.stop();
+        this.start();
     }
 }
