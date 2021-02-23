@@ -1,4 +1,5 @@
 import { createClient, Server, states } from "minecraft-protocol";
+import minecraftPath from "minecraft-path";
 
 import { Context } from "./modules/Context";
 import { PacketManager } from "./modules/packetManager/PacketManager";
@@ -37,14 +38,13 @@ export class Proxy {
         this.pluginManager = new PluginManager(this);
     }
 
-    connect(ip = "192.168.1.51"): void {
+    async connect(ip = "192.168.1.51"): Promise<void> {
         const { proxy: { version, hideErrors } } = this.config;
 
         this.bridge = createClient({
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             ...parseIP(ip), // @ts-ignore Invalid lib types
-            session: this.client.session,
-            username: this.client.username,
+            ...(await this.getSession()),
             version,
             hideErrors
         }) as IClient;
@@ -123,6 +123,22 @@ export class Proxy {
         if (channel === "client") {
             this.pluginManager.stop();
         }
+    }
+
+    async getSession(): Promise<any> {
+        const { accounts, activeAccountLocalId, mojangClientToken: clientToken } = (await import(`file://${minecraftPath()}/launcher_accounts.json`))
+            .default;
+
+        const { accessToken, minecraftProfile: selectedProfile } = accounts[activeAccountLocalId];
+
+        return {
+            session: {
+                accessToken,
+                selectedProfile,
+                clientToken
+            },
+            username: selectedProfile.name
+        };
     }
 }
 

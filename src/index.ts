@@ -14,13 +14,12 @@ console.log("[Steve] Starting...");
 events.forEach((Event) => {
     const { name, handler } = new Event();
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    server.on(name, (data) => {
-        if (data?.username) {
-            Context.wrap(data);
+    server.on(name, (client) => {
+        if (client?.username) {
+            Context.wrap(client);
         }
 
-        handler(data, server);
+        handler(client, server);
     });
 });
