@@ -9,11 +9,12 @@ const { proxy } = config;
 
 const server = createServer(proxy);
 
-console.log("[Steve] Starting...")
+console.log("[Steve] Starting...");
 
 events.forEach((Event) => {
     const { name, handler } = new Event();
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     server.on(name, (data) => {
         if (data?.username) {

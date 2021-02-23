@@ -18,7 +18,10 @@
   "rules": {
     "indent": [
       "error",
-      4
+      4,
+      {
+        "SwitchCase": 1
+      }
     ],
     "linebreak-style": [
       "error",
@@ -72,22 +75,6 @@
     "yoda": [
       "error"
     ],
-    "array-bracket-spacing": [
-      "error",
-      "always",
-      {
-        "singleValue": false,
-        "objectsInArrays": false,
-        "arraysInArrays": false
-      }
-    ],
-    "camelcase": [
-      "error"
-    ],
-    "capitalized-comments": [
-      "error",
-      "always"
-    ],
     "comma-dangle": [
       "error",
       "never"
@@ -113,15 +100,11 @@
     ],
     "function-paren-newline": [
       "error",
-      "never"
+      "consistent"
     ],
     "implicit-arrow-linebreak": [
       "error",
       "beside"
-    ],
-    "multiline-comment-style": [
-      "error",
-      "starred-block"
     ],
     "new-cap": [
       "error"
@@ -177,9 +160,6 @@
       "error",
       "last"
     ],
-    "sort-keys": [
-      "error"
-    ],
     "space-before-blocks": [
       "error",
       "always"
@@ -231,16 +211,9 @@
       "error"
     ],
     "prefer-const": [
-      "error"
-    ],
-    "prefer-destructuring": [
       "error",
       {
-        "array": true,
-        "object": true
-      },
-      {
-        "enforceForRenamedProperties": true
+        "destructuring": "all"
       }
     ],
     "prefer-template": [
@@ -250,8 +223,6 @@
       "error",
       "never"
     ],
-    "sort-imports": [
-      "error"
-    ]
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }

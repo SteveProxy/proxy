@@ -18,7 +18,7 @@ export class PacketContext {
 
     constructor({ packet, meta, isFromServer, proxy, packetDelta, packetDate }: IPacketContextOptions) {
         this.packet = packet;
-        this.meta = meta
+        this.meta = meta;
         this.proxy = proxy;
         this.isFromServer = isFromServer;
 
@@ -27,7 +27,6 @@ export class PacketContext {
         this.packetDate = packetDate;
         this.packetDelta = packetDelta;
     }
-
 
     setCanceled(cancel: boolean): this {
         this.canceled = cancel;
@@ -43,7 +42,7 @@ export class PacketContext {
         return new PacketContext(this);
     }
 
-    send() {
+    send(): void {
         if (!this.isFromServer) {
             this.proxy.bridge.write(this.meta.name, this.packet);
         } else {
@@ -51,11 +50,11 @@ export class PacketContext {
         }
     }
 
-    sendToClient() {
+    sendToClient(): void {
         this.proxy.client.write(this.meta.name, this.packet);
     }
 
-    sendToServer() {
+    sendToServer(): void {
         this.proxy.bridge.write(this.meta.name, this.packet);
     }
 

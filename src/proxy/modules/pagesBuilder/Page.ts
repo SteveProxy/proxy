@@ -53,7 +53,7 @@ export class Page {
         return this;
     }
 
-    clone() {
+    clone(): Page {
         return new Page({ ...this });
     }
 }

@@ -23,72 +23,62 @@ export class Core extends Plugin {
         ];
     }
 
-    start() {
+    start(): void {
         this.proxy.client.context.sendTab({
             header: new RawJSONBuilder()
                 .parse(`${config.bridge.title}\n§r`)
         });
     }
 
-    test() {
+    test(): void {
         const builder = this.proxy.client.context.pagesBuilder(this.proxy);
 
         builder.setPages([
-                new Page()
-                    .setWindowTitle(
-                        new RawJSONBuilder()
-                            .setText("test")
-                    )
-                    .setItems(
-                        new Item({
-                            id: 1,
-                            position: 0,
-                            nbt: new NBT("compound", {
-                                display: new NBT("compound", {
-                                    Name: new NBT("string", new RawJSONBuilder()
-                                        .setText({
-                                            text: "test",
-                                            color: "yellow",
-                                            strikethrough: true
-                                        })
-                                        .toString()
-                                    )
+            new Page()
+                .setWindowTitle(new RawJSONBuilder()
+                    .setText("test"))
+                .setItems(new Item({
+                    id: 1,
+                    position: 0,
+                    nbt: new NBT("compound", {
+                        display: new NBT("compound", {
+                            Name: new NBT("string", new RawJSONBuilder()
+                                .setText({
+                                    text: "test",
+                                    color: "yellow",
+                                    strikethrough: true
                                 })
-                            }),
-                            onClick: () => {
-                                this.proxy.client.context.send("TEST")
-                                builder.setPage(2)
-                            }
+                                .toString())
                         })
-                    ),
-                new Page()
-                    .setWindowTitle(
-                        new RawJSONBuilder()
-                            .setText("test")
-                    )
-                    .setItems(
-                        new Item({
-                            id: 12,
-                            position: 2,
-                            nbt: new NBT("compound", {
-                                display: new NBT("compound", {
-                                    Name: new NBT("string", new RawJSONBuilder()
-                                        .setText({
-                                            text: "test",
-                                            color: "yellow",
-                                            strikethrough: true
-                                        })
-                                        .toString()
-                                    )
+                    }),
+                    onClick: () => {
+                        this.proxy.client.context.send("TEST");
+                        builder.setPage(2);
+                    }
+                })),
+            new Page()
+                .setWindowTitle(new RawJSONBuilder()
+                    .setText("test"))
+                .setItems(new Item({
+                    id: 12,
+                    position: 2,
+                    nbt: new NBT("compound", {
+                        display: new NBT("compound", {
+                            Name: new NBT("string", new RawJSONBuilder()
+                                .setText({
+                                    text: "test",
+                                    color: "yellow",
+                                    strikethrough: true
                                 })
-                            }),
-                            onClick: () => {
-                                this.proxy.client.context.send("TEST")
-                                builder.setPage(1)
-                            }
+                                .toString())
                         })
-                    )
-            ])
+                    }),
+                    onClick: () => {
+                        this.proxy.client.context.send("TEST");
+                        builder.setPage(1);
+                    }
+                }))
+        ])
             .setDefaultButtons([{ next: { position: 1 } }])
             .build();
     }

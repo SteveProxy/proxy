@@ -7,13 +7,16 @@
   "scripts": {
     "start": "node --experimental-modules --experimental-json-modules --unhandled-rejections=warn --es-module-specifier-resolution=node ./dist/index.js",
     "build": "tsc && node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/cleanUpBuild.js",
-    "prebuild": "node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/buildInit.js"
+    "prebuild": "node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/buildInit.js",
+    "eslint:check": "eslint ./src/**/*",
+    "eslint:fix": "eslint ./src/**/* --fix"
   },
   "author": "MrZillaGold <Pronin Egor | mrzillagold@gmail.com>",
   "license": "CC-BY-NC-ND-4.0",
   "devDependencies": {
     "@types/lowdb": "^1.0.9",
     "@types/node": "^14.14.28",
+    "@typescript-eslint/eslint-plugin": "^4.15.2",
     "eslint": "^7.20.0",
     "typescript": "^4.1.5"
   },

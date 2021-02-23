@@ -11,6 +11,7 @@ export class Listening extends Event {
     }
 
     handler(client: IClient, server: Server): void {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore Invalid lib type
         const { address, port } = server.socketServer.address();
 

@@ -31,7 +31,7 @@ export class Context {
     }
 
     private static end(reason: string): void {
-        const client = this;
+        const client = this as unknown as Client;
 
         client.end(`${title}\n\n${reason}`);
     }
@@ -142,7 +142,7 @@ export class Context {
 
         const { header, footer } = params;
 
-        client.write("playerlist_header",{
+        client.write("playerlist_header", {
             header: header ?
                 header.toString()
                 :

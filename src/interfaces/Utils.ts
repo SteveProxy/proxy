@@ -11,7 +11,7 @@ type ConcatLargestUntilDone<N extends number, R extends never[][], B extends nev
 
 type Replace<R extends any[], T> = { [K in keyof R]: T }
 
-type TupleOf<T, N extends number> = number extends N ? T[] : {
+ *type TupleOf<T, N extends number> = number extends N ? T[] : {
     [K in N]:
     BuildPowersOf2LengthArrays<K, [[never]]> extends infer U ? U extends never[][]
         ? Replace<ConcatLargestUntilDone<K, U, []>, T> : never : never;

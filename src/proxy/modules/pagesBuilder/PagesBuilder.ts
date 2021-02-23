@@ -7,7 +7,7 @@ import { Page } from "./Page";
 import { Item } from "./Item";
 import { NBT } from "./NBT";
 
-import {Inventory, Button, DefaultButtonsMap, IItemConstructor, ButtonAction, /*RangeOf*/} from "../../../interfaces";
+import { Inventory, Button, DefaultButtonsMap, IItemConstructor, ButtonAction /*RangeOf*/ } from "../../../interfaces";
 
 // https://wiki.vg/Inventory
 const inventoryTypes: Map<Inventory, number> = new Map([
@@ -46,8 +46,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                         text: "В начало",
                         color: "green"
                     })
-                    .toString()
-                )
+                    .toString())
             })
         })
     }],
@@ -60,8 +59,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                         text: "Назад",
                         color: "green"
                     })
-                    .toString()
-                )
+                    .toString())
             })
         })
     }],
@@ -74,8 +72,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                         text: "Выход",
                         color: "red"
                     })
-                    .toString()
-                )
+                    .toString())
             })
         })
     }],
@@ -88,8 +85,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                         text: "Вперёд",
                         color: "green"
                     })
-                    .toString()
-                )
+                    .toString())
             })
         })
     }],
@@ -102,8 +98,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                         text: "В конец",
                         color: "green"
                     })
-                    .toString()
-                )
+                    .toString())
             })
         })
     }]
@@ -113,14 +108,14 @@ export class PagesBuilder {
 
     proxy: Proxy;
 
-    windowId: number = 1;
-    inventoryType: number = 0; // RangeOf<0, 22>
+    windowId = 1;
+    inventoryType = 0; // RangeOf<0, 22>
     inventoryTypeTag: Inventory = "generic_9x1";
-    inventorySlots: number = 9; // RangeOf<1, 63>
+    inventorySlots = 9; // RangeOf<1, 63>
 
     pages: Page[] = [];
-    currentPage: number = 1;
-    infinityLoop: boolean = true;
+    currentPage = 1;
+    infinityLoop = true;
     defaultButtons: DefaultButtonsMap = new Map();
 
     constructor(proxy: Proxy) {
@@ -141,7 +136,7 @@ export class PagesBuilder {
 
             return this;
         } else {
-            throw new Error(`Inventory type already set! Create new builder.`);
+            throw new Error("Inventory type already set! Create new builder.");
         }
     }
 
@@ -159,7 +154,7 @@ export class PagesBuilder {
         return this;
     }
 
-    setPage(page: number) {
+    setPage(page: number): this {
         this.currentPage = page;
 
         this.rerender();
@@ -171,33 +166,28 @@ export class PagesBuilder {
         const page = this.pages[pageNumber - 1]
             .clone();
 
-        page.setItems([...this.defaultButtons].map(([_, buttonItem]) => buttonItem));
+        page.setItems([...this.defaultButtons].map(([, buttonItem]) => buttonItem));
 
         page.items = page.items.slice(0, this.inventorySlots);
 
-        page.setItems(
-            new Array(36) // 36 = player inventory slots without armor & etc.
-                .fill(null)
-                .map((_, index) => {
-                    return new Item({
-                        id: 410,
-                        position: this.inventorySlots + index,
-                        nbt: new NBT("compound", {
-                            display: new NBT("compound", {
-                                Name: new NBT("string", new RawJSONBuilder()
-                                    .setText("")
-                                    .toString()
-                                )
-                            })
-                        })
-                    });
+        page.setItems(new Array(36) // 36 = player inventory slots without armor & etc.
+            .fill(null)
+            .map((_, index) => new Item({
+                id: 410,
+                position: this.inventorySlots + index,
+                nbt: new NBT("compound", {
+                    display: new NBT("compound", {
+                        Name: new NBT("string", new RawJSONBuilder()
+                            .setText("")
+                            .toString())
+                    })
                 })
-        );
+            })));
 
         return page;
     }
 
-    setDefaultButtons(buttons: Button[]) {
+    setDefaultButtons(buttons: Button[]): this {
         const rawButtons: [ButtonAction, Item][] = buttons.map((button: Button) => {
             const [[buttonAction, { onClick, ...buttonObject }]] = Object.entries(button) as [ButtonAction, any][];
 
@@ -214,14 +204,12 @@ export class PagesBuilder {
             })];
         });
 
-        this.defaultButtons = new Map(
-            rawButtons
-        );
+        this.defaultButtons = new Map(rawButtons);
 
         return this;
     }
 
-    executeAction(action: ButtonAction) {
+    executeAction(action: ButtonAction): void {
         switch (action) {
             case "first":
                 if (this.currentPage === 1) {
@@ -325,8 +313,7 @@ export class PagesBuilder {
                             display: new NBT("compound", {
                                 Name: new NBT("string", new RawJSONBuilder()
                                     .setText("Proxy Restore Inventory")
-                                    .toString()
-                                )
+                                    .toString())
                             })
                         })
                     })
@@ -348,8 +335,6 @@ export class PagesBuilder {
     }
 }
 
-export {
-    Page,
+export { Page,
     Item,
-    NBT
-}
+    NBT };

@@ -33,7 +33,6 @@ interface ITab {
     footer?: RawJSONBuilder;
 }
 
-
 export interface IOpenWindow {
     windowId: number;
     inventoryType: number;

@@ -1,4 +1,4 @@
-import { IItem, IItemConstructor, /*RangeOf*/ } from "../../../interfaces";
+import { IItem, IItemConstructor /*, RangeOf*/ } from "../../../interfaces";
 import { PacketContext } from "../packetManager/PacketManager";
 
 export class Item {

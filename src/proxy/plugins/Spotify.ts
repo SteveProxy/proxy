@@ -13,9 +13,10 @@ import { ISpotify } from "../../interfaces";
 export class Spotify extends Plugin {
 
     client: AxiosInstance;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     state: ISpotify;
-    currentPlaying?: any; // todo
+    currentPlaying?: any; // Todo
     getCurrentPlayingInterval?: NodeJS.Timeout;
     actionbarUpdateInterval?: NodeJS.Timeout;
 
@@ -66,33 +67,31 @@ export class Spotify extends Plugin {
                                 break;
                             default:
                                 this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке информации о пользователе.`);
-                                /*console.error(error);*/
+                                /*Console.error(error);*/
                         }
                     });
             } else {
                 this.refreshToken();
             }
         } else {
-            this.proxy.client.context.send(
-                new RawJSONBuilder()
-                    .setText(`${this.meta.prefix} Для работы плагина необходима авторизация. `)
-                    .setExtra([
-                        new RawJSONBuilder()
-                            .setText("["),
-                        new RawJSONBuilder().setText({
-                            text: "Авторизоваться",
-                            color: "dark_green",
-                            bold: true,
-                            underlined: true,
-                            clickEvent: {
-                                action: "open_url",
-                                value: `https://accounts.spotify.com/${this.state.market.toLowerCase()}/authorize?client_id=${this.state.clientId}&state=${generateID(6)}&redirect_uri=${this.state?.redirectUrl}&response_type=code&scope=user-read-private%20user-modify-playback-state%20user-read-currently-playing`
-                            }
-                        }),
-                        new RawJSONBuilder()
-                            .setText("]")
-                    ])
-            );
+            this.proxy.client.context.send(new RawJSONBuilder()
+                .setText(`${this.meta.prefix} Для работы плагина необходима авторизация. `)
+                .setExtra([
+                    new RawJSONBuilder()
+                        .setText("["),
+                    new RawJSONBuilder().setText({
+                        text: "Авторизоваться",
+                        color: "dark_green",
+                        bold: true,
+                        underlined: true,
+                        clickEvent: {
+                            action: "open_url",
+                            value: `https://accounts.spotify.com/${this.state.market.toLowerCase()}/authorize?client_id=${this.state.clientId}&state=${generateID(6)}&redirect_uri=${this.state?.redirectUrl}&response_type=code&scope=user-read-private%20user-modify-playback-state%20user-read-currently-playing`
+                        }
+                    }),
+                    new RawJSONBuilder()
+                        .setText("]")
+                ]));
         }
     }
 
@@ -106,7 +105,7 @@ export class Spotify extends Plugin {
                         break;
                     default:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`);
-                        /*console.error(error);*/
+                        /*Console.error(error);*/
                 }
             });
     }
@@ -160,7 +159,7 @@ export class Spotify extends Plugin {
         await this.client.post("https://accounts.spotify.com/api/token", postData, {
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Authorization": `Basic ${Buffer.from(`${this.state.clientId}:${this.state.clientSecret}`).toString("base64")}`
+                Authorization: `Basic ${Buffer.from(`${this.state.clientId}:${this.state.clientSecret}`).toString("base64")}`
             }
         })
             .then(async ({ data: { access_token, refresh_token, expires_in } }) => {
@@ -181,17 +180,17 @@ export class Spotify extends Plugin {
                     case 400:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена, авторизуйтесь заново!`);
 
-                         await this.clearCredentials();
-                         this.start();
+                        await this.clearCredentials();
+                        this.start();
                         break;
                     default:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена.`);
-                        /*console.error(error);*/
+                        /*Console.error(error);*/
                 }
             });
     }
 
-    async auth(state: string): Promise<void> {
+    auth(state: string): void {
         if (state) {
             axios.post(this.state.redirectUrl, `state=${state}`)
                 .then(async ({ data: { code } }) => {
@@ -214,13 +213,13 @@ export class Spotify extends Plugin {
                             break;
                         default:
                             this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при получении кода авторизации.`);
-                            /*console.error(error);*/
+                            /*Console.error(error);*/
                     }
                 });
         }
     }
 
-    async clearCredentials(clearCode: boolean = true): Promise<void> {
+    async clearCredentials(clearCode = true): Promise<void> {
         await db.set(`plugins.${this.meta.name}.accessToken`, "")
             .set(`plugins.${this.meta.name}.refreshToken`, "")
             .set(`plugins.${this.meta.name}.expiresIn`, 0)

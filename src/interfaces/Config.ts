@@ -15,5 +15,3 @@ export interface IConfig {
         spotify: ISpotify
     };
 }
-
-

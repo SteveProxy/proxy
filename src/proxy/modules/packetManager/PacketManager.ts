@@ -21,7 +21,7 @@ export class PacketManager extends EventEmitter {
         this.packetDelta = 0;
     }
 
-    packetSwindler({ packet, meta, isFromServer, send }: IPacketSwindlerOptions) {
+    packetSwindler({ packet, meta, isFromServer, send }: IPacketSwindlerOptions): void {
         if (!this.proxy.config.bridge.ignoredPackets.includes(meta.name)) {
             const previousPacketTime = this.currentPacketTime;
 
@@ -57,6 +57,4 @@ export interface PacketManager {
     once(event: string | symbol, listener: (context: PacketContext) => void): this;
 }
 
-export {
-    PacketContext
-}
+export { PacketContext };

@@ -16,6 +16,7 @@ export class Proxy {
     protected server: Server;
     protected clientClosed: boolean;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     bridge: IClient;
     protected bridgeClosed: boolean;
@@ -36,10 +37,11 @@ export class Proxy {
         this.pluginManager = new PluginManager(this);
     }
 
-    async connect(ip: string = "192.168.1.51"): Promise<void> {
+    connect(ip = "192.168.1.51"): void {
         const { proxy: { version, hideErrors } } = this.config;
 
         this.bridge = createClient({
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             ...parseIP(ip), // @ts-ignore Invalid lib types
             session: this.client.session,
             username: this.client.username,
@@ -124,6 +126,4 @@ export class Proxy {
     }
 }
 
-export {
-    PacketManager
-}
+export { PacketManager };
