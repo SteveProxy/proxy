@@ -3,7 +3,7 @@ import { NBTType } from "../../../interfaces";
 export class NBT {
 
     type: NBTType;
-    value: NBT;
+    value: any;
     name?: "";
 
     constructor(type: NBTType, value: any) {
