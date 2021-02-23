@@ -1,0 +1,27 @@
+{
+  "name": "steveproxy",
+  "version": "1.0.0",
+  "description": "Minecraft Proxy for sending custom events without modding",
+  "main": "./src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-modules --experimental-json-modules --unhandled-rejections=warn --es-module-specifier-resolution=node ./dist/index.js",
+    "build": "tsc && node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/cleanUpBuild.js",
+    "prebuild": "node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/buildInit.js"
+  },
+  "author": "MrZillaGold <Pronin Egor | mrzillagold@gmail.com>",
+  "license": "CC-BY-NC-ND-4.0",
+  "devDependencies": {
+    "@types/lowdb": "^1.0.9",
+    "@types/node": "^14.14.28",
+    "typescript": "^4.1.5"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "js-string-compression": "^1.0.1",
+    "lowdb": "^1.0.0",
+    "minecraft-data": "^2.74.0",
+    "minecraft-protocol": "^1.23.1",
+    "rawjsonbuilder": "^1.1.0"
+  }
+}
