@@ -97,7 +97,11 @@ export class Spotify extends Plugin {
 
     getCurrentPlaying(): void {
         this.client.get(`/me/player/?access_token=${this.state.accessToken}&market=${this.state.market}`)
-            .then(({ data }) => this.currentPlaying = data)
+            .then(({ data }) => {
+                if (data.currently_playing_type !== "unknown") {
+                    this.currentPlaying = data;
+                }
+            })
             .catch((error) => {
                 switch (error?.response?.status) {
                     case 401:
