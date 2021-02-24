@@ -335,6 +335,8 @@ export class PagesBuilder {
     }
 }
 
-export { Page,
+export {
+    Page,
     Item,
-    NBT };
+    NBT
+};

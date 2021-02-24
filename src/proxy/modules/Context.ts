@@ -1,4 +1,3 @@
-import { Client } from "minecraft-protocol";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { config } from "../../config";
@@ -6,40 +5,24 @@ import { config } from "../../config";
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { Proxy } from "../Proxy";
 
-import { IContext, Title, Tab, IOpenWindow } from "../../interfaces";
+import { Title, Tab, IOpenWindow, IClient } from "../../interfaces";
 
 const { bridge: { title } } = config;
 
-const contextMethods: (keyof IContext)[] = [
-    "end",
-    "send",
-    "sendTitle",
-    "sendTab",
-    "openWindow",
-    "pagesBuilder",
-    "dropItem"
-];
-
 export class Context {
 
-    static wrap(client: any): void {
-        client.context = {};
+    client: IClient;
 
-        contextMethods.forEach((method) => {
-            client.context[method] = Context[method].bind(client);
-        });
+    constructor(client: IClient) {
+        this.client = client;
     }
 
-    private static end(reason: string): void {
-        const client = this as unknown as Client;
-
-        client.end(`${title}\n\n${reason}`);
+    end(reason: string): void {
+        this.client.end(`${title}\n\n${reason}`);
     }
 
-    private static send(message: RawJSONBuilder | string): void {
-        const client = this as unknown as Client;
-
-        client.write("chat", {
+    send(message: RawJSONBuilder | string): void {
+        this.client.write("chat", {
             message: (
                 message instanceof RawJSONBuilder ?
                     message
@@ -59,9 +42,7 @@ export class Context {
         });
     }
 
-    private static sendTitle(params: Title): void {
-        const client = this as unknown as Client;
-
+    sendTitle(params: Title): void {
         if (typeof params === "string") {
             params = {
                 title: params
@@ -71,7 +52,7 @@ export class Context {
         const { title, subtitle, actionbar, fadeIn, fadeOut, stay, hide, reset } = params;
 
         if (subtitle) {
-            return client.write("title", {
+            this.client.write("title", {
                 action: 1,
                 text: new RawJSONBuilder()
                     .setText("")
@@ -86,7 +67,7 @@ export class Context {
         }
 
         if (title) {
-            client.write("title", {
+            this.client.write("title", {
                 action: 0,
                 text: new RawJSONBuilder()
                     .setText("")
@@ -101,7 +82,7 @@ export class Context {
         }
 
         if (actionbar) {
-            client.write("title", {
+            this.client.write("title", {
                 action: 2,
                 text: new RawJSONBuilder()
                     .setText("")
@@ -116,7 +97,7 @@ export class Context {
         }
 
         if (fadeIn !== undefined || fadeOut !== undefined || stay !== undefined) {
-            return client.write("title", {
+            this.client.write("title", {
                 action: 3,
                 fadeIn,
                 stay,
@@ -125,24 +106,20 @@ export class Context {
         }
 
         if (hide) {
-            client.write("title", {
+            this.client.write("title", {
                 action: 4
             });
         }
 
         if (reset) {
-            client.write("title", {
+            this.client.write("title", {
                 action: 5
             });
         }
     }
 
-    private static sendTab(params: Tab): void {
-        const client = this as unknown as Client;
-
-        const { header, footer } = params;
-
-        client.write("playerlist_header", {
+    sendTab({ header, footer }: Tab): void {
+        this.client.write("playerlist_header", {
             header: header ?
                 header.toString()
                 :
@@ -158,33 +135,27 @@ export class Context {
         });
     }
 
-    private static sendBossBar(): void {
+    sendBossBar(): void {
         // todo
     }
 
-    private static openWindow(params: IOpenWindow): void {
-        const client = this as unknown as Client;
-
-        const { windowTitle = new RawJSONBuilder().setText(""), inventoryType = 2, windowId, items } = params;
-
-        client.write("open_window", {
+    openWindow({ windowTitle = new RawJSONBuilder().setText(""), inventoryType = 2, windowId, items }: IOpenWindow): void {
+        this.client.write("open_window", {
             windowId,
             inventoryType,
             windowTitle: windowTitle.toString()
         });
 
         if (items) {
-            client.write("window_items", {
+            this.client.write("window_items", {
                 windowId,
                 items
             });
         }
     }
 
-    private static dropItem(): void {
-        const client = this as unknown as Client;
-
-        client.write("set_slot", {
+    dropItem(): void {
+        this.client.write("set_slot", {
             windowId: -1,
             slot: -1,
             item: {
@@ -193,7 +164,7 @@ export class Context {
         });
     }
 
-    private static pagesBuilder(proxy: Proxy): PagesBuilder {
+    pagesBuilder(proxy: Proxy): PagesBuilder {
         return new PagesBuilder(proxy);
     }
 }

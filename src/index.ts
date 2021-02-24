@@ -17,7 +17,7 @@ events.forEach((Event) => {
     // @ts-ignore
     server.on(name, (client) => {
         if (client?.username) {
-            Context.wrap(client);
+            client.context = new Context(client);
         }
 
         handler(client, server);

@@ -1,8 +1,8 @@
 import { Client } from "minecraft-protocol";
 
-import { IContext } from "./Context";
+import { Context } from "../../proxy/modules/Context";
 
 export interface IClient extends Client {
-    context: IContext;
+    context: Context;
     compressionThreshold: number;
 }

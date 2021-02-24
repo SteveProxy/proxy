@@ -127,13 +127,6 @@
     "no-whitespace-before-property": [
       "error"
     ],
-    "object-curly-newline": [
-      "error",
-      {
-        "ImportDeclaration": "never",
-        "ExportDeclaration": "never"
-      }
-    ],
     "object-curly-spacing": [
       "error",
       "always"

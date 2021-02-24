@@ -49,7 +49,7 @@ export class Proxy {
             hideErrors
         }) as IClient;
 
-        Context.wrap(this.bridge);
+        this.bridge.context = new Context(this.bridge);
 
         this.start();
 

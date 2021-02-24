@@ -1,18 +1,5 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { Proxy } from "../../proxy/Proxy";
-import { PagesBuilder } from "../../proxy/modules/pagesBuilder/PagesBuilder";
-
-export interface IContext {
-    end(reason: string): void;
-    send(message: RawJSONBuilder | string): void;
-    sendTitle(params: Title): void;
-    sendTab(params: Tab): void;
-    openWindow(params: IOpenWindow): void;
-    pagesBuilder(proxy: Proxy): PagesBuilder;
-    dropItem(): void;
-}
-
 export type Title = ITitle | string;
 
 interface ITitle {
