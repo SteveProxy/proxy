@@ -7,7 +7,7 @@ import { Page } from "./Page";
 import { Item } from "./Item";
 import { NBT } from "./NBT";
 
-import { Inventory, Button, DefaultButtonsMap, IItemConstructor, ButtonAction /*RangeOf*/ } from "../../../interfaces";
+import { Inventory, Button, DefaultButtonsMap, IItemConstructor, ButtonAction, RawPage /*RangeOf*/ } from "../../../interfaces";
 
 // https://wiki.vg/Inventory
 const inventoryTypes: Map<Inventory, number> = new Map([
@@ -45,8 +45,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                     .setText({
                         text: "В начало",
                         color: "green"
-                    })
-                    .toString())
+                    }))
             })
         })
     }],
@@ -58,8 +57,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                     .setText({
                         text: "Назад",
                         color: "green"
-                    })
-                    .toString())
+                    }))
             })
         })
     }],
@@ -71,8 +69,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                     .setText({
                         text: "Выход",
                         color: "red"
-                    })
-                    .toString())
+                    }))
             })
         })
     }],
@@ -84,8 +81,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                     .setText({
                         text: "Вперёд",
                         color: "green"
-                    })
-                    .toString())
+                    }))
             })
         })
     }],
@@ -97,8 +93,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                     .setText({
                         text: "В конец",
                         color: "green"
-                    })
-                    .toString())
+                    }))
             })
         })
     }]
@@ -108,14 +103,15 @@ export class PagesBuilder {
 
     proxy: Proxy;
 
-    windowId = 1;
+    windowId = 999;
     inventoryType = 0; // RangeOf<0, 22>
     inventoryTypeTag: Inventory = "generic_9x1";
     inventorySlots = 9; // RangeOf<1, 63>
 
-    pages: Page[] = [];
+    pages: RawPage[] = [];
     currentPage = 1;
     infinityLoop = true;
+    autoRerenderInterval = 0;
     defaultButtons: DefaultButtonsMap = new Map();
 
     constructor(proxy: Proxy) {
@@ -140,7 +136,7 @@ export class PagesBuilder {
         }
     }
 
-    setPages(pages: Page | Page[]): this {
+    setPages(pages: RawPage | RawPage[]): this {
         pages = Array.isArray(pages) ? pages : [pages];
 
         this.pages = pages;
@@ -148,43 +144,16 @@ export class PagesBuilder {
         return this;
     }
 
-    addPages(pages: Page | Page[]): this {
+    addPages(pages: RawPage | RawPage[]): this {
         this.pages = this.pages.concat(pages);
 
         return this;
     }
 
-    setPage(page: number): this {
+    setPage(page: number): void {
         this.currentPage = page;
 
         this.rerender();
-
-        return this;
-    }
-
-    getPage(pageNumber: number = this.currentPage): Page {
-        const page = this.pages[pageNumber - 1]
-            .clone();
-
-        page.setItems([...this.defaultButtons].map(([, buttonItem]) => buttonItem));
-
-        page.items = page.items.slice(0, this.inventorySlots);
-
-        page.setItems(new Array(36) // 36 = player inventory slots without armor & etc.
-            .fill(null)
-            .map((_, index) => new Item({
-                id: 410,
-                position: this.inventorySlots + index,
-                nbt: new NBT("compound", {
-                    display: new NBT("compound", {
-                        Name: new NBT("string", new RawJSONBuilder()
-                            .setText("")
-                            .toString())
-                    })
-                })
-            })));
-
-        return page;
     }
 
     setDefaultButtons(buttons: Button[]): this {
@@ -207,6 +176,43 @@ export class PagesBuilder {
         this.defaultButtons = new Map(rawButtons);
 
         return this;
+    }
+
+    setAutoRerenderInterval(interval: number): this {
+        this.autoRerenderInterval = interval;
+
+        return this;
+    }
+
+    async getPage(pageNumber: number = this.currentPage): Promise<Page> {
+        const rawPage = this.pages[pageNumber - 1];
+
+        const page = (
+            typeof rawPage === "function" ?
+                await rawPage()
+                :
+                rawPage
+        )
+            .clone();
+
+        page.setItems([...this.defaultButtons].map(([, buttonItem]) => buttonItem));
+
+        page.items = page.items.slice(0, this.inventorySlots);
+
+        page.setItems(new Array(36) // 36 = player inventory slots without armor & etc.
+            .fill(null)
+            .map((_, index) => new Item({
+                id: 410,
+                position: this.inventorySlots + index,
+                nbt: new NBT("compound", {
+                    display: new NBT("compound", {
+                        Name: new NBT("string", new RawJSONBuilder()
+                            .setText(""))
+                    })
+                })
+            })));
+
+        return page;
     }
 
     executeAction(action: ButtonAction): void {
@@ -267,21 +273,21 @@ export class PagesBuilder {
         }
     }
 
-    build(): void {
+    async build(): Promise<void> {
         if (this.pages.length) {
             this.proxy.client.context.openWindow({
                 windowId: this.windowId,
                 inventoryType: this.inventoryType,
-                ...this.getPage()
+                ...await this.getPage()
             });
 
-            const windowClickListener = (context: PacketContext) => {
+            const windowClickListener = async (context: PacketContext) => {
                 const { packet: { slot } } = context;
 
                 if (slot <= this.inventorySlots - 1) {
                     context.setCanceled(true);
 
-                    const { triggers } = this.getPage();
+                    const { triggers } = await this.getPage();
 
                     const trigger = triggers.get(slot);
 
@@ -295,10 +301,26 @@ export class PagesBuilder {
             };
 
             this.proxy.packetManager.on("window_click", windowClickListener);
+
+            const autoRerenderInterval = this.autoRerenderInterval ?
+                setInterval(() => {
+                    if (this.proxy.client.ended && autoRerenderInterval) {
+                        clearInterval(autoRerenderInterval);
+                    }
+
+                    this.rerender();
+                }, this.autoRerenderInterval)
+                :
+                null;
+
             this.proxy.packetManager.once("close_window", (context) => {
                 context.setCanceled(true);
 
                 this.proxy.packetManager.removeListener("window_click", windowClickListener);
+
+                if (autoRerenderInterval) {
+                    clearInterval(autoRerenderInterval);
+                }
 
                 this.proxy.bridge.write("window_click", {
                     windowId: 0,
@@ -312,8 +334,7 @@ export class PagesBuilder {
                         nbt: new NBT("compound", {
                             display: new NBT("compound", {
                                 Name: new NBT("string", new RawJSONBuilder()
-                                    .setText("Proxy Restore Inventory")
-                                    .toString())
+                                    .setText("Proxy Restore Inventory"))
                             })
                         })
                     })
@@ -325,8 +346,8 @@ export class PagesBuilder {
         }
     }
 
-    rerender(): void {
-        const { items } = this.getPage();
+    async rerender(): Promise<void> {
+        const { items } = await this.getPage();
 
         this.proxy.client.write("window_items", {
             windowId: this.windowId,
