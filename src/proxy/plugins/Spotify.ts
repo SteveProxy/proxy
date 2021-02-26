@@ -1,74 +1,80 @@
-import axios, { AxiosInstance } from "axios";
+import axios from "axios";
+import SpotifyAPI from "spotify-web-api-node";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../Proxy";
 import { Plugin } from "./Plugin";
+import { Page, Item, NBT } from "../modules/pagesBuilder/PagesBuilder";
 
 import { db } from "../../DB";
 
-import { generateID } from "../../utils";
+import { generateID, normalizeDuration } from "../../utils";
 
 import { ISpotify } from "../../interfaces";
 
+const NEXT_SONG_ITEM = 392;
+const PREVIOUS_SONG_ITEM = 393;
+
 export class Spotify extends Plugin {
 
-    client: AxiosInstance;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    state: ISpotify;
-    currentPlaying?: any; // Todo
-    getCurrentPlayingInterval?: NodeJS.Timeout;
-    actionbarUpdateInterval?: NodeJS.Timeout;
+    private spotify: SpotifyAPI;
+    private state: ISpotify;
+    private currentPlaying?: any; // todo
+    private getCurrentPlayingInterval?: NodeJS.Timeout;
+    private actionbarUpdateInterval?: NodeJS.Timeout;
+    private switchCooldown = 0;
 
     constructor(proxy: Proxy) {
         super(proxy, {
             name: "spotify",
             description: "Spotify интеграция",
-            prefix: "[§aSpotify§r]"
+            prefix: "§2§lSpotify§r §f|"
         });
 
         this.meta.commands = [
             {
                 name: "auth",
                 handler: this.auth
+            },
+            {
+                name: "gui",
+                handler: this.gui
             }
         ];
 
-        this.client = axios.create({
-            baseURL: "https://api.spotify.com/v1/"
+        this.state = db.get(`plugins.${this.meta.name}`)
+            .value();
+
+        const { clientSecret, clientId, redirectUrl: redirectUri } = this.state;
+
+        this.spotify = new SpotifyAPI({
+            clientId,
+            clientSecret,
+            redirectUri
         });
     }
 
-    async start(): Promise<void> {
-        const state = await db.get(`plugins.${this.meta.name}`)
+    start(): void {
+        const state = db.get(`plugins.${this.meta.name}`)
             .value();
-        const { accessToken, code, expiresIn } = state;
+        const { accessToken, code, expiresIn, refreshToken } = state;
 
         this.state = state;
 
         if (code) {
-            if (accessToken && expiresIn > Date.now()) {
-                this.getUser()
-                    .then(async (username) => {
-                        await db.set(`plugins.${this.meta.name}.username`, username)
-                            .write();
+            this.spotify.setRefreshToken(refreshToken);
 
-                        this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${username}!`);
+            if (accessToken && expiresIn > Date.now()) {
+                this.spotify.setAccessToken(accessToken);
+
+                this.getUser()
+                    .then(() => {
+                        this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.state.username}!`);
 
                         this.getCurrentPlaying();
 
                         this.getCurrentPlayingInterval = setInterval(this.getCurrentPlaying.bind(this), 3 * 1000);
                         this.actionbarUpdateInterval = setInterval(this.actionbarUpdate.bind(this), 1000);
-                    })
-                    .catch((error) => {
-                        switch (error?.response?.status) {
-                            case 400:
-                                this.refreshToken();
-                                break;
-                            default:
-                                this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке информации о пользователе.`);
-                                /*Console.error(error);*/
-                        }
                     });
             } else {
                 this.refreshToken();
@@ -86,7 +92,7 @@ export class Spotify extends Plugin {
                         underlined: true,
                         clickEvent: {
                             action: "open_url",
-                            value: `https://accounts.spotify.com/${this.state.market.toLowerCase()}/authorize?client_id=${this.state.clientId}&state=${generateID(6)}&redirect_uri=${this.state.redirectUrl}&response_type=code&scope=${encodeURIComponent(this.state.scope.join(" "))}`
+                            value: this.spotify.createAuthorizeURL(this.state.scope, generateID(6))
                         }
                     }),
                     new RawJSONBuilder()
@@ -95,41 +101,168 @@ export class Spotify extends Plugin {
         }
     }
 
-    getCurrentPlaying(): void {
-        this.client.get(`/me/player/?access_token=${this.state.accessToken}&market=${this.state.market}`)
-            .then(({ data }) => {
-                if (data.currently_playing_type !== "unknown") {
-                    this.currentPlaying = data;
-                }
-            })
-            .catch((error) => {
-                switch (error?.response?.status) {
-                    case 401:
-                        this.refreshToken();
-                        break;
-                    default:
-                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`);
-                        /*Console.error(error);*/
-                }
-            });
+    private gui(): void {
+        const { code, accessToken } = this.state;
+
+        if (code && accessToken) {
+            if (this.currentPlaying) {
+                this.proxy.client.context.pagesBuilder(this.proxy)
+                    .setInventoryType("generic_9x6")
+                    .addPages(() => {
+                        const { is_playing, progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
+
+                        const getVolume = () => {
+                            const VOLUME_CELLS = 7;
+
+                            const volume = Math.ceil(this.currentPlaying.device.volume_percent / (100 / VOLUME_CELLS));
+                            const placeholder = VOLUME_CELLS - volume;
+
+                            const getNBT = (index: number) => {
+                                index += 1;
+
+                                const CELL_SET_VOLUME = Math.trunc(index / VOLUME_CELLS * 100);
+
+                                return {
+                                    nbt: new NBT("compound", {
+                                        display: new NBT("compound", {
+                                            Name: new NBT("string", new RawJSONBuilder()
+                                                .setText({
+                                                    text: `Текущая громкость §2${this.currentPlaying.device.volume_percent}§f%`,
+                                                    italic: false
+                                                })),
+                                            Lore: new NBT("list", new NBT("string", [
+                                                new RawJSONBuilder()
+                                                    .setText(`§7Нажмите, для того чтобы установить громкость на §2${CELL_SET_VOLUME}§f%`)
+                                            ]))
+                                        })
+                                    }),
+                                    CELL_SET_VOLUME
+                                };
+                            };
+
+                            return [
+                                ...new Array(volume)
+                                    .fill(null)
+                                    .map((_, index) => {
+                                        const { nbt, CELL_SET_VOLUME } = getNBT(index);
+
+                                        return new Item({
+                                            id: 400,
+                                            position: 19 + index,
+                                            nbt,
+                                            onClick: () => this.setVolume(CELL_SET_VOLUME)
+                                        });
+                                    }),
+                                ...new Array(placeholder)
+                                    .fill(null)
+                                    .map((_, index) => {
+                                        index += volume;
+
+                                        const { nbt, CELL_SET_VOLUME } = getNBT(index);
+
+                                        return new Item({
+                                            id: 402,
+                                            position: 19 + index,
+                                            nbt,
+                                            onClick: () => this.setVolume(CELL_SET_VOLUME)
+                                        });
+                                    })
+                            ];
+                        };
+
+                        return new Page()
+                            .setWindowTitle(
+                                new RawJSONBuilder()
+                                    .setText(this.meta.prefix)
+                                    .setExtra(
+                                        new RawJSONBuilder()
+                                            .setText({
+                                                text: ` ${this.state.username}`,
+                                                color: "white"
+                                            })
+                                    )
+                            )
+                            .setItems([
+                                new Item({
+                                    id: 866,
+                                    position: 4,
+                                    nbt: new NBT("compound", {
+                                        display: new NBT("compound", {
+                                            Name: new NBT("string", new RawJSONBuilder()
+                                                .setText({
+                                                    text: `${explicit ? "[§cE§r] " : ""}${name}`,
+                                                    italic: false
+                                                })),
+                                            Lore: new NBT("list", new NBT("string", [
+                                                new RawJSONBuilder()
+                                                    .setText(`§2${artists.join("§f, §2")}`),
+                                                new RawJSONBuilder()
+                                                    .setText(""),
+                                                new RawJSONBuilder()
+                                                    .setText(`§7${normalizeDuration(progress_ms)} §f/ §7${normalizeDuration(duration_ms)}`)
+                                            ]))
+                                        })
+                                    })
+                                }),
+                                new Item({
+                                    id: PREVIOUS_SONG_ITEM,
+                                    position: 2,
+                                    nbt: new NBT("compound", {
+                                        display: new NBT("compound", {
+                                            Name: new NBT("string", new RawJSONBuilder()
+                                                .setText({
+                                                    text: "§cНазад",
+                                                    italic: false
+                                                }))
+                                        })
+                                    }),
+                                    onClick: () => {
+                                        this.skipTo("previous");
+                                    }
+                                }),
+                                new Item({
+                                    id: NEXT_SONG_ITEM,
+                                    position: 6,
+                                    nbt: new NBT("compound", {
+                                        display: new NBT("compound", {
+                                            Name: new NBT("string", new RawJSONBuilder()
+                                                .setText({
+                                                    text: "§2Далее",
+                                                    italic: false
+                                                }))
+                                        })
+                                    }),
+                                    onClick: () => {
+                                        this.skipTo();
+                                    }
+                                }),
+                                ...getVolume()
+                            ]);
+                    })
+                    .setAutoRerenderInterval(1000)
+                    .build();
+            } else {
+                this.proxy.client.context.send(`${this.meta.prefix} §cВ данный момент ничего не играет!`);
+            }
+        } else {
+            this.proxy.client.context.send(`${this.meta.prefix} §cПеред использованием этой команды необходимо авторизоваться!`);
+        }
     }
 
-    actionbarUpdate(): void {
+    private actionbarUpdate(): void {
         let { template: { explicit: templateExplicit, output } } = this.state;
 
         if (this.currentPlaying) {
-            let { is_playing, progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
+            const { is_playing, progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
-            this.currentPlaying.progress_ms += 1000;
-
-            if (is_playing && progress_ms <= duration_ms) {
-                artists = artists.map(({ name }: any) => name);
+            if (is_playing && progress_ms < duration_ms) {
+                this.currentPlaying.progress_ms += 1000;
 
                 output = output.replace("%e", explicit ? templateExplicit : "")
                     .replace("%n", name)
                     .replace("%a", artists.join(", "))
-                    .replace("%p", this.normalizeDuration(progress_ms))
-                    .replace("%d", this.normalizeDuration(duration_ms));
+                    .replace("%p", normalizeDuration(progress_ms))
+                    .replace("%d", normalizeDuration(duration_ms));
 
                 this.proxy.client.context.sendTitle({
                     actionbar: output
@@ -138,46 +271,109 @@ export class Spotify extends Plugin {
         }
     }
 
-    getUser(): Promise<string> {
-        this.proxy.client.context.send(`${this.meta.prefix} Загрузка данных пользователя...`);
+    private getCurrentPlaying(): void {
+        this.spotify.getMyCurrentPlaybackState({
+            market: this.state.market
+        })
+            .then(({ body: data }) => {
+                if (data.item) {
+                    data.item.artists = data.item.artists.map(({ name }: any) => name);
 
-        return this.client.get(`/me?access_token=${this.state.accessToken}`)
-            .then(({ data: { display_name } }) => display_name);
+                    this.currentPlaying = data;
+                }
+            })
+            .catch(({ body: { error: { status, message } } }) => {
+                switch (status) {
+                    case 401:
+                        this.refreshToken();
+                        break;
+                    default:
+                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`);
+                        console.error(message);
+                        break;
+                }
+            });
     }
 
-    async refreshToken(): Promise<void> {
+    private getUser(): Promise<void> {
+        this.proxy.client.context.send(`${this.meta.prefix} Загрузка данных пользователя...`);
+
+        return this.spotify.getMe()
+            .then(({ body: { display_name } }) => {
+                this.state.username = display_name as string;
+
+                db.set(`plugins.${this.meta.name}.username`, display_name)
+                    .write();
+            })
+            .catch(({ body: { error: { status, message } } }) => {
+                switch (status) {
+                    case 401:
+                        this.refreshToken();
+                        break;
+                    default:
+                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке информации о пользователе.`);
+                        console.error(message);
+                        break;
+                }
+            });
+    }
+
+    private skipTo(switchType: "next" | "previous" = "next"): void {
+        if (this.switchCooldown < Date.now()) {
+            this.switchCooldown = Date.now() + 1000;
+
+            this.proxy.client.context.setCooldown([NEXT_SONG_ITEM, PREVIOUS_SONG_ITEM]);
+
+            (
+                switchType === "next" ?
+                    this.spotify.skipToNext()
+                    :
+                    this.spotify.skipToPrevious()
+            )
+                .catch((error) => {
+                    this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при переключении трека!`);
+
+                    console.log(error);
+                });
+        }
+    }
+
+    private setVolume(volume: number): void {
+        this.currentPlaying.device.volume_percent = volume;
+
+        this.spotify.setVolume(volume)
+            .catch((error) => {
+                this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при установки громкости!`);
+
+                console.log(error);
+            });
+    }
+
+    private refreshToken(): void {
         this.proxy.client.context.send(`${this.meta.prefix} Обновление токена...`);
 
-        const postData = `grant_type=${
+        (
             this.state.refreshToken ?
-                "refresh_token"
+                this.spotify.refreshAccessToken()
                 :
-                "authorization_code"
-        }&${
-            this.state.refreshToken ?
-                `refresh_token=${this.state.refreshToken}`
-                :
-                `code=${this.state.code}`
-        }&redirect_uri=${this.state.redirectUrl}`;
-
-        await this.client.post("https://accounts.spotify.com/api/token", postData, {
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                Authorization: `Basic ${Buffer.from(`${this.state.clientId}:${this.state.clientSecret}`).toString("base64")}`
-            }
-        })
-            .then(async ({ data: { access_token, refresh_token, expires_in, scope } }) => {
+                this.spotify.authorizationCodeGrant(this.state.code)
+        )
+            .then(({ body: { access_token, refresh_token, expires_in, scope } }: any) => {
                 scope = scope.split(" ")
                     .sort()
                     .toString();
 
                 if (scope === this.state.scope.sort().toString()) {
-                    await db.set(`plugins.${this.meta.name}.accessToken`, access_token)
+                    this.spotify.setAccessToken(access_token);
+
+                    db.set(`plugins.${this.meta.name}.accessToken`, access_token)
                         .set(`plugins.${this.meta.name}.expiresIn`, Date.now() + expires_in * 1000)
                         .write();
 
                     if (refresh_token) {
-                        await db.set(`plugins.${this.meta.name}.refreshToken`, refresh_token)
+                        this.spotify.setRefreshToken(refresh_token);
+
+                        db.set(`plugins.${this.meta.name}.refreshToken`, refresh_token)
                             .write();
                     }
 
@@ -186,22 +382,22 @@ export class Spotify extends Plugin {
                     this.proxy.client.context.send(`${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`);
                 }
             })
-            .catch(async (error) => {
-                switch (error?.response?.status) {
+            .catch(({ statusCode }) => {
+                switch (statusCode) {
                     case 400:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена, авторизуйтесь заново!`);
 
-                        await this.clearCredentials();
+                        this.clearCredentials();
                         this.start();
                         break;
                     default:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена.`);
-                        /*Console.error(error);*/
+                        break;
                 }
             });
     }
 
-    auth(state: string): void {
+    private auth(state: string): void {
         if (state) {
             axios.post(this.state.redirectUrl, `state=${state}`)
                 .then(async ({ data: { code } }) => {
@@ -223,33 +419,24 @@ export class Spotify extends Plugin {
                             break;
                         default:
                             this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при получении кода авторизации.`);
-                            /*Console.error(error);*/
+                            break;
                     }
                 });
+        } else {
+            this.proxy.client.context.send(`${this.meta.prefix} §cВы не передали код для авторизации.`);
         }
     }
 
-    async clearCredentials(clearCode = true): Promise<void> {
-        await db.set(`plugins.${this.meta.name}.accessToken`, "")
+    private clearCredentials(clearCode = true): void {
+        db.set(`plugins.${this.meta.name}.accessToken`, "")
             .set(`plugins.${this.meta.name}.refreshToken`, "")
             .set(`plugins.${this.meta.name}.expiresIn`, 0)
             .write();
 
         if (clearCode) {
-            await db.set(`plugins.${this.meta.name}.code`, "")
+            db.set(`plugins.${this.meta.name}.code`, "")
                 .write();
         }
-    }
-
-    normalizeDuration(duration: number): string {
-        duration = Math.floor(duration / 1000);
-
-        const minutes = Math.floor((duration %= 3600) / 60);
-        const seconds = duration % 60;
-
-        const pad = (number: number) => number > 9 ? String(number) : `0${number}`;
-
-        return `${pad(minutes)}:${pad(seconds)}`;
     }
 
     stop(): void {

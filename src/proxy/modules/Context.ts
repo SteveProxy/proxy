@@ -5,7 +5,7 @@ import { config } from "../../config";
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { Proxy } from "../Proxy";
 
-import { Title, Tab, IOpenWindow, IClient } from "../../interfaces";
+import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, IClient } from "../../interfaces";
 
 const { bridge: { title } } = config;
 
@@ -42,14 +42,14 @@ export class Context {
         });
     }
 
-    sendTitle(params: Title): void {
-        if (typeof params === "string") {
-            params = {
-                title: params
+    sendTitle(options: SendTitleOptions): void {
+        if (typeof options === "string") {
+            options = {
+                title: options
             };
         }
 
-        const { title, subtitle, actionbar, fadeIn, fadeOut, stay, hide, reset } = params;
+        const { title, subtitle, actionbar, fadeIn, fadeOut, stay, hide, reset } = options;
 
         if (subtitle) {
             this.client.write("title", {
@@ -118,20 +118,10 @@ export class Context {
         }
     }
 
-    sendTab({ header, footer }: Tab): void {
+    sendTab({ header = new RawJSONBuilder().setText(""), footer = new RawJSONBuilder().setText("") }: ISendTabOptions): void {
         this.client.write("playerlist_header", {
-            header: header ?
-                header.toString()
-                :
-                new RawJSONBuilder()
-                    .setText("")
-                    .toString(),
-            footer: footer ?
-                footer.toString()
-                :
-                new RawJSONBuilder()
-                    .setText("")
-                    .toString()
+            header: header.toString(),
+            footer: footer.toString()
         });
     }
 
@@ -139,7 +129,7 @@ export class Context {
         // todo
     }
 
-    openWindow({ windowTitle = new RawJSONBuilder().setText(""), inventoryType = 2, windowId, items }: IOpenWindow): void {
+    openWindow({ windowTitle = new RawJSONBuilder().setText(""), inventoryType = 2, windowId, items }: IOpenWindowOptions): void {
         this.client.write("open_window", {
             windowId,
             inventoryType,
@@ -161,6 +151,17 @@ export class Context {
             item: {
                 present: false
             }
+        });
+    }
+
+    setCooldown(id: number | number[]): void {
+        id = Array.isArray(id) ? id : [id];
+
+        id.forEach((id) => {
+            this.client.write("set_cooldown", {
+                itemID: id,
+                cooldownTicks: 20
+            });
         });
     }
 

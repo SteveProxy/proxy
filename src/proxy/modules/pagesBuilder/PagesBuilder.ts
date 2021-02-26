@@ -44,7 +44,8 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                 Name: new NBT("string", new RawJSONBuilder()
                     .setText({
                         text: "В начало",
-                        color: "green"
+                        color: "green",
+                        italic: false
                     }))
             })
         })
@@ -56,7 +57,8 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                 Name: new NBT("string", new RawJSONBuilder()
                     .setText({
                         text: "Назад",
-                        color: "green"
+                        color: "green",
+                        italic: false
                     }))
             })
         })
@@ -68,7 +70,8 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                 Name: new NBT("string", new RawJSONBuilder()
                     .setText({
                         text: "Выход",
-                        color: "red"
+                        color: "red",
+                        italic: false
                     }))
             })
         })
@@ -80,7 +83,8 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                 Name: new NBT("string", new RawJSONBuilder()
                     .setText({
                         text: "Вперёд",
-                        color: "green"
+                        color: "green",
+                        italic: false
                     }))
             })
         })
@@ -92,7 +96,8 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
                 Name: new NBT("string", new RawJSONBuilder()
                     .setText({
                         text: "В конец",
-                        color: "green"
+                        color: "green",
+                        italic: false
                     }))
             })
         })
@@ -103,7 +108,7 @@ export class PagesBuilder {
 
     proxy: Proxy;
 
-    windowId = 999;
+    windowId = 100;
     inventoryType = 0; // RangeOf<0, 22>
     inventoryTypeTag: Inventory = "generic_9x1";
     inventorySlots = 9; // RangeOf<1, 63>
@@ -281,6 +286,10 @@ export class PagesBuilder {
                 ...await this.getPage()
             });
 
+            const setSlotListener = (context: PacketContext) => {
+                context.setCanceled(true);
+            };
+
             const windowClickListener = async (context: PacketContext) => {
                 const { packet: { slot } } = context;
 
@@ -301,6 +310,7 @@ export class PagesBuilder {
             };
 
             this.proxy.packetManager.on("window_click", windowClickListener);
+            this.proxy.packetManager.on("set_slot", setSlotListener);
 
             const autoRerenderInterval = this.autoRerenderInterval ?
                 setInterval(() => {
@@ -317,6 +327,7 @@ export class PagesBuilder {
                 context.setCanceled(true);
 
                 this.proxy.packetManager.removeListener("window_click", windowClickListener);
+                this.proxy.packetManager.removeListener("set_slot", setSlotListener);
 
                 if (autoRerenderInterval) {
                     clearInterval(autoRerenderInterval);

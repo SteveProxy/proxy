@@ -16,7 +16,7 @@ export class PluginManager {
     private commands: Map<string, (args: []) => void> = new Map();
     private loadedPlugins: any[] = [];
     private isStarted = false;
-    private listener: (context: PacketContext) => void;
+    private readonly listener: (context: PacketContext) => void;
 
     constructor(proxy: Proxy) {
         this.proxy = proxy;
@@ -50,7 +50,7 @@ export class PluginManager {
         }
     }
 
-    enablePlugin(Plugin: ValuesOf<typeof plugins>): void {
+    private enablePlugin(Plugin: ValuesOf<typeof plugins>): void {
         const plugin = new Plugin(this.proxy);
 
         const pluginName = plugin.meta.name;

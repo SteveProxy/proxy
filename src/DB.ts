@@ -1,8 +1,8 @@
 import lowdb from "lowdb";
-import FileAsync from "lowdb/adapters/FileAsync.js";
+import FileSync from "lowdb/adapters/FileSync";
 
 import { IConfig } from "./interfaces";
 
-const adapter = new FileAsync<IConfig>("./config.json");
+const adapter = new FileSync<IConfig>("./config.json");
 
-export const db = await lowdb(adapter);
+export const db = lowdb(adapter);

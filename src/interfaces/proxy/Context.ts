@@ -1,6 +1,6 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-export type Title = ITitle | string;
+export type SendTitleOptions = ITitle | string;
 
 interface ITitle {
     title?: string;
@@ -13,14 +13,14 @@ interface ITitle {
     reset?: boolean;
 }
 
-export type Tab = ITab;
+export type ISendTabOptions = ITab;
 
 interface ITab {
     header?: RawJSONBuilder;
     footer?: RawJSONBuilder;
 }
 
-export interface IOpenWindow {
+export interface IOpenWindowOptions {
     windowId: number;
     inventoryType: number;
     windowTitle?: RawJSONBuilder;
