@@ -14,6 +14,7 @@ import { ISpotify } from "../../interfaces";
 
 const NEXT_SONG_ITEM = 392;
 const PREVIOUS_SONG_ITEM = 393;
+const SONG_ITEM = 866;
 
 export class Spotify extends Plugin {
 
@@ -22,7 +23,7 @@ export class Spotify extends Plugin {
     private currentPlaying?: any; // todo
     private getCurrentPlayingInterval?: NodeJS.Timeout;
     private actionbarUpdateInterval?: NodeJS.Timeout;
-    private switchCooldown = 0;
+    private cooldown = 0;
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -184,13 +185,13 @@ export class Spotify extends Plugin {
                             )
                             .setItems([
                                 new Item({
-                                    id: 866,
+                                    id: SONG_ITEM,
                                     position: 4,
                                     nbt: new NBT("compound", {
                                         display: new NBT("compound", {
                                             Name: new NBT("string", new RawJSONBuilder()
                                                 .setText({
-                                                    text: `${explicit ? "[§cE§r] " : ""}${name}`,
+                                                    text: `${is_playing ? "⏵" : "⏸"} ${explicit ? "[§cE§r] " : ""}${name}`,
                                                     italic: false
                                                 })),
                                             Lore: new NBT("list", new NBT("string", [
@@ -202,7 +203,8 @@ export class Spotify extends Plugin {
                                                     .setText(`§7${normalizeDuration(progress_ms)} §f/ §7${normalizeDuration(duration_ms)}`)
                                             ]))
                                         })
-                                    })
+                                    }),
+                                    onClick: () => this.changePlaybackState()
                                 }),
                                 new Item({
                                     id: PREVIOUS_SONG_ITEM,
@@ -319,10 +321,8 @@ export class Spotify extends Plugin {
     }
 
     private skipTo(switchType: "next" | "previous" = "next"): void {
-        if (this.switchCooldown < Date.now()) {
-            this.switchCooldown = Date.now() + 1000;
-
-            this.proxy.client.context.setCooldown([NEXT_SONG_ITEM, PREVIOUS_SONG_ITEM]);
+        if (this.cooldown < Date.now()) {
+            this.updateCooldown();
 
             (
                 switchType === "next" ?
@@ -339,14 +339,47 @@ export class Spotify extends Plugin {
     }
 
     private setVolume(volume: number): void {
-        this.currentPlaying.device.volume_percent = volume;
+        if (this.currentPlaying.device.volume_percent !== volume) {
+            this.currentPlaying.device.volume_percent = volume;
 
-        this.spotify.setVolume(volume)
-            .catch((error) => {
-                this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при установки громкости!`);
+            this.spotify.setVolume(volume)
+                .catch((error) => {
+                    this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при установки громкости!`);
 
-                console.log(error);
-            });
+                    console.log(error);
+                });
+        }
+    }
+
+    private changePlaybackState(): void {
+        if (this.cooldown < Date.now()) {
+            this.updateCooldown();
+
+            (
+                this.currentPlaying.is_playing ?
+                    this.spotify.pause()
+                    :
+                    this.spotify.play()
+            )
+                .catch((error) => {
+                    this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при изменение состояния воиспроизведения!`);
+
+                    this.currentPlaying.is_playing = !this.currentPlaying.is_playing;
+
+                    console.log(error);
+                });
+
+            this.currentPlaying.is_playing = !this.currentPlaying.is_playing;
+        }
+    }
+
+    private updateCooldown(): void {
+        this.cooldown = Date.now() + 3 * 1000;
+
+        this.proxy.client.context.setCooldown({
+            id: [NEXT_SONG_ITEM, PREVIOUS_SONG_ITEM, SONG_ITEM],
+            cooldown: 3
+        });
     }
 
     private refreshToken(): void {

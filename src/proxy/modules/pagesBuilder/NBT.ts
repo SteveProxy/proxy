@@ -1,5 +1,6 @@
-import { NBTType } from "../../../interfaces";
 import { RawJSONBuilder } from "rawjsonbuilder";
+
+import { NBTType } from "../../../interfaces";
 
 export class NBT {
 
