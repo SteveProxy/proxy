@@ -34,3 +34,10 @@ export interface IItem {
     itemCount?: number;
     nbtData?: any;
 }
+
+export type SetCooldownOptions = ISetCooldownOptions["id"] | ISetCooldownOptions;
+
+export interface ISetCooldownOptions {
+    id: number | number[];
+    cooldown?: number;
+}

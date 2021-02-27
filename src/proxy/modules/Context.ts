@@ -5,7 +5,7 @@ import { config } from "../../config";
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { Proxy } from "../Proxy";
 
-import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, IClient } from "../../interfaces";
+import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, IClient, ISetCooldownOptions, SetCooldownOptions } from "../../interfaces";
 
 const { bridge: { title } } = config;
 
@@ -154,13 +154,22 @@ export class Context {
         });
     }
 
-    setCooldown(id: number | number[]): void {
+    setCooldown(options: SetCooldownOptions): void {
+        options = typeof options === "object" ?
+            options
+            :
+            {
+                id: options
+            };
+
+        let { id, cooldown = 1 } = options as ISetCooldownOptions;
+
         id = Array.isArray(id) ? id : [id];
 
         id.forEach((id) => {
             this.client.write("set_cooldown", {
                 itemID: id,
-                cooldownTicks: 20
+                cooldownTicks: cooldown * 20
             });
         });
     }
