@@ -11,4 +11,8 @@ export class Plugin {
         this.meta = meta;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    start(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    stop(): void {}
 }
