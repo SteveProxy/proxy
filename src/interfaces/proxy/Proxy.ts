@@ -14,7 +14,7 @@ export interface IPacketSwindlerOptions {
     packet: any;
     meta: PacketMeta;
     isFromServer: boolean;
-    send(data: any): void;
+    send: (data: any) => unknown;
 }
 
 export interface IPacketContextOptions {
