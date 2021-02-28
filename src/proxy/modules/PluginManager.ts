@@ -58,7 +58,7 @@ export class PluginManager {
 
         if (commands) {
             commands.forEach(({ name: commandName, handler }) => {
-                this.commands.set(`${pluginName} ${commandName}`, (args) => {
+                this.commands.set((`${pluginName} ${commandName}`).trim(), (args) => {
                     handler.apply(plugin, args);
                 });
             });
@@ -74,9 +74,7 @@ export class PluginManager {
         this.proxy.client.removeListener("chat", this.listener);
 
         this.loadedPlugins.forEach((plugin) => {
-            if (plugin.stop) {
-                plugin.stop();
-            }
+            plugin.stop();
 
             console.log(`[Steve] PluginManager: ${plugin.meta.name} stopped!`);
         });
