@@ -1,15 +1,17 @@
 import { Item } from "../components/Item";
 
+import { minecraftData } from "../../../../utils";
+
 import { ISliderOptions } from "../../../../interfaces";
 
-export function Slider({ cellsCount, initialPosition, value, nbt, onClick }: ISliderOptions): Item[] {
-    const cells = Math.ceil(value / (100 / cellsCount));
+export function Slider({ cellsCount, initialPosition, value, nbt, onClick, max }: ISliderOptions): Item[] {
+    const cells = Math.ceil(value / (max / cellsCount));
     const placeholders = cellsCount - cells;
 
     const getNBT = (index: number) => {
         index += 1;
 
-        const CELL_VALUE = Math.trunc(index / cellsCount * 100);
+        const CELL_VALUE = Math.trunc(index / cellsCount * max);
 
         return {
             nbt: nbt(CELL_VALUE),
@@ -24,7 +26,7 @@ export function Slider({ cellsCount, initialPosition, value, nbt, onClick }: ISl
                 const { nbt, CELL_VALUE } = getNBT(index);
 
                 return new Item({
-                    id: 400,
+                    id: minecraftData.findItemOrBlockByName("lime_stained_glass_pane").id,
                     position: initialPosition + index,
                     nbt,
                     onClick: () => onClick(CELL_VALUE)
@@ -38,7 +40,7 @@ export function Slider({ cellsCount, initialPosition, value, nbt, onClick }: ISl
                 const { nbt, CELL_VALUE } = getNBT(index);
 
                 return new Item({
-                    id: 402,
+                    id: minecraftData.findItemOrBlockByName("gray_stained_glass_pane").id,
                     position: initialPosition + index,
                     nbt,
                     onClick: () => onClick(CELL_VALUE)

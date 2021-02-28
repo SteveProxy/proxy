@@ -1,5 +1,7 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
+import { minecraftData } from "../../../utils";
+
 import { Proxy } from "../../Proxy";
 import { PacketContext } from "../packetManager/PacketManager";
 
@@ -38,7 +40,7 @@ const inventoryTypes: Map<Inventory, number> = new Map([
 
 const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = new Map([
     ["first", {
-        id: 439,
+        id: minecraftData.findItemOrBlockByName("spectral_arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
                 Name: new NBT("string", new RawJSONBuilder()
@@ -51,7 +53,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         })
     }],
     ["back", {
-        id: 262,
+        id: minecraftData.findItemOrBlockByName("arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
                 Name: new NBT("string", new RawJSONBuilder()
@@ -64,7 +66,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         })
     }],
     ["stop", {
-        id: 166,
+        id: minecraftData.findItemOrBlockByName("barrier").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
                 Name: new NBT("string", new RawJSONBuilder()
@@ -77,7 +79,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         })
     }],
     ["next", {
-        id: 262,
+        id: minecraftData.findItemOrBlockByName("arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
                 Name: new NBT("string", new RawJSONBuilder()
@@ -90,7 +92,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         })
     }],
     ["last", {
-        id: 436,
+        id: minecraftData.findItemOrBlockByName("spectral_arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
                 Name: new NBT("string", new RawJSONBuilder()
@@ -207,7 +209,7 @@ export class PagesBuilder {
         page.setItems(new Array(36) // 36 = player inventory slots without armor & etc.
             .fill(null)
             .map((_, index) => new Item({
-                id: 410,
+                id: minecraftData.findItemOrBlockByName("black_stained_glass_pane").id,
                 position: this.inventorySlots + index,
                 nbt: new NBT("compound", {
                     display: new NBT("compound", {
@@ -340,7 +342,7 @@ export class PagesBuilder {
                     action: 1,
                     mode: 0,
                     item: new Item({
-                        id: 166,
+                        id: 1,
                         position: 1,
                         nbt: new NBT("compound", {
                             display: new NBT("compound", {

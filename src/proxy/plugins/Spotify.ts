@@ -8,13 +8,13 @@ import { Page, Item, NBT, Slider } from "../modules/pagesBuilder/PagesBuilder";
 
 import { db } from "../../DB";
 
-import { generateID, normalizeDuration } from "../../utils";
+import { generateID, minecraftData, normalizeDuration } from "../../utils";
 
 import { ISpotify } from "../../interfaces";
 
-const NEXT_SONG_ITEM = 392;
-const PREVIOUS_SONG_ITEM = 393;
-const SONG_ITEM = 866;
+const NEXT_SONG_ITEM = minecraftData.findItemOrBlockByName("green_stained_glass").id;
+const PREVIOUS_SONG_ITEM = minecraftData.findItemOrBlockByName("red_stained_glass").id;
+const SONG_ITEM = minecraftData.findItemOrBlockByName("name_tag").id;
 
 export class Spotify extends Plugin {
 
@@ -110,7 +110,7 @@ export class Spotify extends Plugin {
                 this.proxy.client.context.pagesBuilder(this.proxy)
                     .setInventoryType("generic_9x6")
                     .addPages(() => {
-                        const { is_playing, progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
+                        const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
                         return new Page()
                             .setWindowTitle(
@@ -183,18 +183,40 @@ export class Spotify extends Plugin {
                                 ...Slider({
                                     cellsCount: 7,
                                     initialPosition: 19,
-                                    value: this.currentPlaying.device.volume_percent,
+                                    value: volume_percent,
+                                    max: 100,
                                     onClick: (value) => this.setVolume(value),
                                     nbt: (value) => new NBT("compound", {
                                         display: new NBT("compound", {
                                             Name: new NBT("string", new RawJSONBuilder()
                                                 .setText({
-                                                    text: `Текущая громкость §2${this.currentPlaying.device.volume_percent}§f%`,
+                                                    text: `Текущая громкость §2${volume_percent}§f%`,
                                                     italic: false
                                                 })),
                                             Lore: new NBT("list", new NBT("string", [
                                                 new RawJSONBuilder()
                                                     .setText(`§7Нажмите, для того чтобы установить громкость на §2${value}§f%`)
+                                            ]))
+                                        })
+                                    })
+                                }),
+                                // eslint-disable-next-line new-cap
+                                ...Slider({
+                                    cellsCount: 7,
+                                    initialPosition: 37,
+                                    value: progress_ms,
+                                    max: duration_ms,
+                                    onClick: (value) => this.seekTo(value),
+                                    nbt: (value) => new NBT("compound", {
+                                        display: new NBT("compound", {
+                                            Name: new NBT("string", new RawJSONBuilder()
+                                                .setText({
+                                                    text: `Текущая позиция §2${normalizeDuration(progress_ms)}`,
+                                                    italic: false
+                                                })),
+                                            Lore: new NBT("list", new NBT("string", [
+                                                new RawJSONBuilder()
+                                                    .setText(`§7Нажмите, для того чтобы установить позицию на §2${normalizeDuration(value)}`)
                                             ]))
                                         })
                                     })
@@ -244,14 +266,13 @@ export class Spotify extends Plugin {
                     this.currentPlaying = data;
                 }
             })
-            .catch(({ body: { error: { status, message } } }) => {
-                switch (status) {
+            .catch(({ statusCode }) => {
+                switch (statusCode) {
                     case 401:
                         this.refreshToken();
                         break;
                     default:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`);
-                        console.error(message);
                         break;
                 }
             });
@@ -292,6 +313,19 @@ export class Spotify extends Plugin {
             )
                 .catch((error) => {
                     this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при переключении трека!`);
+
+                    console.log(error);
+                });
+        }
+    }
+
+    private seekTo(position: number): void {
+        if (this.currentPlaying.progress_ms !== position) {
+            this.currentPlaying.progress_ms = position;
+
+            this.spotify.seek(position)
+                .catch((error) => {
+                    this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при изменении позиции воиспроизведения!`);
 
                     console.log(error);
                 });

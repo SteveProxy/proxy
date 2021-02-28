@@ -1,7 +1,7 @@
 import { Login } from "./Login";
 import { Listening } from "./Listening";
 
-export const events = [
+export const events = <const>[
     Login,
     Listening
 ];

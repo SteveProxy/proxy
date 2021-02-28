@@ -1,3 +1,7 @@
+import _minecraftData from "minecraft-data";
+
+import { config } from "./config";
+
 import { IParsedIP } from "./interfaces";
 
 export function parseIP(ip: string): IParsedIP {
@@ -38,3 +42,5 @@ export function normalizeDuration(duration: number): string {
 
     return `${pad(minutes)}:${pad(seconds)}`;
 }
+
+export const minecraftData = _minecraftData(config.proxy.version as string);
