@@ -1,6 +1,6 @@
-import { Item, NBT, Page } from "../../proxy/modules/pagesBuilder/PagesBuilder";
+import { Item, NBT, Page } from "../../../proxy/modules/pagesBuilder/PagesBuilder";
 // import { RangeOf } from "../Utils";
-import { PacketContext } from "../../proxy/modules/packetManager/PacketManager";
+import { PacketContext } from "../../../proxy/modules/packetManager/PacketManager";
 import { RawJSONBuilder } from "rawjsonbuilder";
 import { IItem } from "./Context";
 
@@ -36,3 +36,5 @@ export interface IPage {
     items?: IItem[];
     triggers?: Map<number, (context: PacketContext) => unknown>;
 }
+
+export * from "./gui/Slider";

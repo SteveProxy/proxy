@@ -1,9 +1,9 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Item } from "./Item";
-import { PacketContext } from "../packetManager/PacketManager";
+import { PacketContext } from "../../packetManager/PacketManager";
 
-import { IItem, IPage } from "../../../interfaces";
+import { IItem, IPage } from "../../../../interfaces";
 
 export class Page {
 

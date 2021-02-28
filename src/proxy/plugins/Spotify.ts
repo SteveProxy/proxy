@@ -4,7 +4,7 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../Proxy";
 import { Plugin } from "./Plugin";
-import { Page, Item, NBT } from "../modules/pagesBuilder/PagesBuilder";
+import { Page, Item, NBT, Slider } from "../modules/pagesBuilder/PagesBuilder";
 
 import { db } from "../../DB";
 
@@ -112,65 +112,6 @@ export class Spotify extends Plugin {
                     .addPages(() => {
                         const { is_playing, progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
-                        const getVolume = () => {
-                            const VOLUME_CELLS = 7;
-
-                            const volume = Math.ceil(this.currentPlaying.device.volume_percent / (100 / VOLUME_CELLS));
-                            const placeholder = VOLUME_CELLS - volume;
-
-                            const getNBT = (index: number) => {
-                                index += 1;
-
-                                const CELL_SET_VOLUME = Math.trunc(index / VOLUME_CELLS * 100);
-
-                                return {
-                                    nbt: new NBT("compound", {
-                                        display: new NBT("compound", {
-                                            Name: new NBT("string", new RawJSONBuilder()
-                                                .setText({
-                                                    text: `Текущая громкость §2${this.currentPlaying.device.volume_percent}§f%`,
-                                                    italic: false
-                                                })),
-                                            Lore: new NBT("list", new NBT("string", [
-                                                new RawJSONBuilder()
-                                                    .setText(`§7Нажмите, для того чтобы установить громкость на §2${CELL_SET_VOLUME}§f%`)
-                                            ]))
-                                        })
-                                    }),
-                                    CELL_SET_VOLUME
-                                };
-                            };
-
-                            return [
-                                ...new Array(volume)
-                                    .fill(null)
-                                    .map((_, index) => {
-                                        const { nbt, CELL_SET_VOLUME } = getNBT(index);
-
-                                        return new Item({
-                                            id: 400,
-                                            position: 19 + index,
-                                            nbt,
-                                            onClick: () => this.setVolume(CELL_SET_VOLUME)
-                                        });
-                                    }),
-                                ...new Array(placeholder)
-                                    .fill(null)
-                                    .map((_, index) => {
-                                        index += volume;
-
-                                        const { nbt, CELL_SET_VOLUME } = getNBT(index);
-
-                                        return new Item({
-                                            id: 402,
-                                            position: 19 + index,
-                                            nbt,
-                                            onClick: () => this.setVolume(CELL_SET_VOLUME)
-                                        });
-                                    })
-                            ];
-                        };
-
                         return new Page()
                             .setWindowTitle(
                                 new RawJSONBuilder()
@@ -238,7 +179,26 @@ export class Spotify extends Plugin {
                                         this.skipTo();
                                     }
                                 }),
-                                ...getVolume()
+                                // eslint-disable-next-line new-cap
+                                ...Slider({
+                                    cellsCount: 7,
+                                    initialPosition: 19,
+                                    value: this.currentPlaying.device.volume_percent,
+                                    onClick: (value) => this.setVolume(value),
+                                    nbt: (value) => new NBT("compound", {
+                                        display: new NBT("compound", {
+                                            Name: new NBT("string", new RawJSONBuilder()
+                                                .setText({
+                                                    text: `Текущая громкость §2${this.currentPlaying.device.volume_percent}§f%`,
+                                                    italic: false
+                                                })),
+                                            Lore: new NBT("list", new NBT("string", [
+                                                new RawJSONBuilder()
+                                                    .setText(`§7Нажмите, для того чтобы установить громкость на §2${value}§f%`)
+                                            ]))
+                                        })
+                                    })
+                                })
                             ]);
                     })
                     .setAutoRerenderInterval(1000)

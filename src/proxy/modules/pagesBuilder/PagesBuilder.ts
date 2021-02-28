@@ -3,9 +3,9 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 import { Proxy } from "../../Proxy";
 import { PacketContext } from "../packetManager/PacketManager";
 
-import { Page } from "./Page";
-import { Item } from "./Item";
-import { NBT } from "./NBT";
+import { Page } from "./components/Page";
+import { Item } from "./components/Item";
+import { NBT } from "./components/NBT";
 
 import { Inventory, Button, DefaultButtonsMap, IItemConstructor, ButtonAction, RawPage /*RangeOf*/ } from "../../../interfaces";
 
@@ -366,6 +366,8 @@ export class PagesBuilder {
         });
     }
 }
+
+export * from "./gui";
 
 export {
     Page,
