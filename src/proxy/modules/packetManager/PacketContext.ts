@@ -49,16 +49,4 @@ export class PacketContext {
             this.proxy.client.write(this.meta.name, this.packet);
         }
     }
-
-    sendToClient(): void {
-        this.proxy.client.write(this.meta.name, this.packet);
-    }
-
-    sendToServer(): void {
-        this.proxy.bridge.write(this.meta.name, this.packet);
-    }
-
-    getProxy(): Proxy {
-        return this.proxy;
-    }
 }
