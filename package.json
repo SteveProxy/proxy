@@ -17,7 +17,7 @@
     "axios": "^0.21.1",
     "js-string-compression": "^1.0.1",
     "lowdb": "^1.0.0",
-    "minecraft-data": "^2.77.0",
+    "minecraft-data": "^2.78.0",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.23.1",
     "rawjsonbuilder": "^1.1.2",
