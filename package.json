@@ -15,6 +15,7 @@
   "license": "CC-BY-NC-ND-4.0",
   "dependencies": {
     "axios": "^0.21.1",
+    "chunk": "0.0.3",
     "js-string-compression": "^1.0.1",
     "lowdb": "^1.0.0",
     "minecraft-data": "^2.78.0",
@@ -24,6 +25,7 @@
     "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {
+    "@types/chunk": "0.0.0",
     "@types/lowdb": "^1.0.9",
     "@types/node": "^14.14.31",
     "@types/spotify-web-api-node": "^5.0.0",

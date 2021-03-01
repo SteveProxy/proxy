@@ -1,3 +1,4 @@
+import chunk from "chunk";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { minecraftData } from "../../../utils";
@@ -9,7 +10,7 @@ import { Page } from "./components/Page";
 import { Item } from "./components/Item";
 import { NBT } from "./components/NBT";
 
-import { Inventory, Button, DefaultButtonsMap, IItemConstructor, ButtonAction, RawPage /*RangeOf*/ } from "../../../interfaces";
+import { Inventory, Button, DefaultButtonsMap, IItemConstructor, IAutoGeneratePagesOptions, ButtonAction, RawPage /*RangeOf*/ } from "../../../interfaces";
 
 // https://wiki.vg/Inventory
 const inventoryTypes: Map<Inventory, number> = new Map([
@@ -126,21 +127,17 @@ export class PagesBuilder {
     }
 
     setInventoryType(type: Inventory): this {
-        if (this.inventoryTypeTag === "generic_9x1") {
-            const inventoryType = [...inventoryTypes].findIndex(([inventoryType]) => inventoryType === type);
+        const inventoryType = [...inventoryTypes].findIndex(([inventoryType]) => inventoryType === type);
 
-            if (inventoryType >= 0 && inventoryType <= 22) {
-                this.inventoryType = inventoryType; // as RangeOf<0, 22>
-                this.inventoryTypeTag = type;
-                this.inventorySlots = inventoryTypes.get(type) as number; // RangeOf<1, 63>
-            } else {
-                throw new Error(`Invalid inventory type ${type}.`);
-            }
-
-            return this;
+        if (inventoryType >= 0 && inventoryType <= 22) {
+            this.inventoryType = inventoryType; // as RangeOf<0, 22>
+            this.inventoryTypeTag = type;
+            this.inventorySlots = inventoryTypes.get(type) as number; // RangeOf<1, 63>
         } else {
-            throw new Error("Inventory type already set! Create new builder.");
+            throw new Error(`Invalid inventory type ${type}.`);
         }
+
+        return this;
     }
 
     setPages(pages: RawPage | RawPage[]): this {
@@ -153,6 +150,28 @@ export class PagesBuilder {
 
     addPages(pages: RawPage | RawPage[]): this {
         this.pages = this.pages.concat(pages);
+
+        return this;
+    }
+
+    autoGeneratePages({ items, windowTitle }: IAutoGeneratePagesOptions): this {
+        if (this.inventorySlots >= 27 && this.inventorySlots <= 54 && this.inventorySlots % 9 === 0) {
+            const chunkedItems = chunk(items, 7 * (this.inventorySlots / 9));
+
+            this.setPages(
+                chunkedItems.map((items) => new Page({
+                    windowTitle
+                })
+                    .setItems(
+                        items.map((item, index) => new Item({
+                            ...item,
+                            position: 10 + index + (2 * Math.trunc(index / 7)) // 2 = offset, 7 = items count on line
+                        }))
+                    ))
+            );
+        } else {
+            throw new Error("Unsupported inventory type for this method!");
+        }
 
         return this;
     }

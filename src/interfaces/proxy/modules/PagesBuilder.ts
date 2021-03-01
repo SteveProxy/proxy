@@ -37,4 +37,9 @@ export interface IPage {
     triggers?: Map<number, (context: PacketContext) => unknown>;
 }
 
+export interface IAutoGeneratePagesOptions {
+    items: Omit<IItemConstructor, "position">[];
+    windowTitle?: IPage["windowTitle"];
+}
+
 export * from "./gui/Slider";
