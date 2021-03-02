@@ -116,14 +116,15 @@ export class Skins extends Plugin {
         return url === this.currentSkin;
     }
 
-    private async changeSkin({ url, slim }: IChangeSkinOptions): Promise<void> {
+    private changeSkin({ url, slim }: IChangeSkinOptions): void {
+        this.builder.executeAction("stop");
         if (this.cooldown < Date.now()) {
             if (url !== this.currentSkin) {
                 this.updateCooldown();
 
                 this.proxy.client.context.send(`${this.meta.prefix} Установка скина...`);
 
-                await axios.post(API_ENDPOINT, {
+                axios.post(API_ENDPOINT, {
                     url,
                     variant: slim ? "slim" : "classic"
                 }, {
