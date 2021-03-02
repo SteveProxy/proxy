@@ -4,6 +4,10 @@ import { config } from "./config";
 
 import { IParsedIP } from "./interfaces";
 
+export const TEXTURES_ENDPOINT = "http://textures.minecraft.net/texture/";
+
+export const minecraftData = _minecraftData(config.proxy.version as string);
+
 export function parseIP(ip: string): IParsedIP {
     const parsedIP = ip.match(/([^]+):([\d]+)/);
 
@@ -42,5 +46,3 @@ export function normalizeDuration(duration: number): string {
 
     return `${pad(minutes)}:${pad(seconds)}`;
 }
-
-export const minecraftData = _minecraftData(config.proxy.version as string);
