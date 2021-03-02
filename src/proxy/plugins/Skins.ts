@@ -117,7 +117,6 @@ export class Skins extends Plugin {
     }
 
     private changeSkin({ url, slim }: IChangeSkinOptions): void {
-        this.builder.executeAction("stop");
         if (this.cooldown < Date.now()) {
             if (url !== this.currentSkin) {
                 this.updateCooldown();
