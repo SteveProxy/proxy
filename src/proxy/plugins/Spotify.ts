@@ -368,11 +368,13 @@ export class Spotify extends Plugin {
     }
 
     private updateCooldown(): void {
-        this.cooldown = Date.now() + 3 * 1000;
+        const COOLDOWN = 3;
+
+        this.cooldown = Date.now() + COOLDOWN * 1000;
 
         this.proxy.client.context.setCooldown({
             id: [NEXT_SONG_ITEM, PREVIOUS_SONG_ITEM, SONG_ITEM],
-            cooldown: 3
+            cooldown: COOLDOWN
         });
     }
 
