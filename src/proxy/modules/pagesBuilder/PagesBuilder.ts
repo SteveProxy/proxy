@@ -122,6 +122,8 @@ export class PagesBuilder {
     autoRerenderInterval = 0;
     defaultButtons: DefaultButtonsMap = new Map();
 
+    stopped = false;
+
     constructor(proxy: Proxy) {
         this.proxy = proxy;
     }
@@ -268,9 +270,7 @@ export class PagesBuilder {
 
                 break;
             case "stop":
-                this.proxy.client.write("close_window", {
-                    windowId: this.windowId
-                });
+                this.stop();
                 break;
             case "next":
                 if (this.currentPage === this.pages.length) {
@@ -299,6 +299,26 @@ export class PagesBuilder {
         }
     }
 
+    stop(): void {
+        this.stopped = true;
+
+        this.proxy.client.write("close_window", {
+            windowId: this.windowId
+        });
+
+        this.proxy.packetManager.packetSwindler({
+            meta: {
+                name: "close_window",
+                state: this.proxy.client.state
+            },
+            packet: {
+                windowId: this.windowId
+            },
+            isFromServer: false,
+            send: () => null
+        });
+    }
+
     async build(): Promise<void> {
         if (this.pages.length) {
             this.proxy.client.context.openWindow({
@@ -314,6 +334,9 @@ export class PagesBuilder {
             const windowClickListener = async (context: PacketContext) => {
                 const { packet: { slot } } = context;
 
+                this.proxy.client.context.dropItem();
+                this.rerender();
+
                 if (slot <= this.inventorySlots - 1) {
                     context.setCanceled(true);
 
@@ -325,9 +348,6 @@ export class PagesBuilder {
                         trigger(context);
                     }
                 }
-
-                this.proxy.client.context.dropItem();
-                this.rerender();
             };
 
             this.proxy.packetManager.on("window_click", windowClickListener);
@@ -379,12 +399,14 @@ export class PagesBuilder {
     }
 
     async rerender(): Promise<void> {
-        const { items } = await this.getPage();
+        if (!this.stopped) {
+            const { items } = await this.getPage();
 
-        this.proxy.client.write("window_items", {
-            windowId: this.windowId,
-            items
-        });
+            this.proxy.client.write("window_items", {
+                windowId: this.windowId,
+                items
+            });
+        }
     }
 }
 
