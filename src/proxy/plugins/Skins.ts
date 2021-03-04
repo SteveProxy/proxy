@@ -109,7 +109,17 @@ export class Skins extends Plugin {
                     })
                 })
             }))
-        });
+        })
+            .setDefaultButtons([{
+                back: {
+                    position: 45
+                }
+            },
+            {
+                next: {
+                    position: 53
+                }
+            }]);
     }
 
     private isSelected(url: string) {
