@@ -118,6 +118,7 @@ export class PagesBuilder {
 
     pages: RawPage[] = [];
     currentPage = 1;
+    paginationFormat = "§7%c / %m";
     infinityLoop = true;
     autoRerenderInterval = 0;
     defaultButtons: DefaultButtonsMap = new Map();
@@ -212,6 +213,18 @@ export class PagesBuilder {
         return this;
     }
 
+    setPaginationFormat(template: string): this {
+        this.paginationFormat = template;
+
+        return this;
+    }
+
+    setInfinityLoop(infinityLoop = true): this {
+        this.infinityLoop = infinityLoop;
+
+        return this;
+    }
+
     async getPage(pageNumber: number = this.currentPage): Promise<Page> {
         const rawPage = this.pages[pageNumber - 1];
 
@@ -223,7 +236,32 @@ export class PagesBuilder {
         )
             .clone();
 
-        page.setItems([...this.defaultButtons].map(([, buttonItem]) => buttonItem));
+        if (this.pages.length > 1) {
+            const pagination = new NBT("list", new NBT("string", [
+                new RawJSONBuilder()
+                    .setText(""),
+                new RawJSONBuilder()
+                    .setText(
+                        this.paginationFormat.replace("%c", String(this.currentPage))
+                            .replace("%m", String(this.pages.length))
+                    )
+            ]));
+
+            page.setItems(
+                [...this.defaultButtons].filter(([action]) => !this.infinityLoop ?
+                    !(
+                        (this.currentPage === 1 && (action === "first" || action === "back")) ||
+                        (this.currentPage === this.pages.length && (action === "last" || action === "next"))
+                    )
+                    :
+                    true)
+                    .map(([, buttonItem]) => {
+                        buttonItem.nbtData.value.display.value.Lore = pagination;
+
+                        return buttonItem;
+                    })
+            );
+        }
 
         page.items = page.items.slice(0, this.inventorySlots);
 
