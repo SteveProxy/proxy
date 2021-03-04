@@ -18,7 +18,7 @@
     "chunk": "0.0.3",
     "js-string-compression": "^1.0.1",
     "lowdb": "^1.0.0",
-    "minecraft-data": "^2.78.0",
+    "minecraft-data": "^2.79.0",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.23.2",
     "rawjsonbuilder": "^1.1.2",
