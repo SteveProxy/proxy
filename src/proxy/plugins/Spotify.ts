@@ -305,26 +305,26 @@ export class Spotify extends Plugin {
         if (this.cooldown < Date.now()) {
             this.updateCooldown();
 
-            if (switchType === "previous" && this.currentPlaying.progress_ms > 10 * 1000) {
-                this.seekTo(0);
-            } else {
-                (
-                    switchType === "next" ?
-                        this.spotify.skipToNext()
-                        :
-                        this.spotify.skipToPrevious()
-                )
-                    .catch(({ statusCode }) => {
-                        switch(statusCode) {
-                            case 403:
-                                this.seekTo(0);
-                                break;
-                            default:
-                                this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при переключении трека!`);
-                                break;
-                        }
-                    });
+            if (switchType === "previous" && (this.currentPlaying.progress_ms > 10 * 1000 || this.currentPlaying.actions.disallows.skipping_prev)) {
+                return this.seekTo(0);
             }
+
+            (
+                switchType === "next" ?
+                    this.spotify.skipToNext()
+                    :
+                    this.spotify.skipToPrevious()
+            )
+                .catch(({ statusCode }) => {
+                    switch(statusCode) {
+                        case 403:
+                            this.seekTo(0);
+                            break;
+                        default:
+                            this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при переключении трека!`);
+                            break;
+                    }
+                });
         }
     }
 
