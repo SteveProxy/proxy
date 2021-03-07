@@ -7,14 +7,16 @@ import { minecraftData, TEXTURES_ENDPOINT } from "../../utils";
 import { Plugin } from "./Plugin";
 import { Proxy } from "../Proxy";
 
-import { ISkin, IChangeSkinOptions } from "../../interfaces/proxy/plugins/Skins";
+import { ISkin, IChangeSkinOptions } from "../../interfaces/proxy/plugins/Skin";
 import { NBT } from "../modules/pagesBuilder/components/NBT";
 import { PacketContext } from "../modules/packetManager/PacketContext";
 
-const API_ENDPOINT = "https://api.minecraftservices.com/minecraft/profile/skins";
+const MINECRAFT_API_ENDPOINT = "https://api.minecraftservices.com/minecraft/profile/skins";
+const ASHCON_API_ENDPOINT = "https://api.ashcon.app/mojang/v2";
+
 const PLAYER_HEAD = minecraftData.findItemOrBlockByName("player_head").id;
 
-export class Skins extends Plugin {
+export class Skin extends Plugin {
 
     cooldown = 0;
     currentSkin = "";
@@ -23,15 +25,20 @@ export class Skins extends Plugin {
 
     constructor(proxy: Proxy) {
         super(proxy, {
-            name: "skins",
-            description: "Библиотека скинов лаунчера",
-            prefix: "§5§lSkins§r §f|"
+            name: "skin",
+            description: "Менеджер скинов",
+            prefix: "§5§lSkin§r §f|"
         });
 
         this.meta.commands = [
             {
                 name: "",
                 handler: this.gui
+            },
+            {
+                name: "steal",
+                hasArguments: true,
+                handler: this.steal
             }
         ];
     }
@@ -110,16 +117,42 @@ export class Skins extends Plugin {
                 })
             }))
         })
-            .setDefaultButtons([{
+            .setDefaultButtons({
                 back: {
                     position: 45
-                }
-            },
-            {
+                },
                 next: {
                     position: 53
                 }
-            }]);
+            });
+    }
+
+    private steal(nickname: string): void {
+        this.proxy.client.context.send(`${this.meta.prefix} Загрузка информации об игроке ${nickname}...`);
+
+        axios.get(`${ASHCON_API_ENDPOINT}/user/${nickname}`)
+            .then(({ data: { textures: { skin: { url }, slim } } }) => {
+                this.changeSkin({
+                    url,
+                    slim
+                });
+            })
+            .catch((error) => {
+                switch (error?.response?.status) {
+                    case 404:
+                        this.proxy.client.context.send(`${this.meta.prefix} §cИгрока с никнеймом §f${nickname} §cне существует!`);
+
+                        break;
+                    case 429:
+                        this.proxy.client.context.send(`${this.meta.prefix} §cИнформация об игроке недоступна! Попробуйте позже.`);
+
+                        break;
+                    case 500:
+                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка на сервере с информацией! Попробуйте позже.`);
+
+                        break;
+                }
+            });
     }
 
     private isSelected(url: string) {
@@ -133,7 +166,7 @@ export class Skins extends Plugin {
 
                 this.proxy.client.context.send(`${this.meta.prefix} Установка скина...`);
 
-                axios.post(API_ENDPOINT, {
+                axios.post(MINECRAFT_API_ENDPOINT, {
                     url,
                     variant: slim ? "slim" : "classic"
                 }, {
