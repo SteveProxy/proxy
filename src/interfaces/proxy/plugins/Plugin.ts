@@ -8,4 +8,5 @@ export interface IPlugin {
 export interface ICommand {
     name: string;
     handler(...args: any): void;
+    hasArguments?: boolean;
 }

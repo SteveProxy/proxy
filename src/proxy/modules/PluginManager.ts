@@ -5,7 +5,7 @@ import { PacketContext } from "./packetManager/PacketManager";
 import { plugins } from "../plugins";
 import { config } from "../../config";
 
-import { ValuesOf } from "../../interfaces";
+import { CommandsMap, ValuesOf } from "../../interfaces";
 
 const { bridge: { prefix } } = config;
 
@@ -13,7 +13,7 @@ export class PluginManager {
 
     proxy: Proxy;
 
-    private commands: Map<string, (args: []) => void> = new Map();
+    private commands: CommandsMap = new Map();
     private loadedPlugins: any[] = [];
     private isStarted = false;
     private readonly listener: (context: PacketContext) => void;
@@ -23,13 +23,18 @@ export class PluginManager {
 
         this.listener = (context: PacketContext) => {
             if (!context.isFromServer) {
-                this.commands.forEach((execute, name) => {
+                this.commands.forEach(({ handler, hasArguments }, name) => {
                     const commandPrefix = `${prefix}${name}`;
 
-                    if (context.packet.message.startsWith(commandPrefix)) {
+                    if (
+                        hasArguments ?
+                            context.packet.message.startsWith(commandPrefix)
+                            :
+                            context.packet.message === commandPrefix
+                    ) {
                         context.setCanceled(true);
 
-                        execute(
+                        handler(
                             context.packet.message.replace(commandPrefix, "")
                                 .trim()
                                 .split(" ")
@@ -57,9 +62,12 @@ export class PluginManager {
         const commands = plugin.meta.commands;
 
         if (commands) {
-            commands.forEach(({ name: commandName, handler }) => {
-                this.commands.set((`${pluginName} ${commandName}`).trim(), (args) => {
-                    handler.apply(plugin, args);
+            commands.forEach(({ name: commandName, handler, hasArguments = false }) => {
+                this.commands.set((`${pluginName} ${commandName}`).trim(), {
+                    handler: (args) => {
+                        handler.apply(plugin, args);
+                    },
+                    hasArguments
                 });
             });
         }

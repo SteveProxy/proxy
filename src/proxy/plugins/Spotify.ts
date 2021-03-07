@@ -35,6 +35,7 @@ export class Spotify extends Plugin {
         this.meta.commands = [
             {
                 name: "auth",
+                hasArguments: true,
                 handler: this.auth
             },
             {
