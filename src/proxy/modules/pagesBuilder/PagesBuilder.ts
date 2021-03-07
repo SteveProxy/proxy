@@ -10,7 +10,7 @@ import { Page } from "./components/Page";
 import { Item } from "./components/Item";
 import { NBT } from "./components/NBT";
 
-import { Inventory, Button, DefaultButtonsMap, IItemConstructor, IAutoGeneratePagesOptions, ButtonAction, RawPage /*RangeOf*/ } from "../../../interfaces";
+import { Inventory, Buttons, DefaultButtonsMap, IItemConstructor, IAutoGeneratePagesOptions, ButtonAction, RawPage /*RangeOf*/ } from "../../../interfaces";
 
 // https://wiki.vg/Inventory
 const inventoryTypes: Map<Inventory, number> = new Map([
@@ -185,22 +185,22 @@ export class PagesBuilder {
         this.rerender();
     }
 
-    setDefaultButtons(buttons: Button[]): this {
-        const rawButtons: [ButtonAction, Item][] = buttons.map((button: Button) => {
-            const [[buttonAction, { onClick, ...buttonObject }]] = Object.entries(button) as [ButtonAction, any][];
+    setDefaultButtons(buttons: Buttons): this {
+        const rawButtons: [ButtonAction, Item][] = (Object.entries(buttons) as [ButtonAction, any][])
+            .map(([buttonAction, { onClick, ...buttonObject }]) => [
+                buttonAction,
+                new Item({
+                    onClick: () => {
+                        if (onClick) {
+                            onClick();
+                        }
 
-            return [buttonAction, new Item({
-                onClick: () => {
-                    if (onClick) {
-                        onClick();
-                    }
-
-                    this.executeAction(buttonAction);
-                },
-                ...defaultButtons.get(buttonAction as ButtonAction),
-                ...buttonObject
-            })];
-        });
+                        this.executeAction(buttonAction);
+                    },
+                    ...defaultButtons.get(buttonAction as ButtonAction),
+                    ...buttonObject
+                })
+            ]);
 
         this.defaultButtons = new Map(rawButtons);
 

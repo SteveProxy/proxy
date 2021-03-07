@@ -1,9 +1,9 @@
 import { Core } from "./Core";
 import { Spotify } from "./Spotify";
-import { Skins } from "./Skins";
+import { Skin } from "./Skin";
 
 export const plugins = <const>[
     Core,
     Spotify,
-    Skins
+    Skin
 ];

@@ -20,7 +20,7 @@ export interface IItemConstructor {
 export type NBTType = "byte" | "short" | "int" | "long" | "float" | "double" | "byteArray" | "string" | "list" | "compound" | "intArray" | "longArray";
 
 export type ButtonAction = "first" | "back" | "stop" | "next" | "last";
-export type Button = {
+export type Buttons = {
     [key in ButtonAction]?: {
         id?: number;
         position: number; // RangeOf<0, 63>

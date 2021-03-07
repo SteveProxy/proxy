@@ -79,7 +79,7 @@ export class Core extends Plugin {
                     }
                 }))
         ])
-            .setDefaultButtons([{ next: { position: 1 } }])
+            .setDefaultButtons({ next: { position: 1 } })
             .build();
     }
 }
