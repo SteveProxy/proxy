@@ -71,7 +71,7 @@ export class Spotify extends Plugin {
 
                 this.getUser()
                     .then(() => {
-                        this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.state.username}!`);
+                        this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.state.username}.`);
 
                         this.getCurrentPlaying();
 
@@ -83,7 +83,7 @@ export class Spotify extends Plugin {
             }
         } else {
             this.proxy.client.context.send(new RawJSONBuilder()
-                .setText(`${this.meta.prefix} Для работы плагина необходима авторизация. `)
+                .setText(`${this.meta.prefix} Для работы плагина необходима авторизация.`)
                 .setExtra([
                     new RawJSONBuilder()
                         .setText("["),
@@ -262,7 +262,9 @@ export class Spotify extends Plugin {
         })
             .then(({ body: data }) => {
                 if (data.item) {
-                    data.item.artists = data.item.artists.map(({ name }: any) => name);
+                    if ("artists" in data.item) {
+                        data.item.artists = data.item.artists.map(({ name }: any) => name);
+                    }
 
                     this.currentPlaying = data;
                 }
