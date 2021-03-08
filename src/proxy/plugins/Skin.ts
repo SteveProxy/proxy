@@ -18,9 +18,9 @@ const PLAYER_HEAD = minecraftData.findItemOrBlockByName("player_head").id;
 
 export class Skin extends Plugin {
 
-    cooldown = 0;
-    currentSkin = "";
-    builder = this.proxy.client.context.pagesBuilder(this.proxy)
+    private cooldown = 0;
+    private currentSkin = "";
+    private builder = this.proxy.client.context.pagesBuilder(this.proxy)
         .setInventoryType("generic_9x6");
 
     constructor(proxy: Proxy) {
