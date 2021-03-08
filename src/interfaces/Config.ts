@@ -1,6 +1,7 @@
 import { ServerOptions } from "minecraft-protocol";
 
 import { ISpotify } from "./proxy/plugins/Spotify";
+import { IDiscord } from "./proxy/plugins/Discord";
 
 export interface IConfig {
     proxy: ServerOptions;
@@ -12,6 +13,7 @@ export interface IConfig {
         ignoredPackets: string[];
     };
     plugins: {
-        spotify: ISpotify
+        spotify: ISpotify;
+        discord: IDiscord;
     };
 }

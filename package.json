@@ -16,6 +16,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "chunk": "0.0.3",
+    "discord-rpc": "^3.2.0",
     "js-string-compression": "^1.0.1",
     "lowdb": "^1.0.0",
     "minecraft-data": "^2.79.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/chunk": "0.0.0",
+    "@types/discord-rpc": "^3.0.5",
     "@types/lowdb": "^1.0.9",
     "@types/node": "^14.14.31",
     "@types/spotify-web-api-node": "^5.0.1",
