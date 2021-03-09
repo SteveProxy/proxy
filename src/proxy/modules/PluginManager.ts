@@ -16,40 +16,37 @@ export class PluginManager {
     private commands: CommandsMap = new Map();
     private loadedPlugins: any[] = [];
     private isStarted = false;
-    private readonly listener: (context: PacketContext) => void;
 
     constructor(proxy: Proxy) {
         this.proxy = proxy;
-
-        this.listener = (context: PacketContext) => {
-            if (!context.isFromServer) {
-                this.commands.forEach(({ handler, hasArguments }, name) => {
-                    const commandPrefix = `${prefix}${name}`;
-
-                    if (
-                        hasArguments ?
-                            context.packet.message.startsWith(commandPrefix)
-                            :
-                            context.packet.message === commandPrefix
-                    ) {
-                        context.setCanceled(true);
-
-                        handler(
-                            context.packet.message.replace(commandPrefix, "")
-                                .trim()
-                                .split(" ")
-                        );
-                    }
-                });
-            }
-        };
     }
 
     start(): void {
         if (!this.isStarted) {
             plugins.forEach((Plugin) => this.enablePlugin(Plugin));
 
-            this.proxy.packetManager.on("chat", this.listener);
+            this.proxy.packetManager.on("chat", (context: PacketContext) => {
+                if (!context.isFromServer) {
+                    this.commands.forEach(({ handler, hasArguments }, name) => {
+                        const commandPrefix = `${prefix}${name}`;
+
+                        if (
+                            hasArguments ?
+                                context.packet.message.startsWith(commandPrefix)
+                                :
+                                context.packet.message === commandPrefix
+                        ) {
+                            context.setCanceled(true);
+
+                            handler(
+                                context.packet.message.replace(commandPrefix, "")
+                                    .trim()
+                                    .split(" ")
+                            );
+                        }
+                    });
+                }
+            });
 
             this.isStarted = true;
         }
@@ -74,17 +71,9 @@ export class PluginManager {
 
         plugin.start();
         this.loadedPlugins.push(plugin);
-
-        console.log(`[Steve] PluginManager: ${plugin.meta.name} started!`);
     }
 
     stop(): void {
-        this.proxy.client.removeListener("chat", this.listener);
-
-        this.loadedPlugins.forEach((plugin) => {
-            plugin.stop();
-
-            console.log(`[Steve] PluginManager: ${plugin.meta.name} stopped!`);
-        });
+        this.loadedPlugins.forEach((plugin) => plugin.stop());
     }
 }

@@ -44,7 +44,7 @@ export class Proxy {
         this.bridge = createClient({
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             ...parseIP(ip), // @ts-ignore Invalid lib types
-            ...(await this.getSession()),
+            ...await this.getSession(),
             version,
             hideErrors
         }) as IClient;
@@ -122,6 +122,7 @@ export class Proxy {
 
         if (channel === "client") {
             this.pluginManager.stop();
+            this.packetManager.stop();
         }
     }
 
