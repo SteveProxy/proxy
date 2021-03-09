@@ -109,21 +109,21 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
 
 export class PagesBuilder {
 
-    proxy: Proxy;
+    private proxy: Proxy;
 
-    windowId = 100;
-    inventoryType = 0; // RangeOf<0, 22>
-    inventoryTypeTag: Inventory = "generic_9x1";
-    inventorySlots = 9; // RangeOf<1, 63>
+    private windowId = 100;
+    private inventoryType = 0; // RangeOf<0, 22>
+    private inventoryTypeTag: Inventory = "generic_9x1";
+    private inventorySlots = 9; // RangeOf<1, 63>
 
-    pages: RawPage[] = [];
-    currentPage = 1;
-    paginationFormat = "§7%c / %m";
-    infinityLoop = true;
-    autoRerenderInterval = 0;
-    defaultButtons: DefaultButtonsMap = new Map();
+    private pages: RawPage[] = [];
+    private currentPage = 1;
+    private paginationFormat = "§7%c / %m";
+    private infinityLoop = true;
+    private autoRerenderInterval = 0;
+    private defaultButtons: DefaultButtonsMap = new Map();
 
-    stopped = false;
+    private stopped = false;
 
     constructor(proxy: Proxy) {
         this.proxy = proxy;
