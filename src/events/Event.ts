@@ -1,8 +1,8 @@
-export class Event {
+export class Event<T> {
 
-    name: string;
+    name: T;
 
-    constructor(name: string) {
+    constructor(name: T) {
         this.name = name;
     }
 

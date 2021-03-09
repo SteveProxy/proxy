@@ -1,5 +1,13 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
+import { Proxy } from "../../../proxy/Proxy";
+import { IClient } from "../Client";
+
+export interface IContext {
+    proxy: Proxy;
+    client: IClient;
+}
+
 export type SendTitleOptions = ITitle | string;
 
 interface ITitle {

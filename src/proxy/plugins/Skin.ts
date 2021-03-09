@@ -20,7 +20,7 @@ export class Skin extends Plugin {
 
     private cooldown = 0;
     private currentSkin = "";
-    private builder = this.proxy.client.context.pagesBuilder(this.proxy)
+    private builder = this.proxy.client.context.pagesBuilder()
         .setInventoryType("generic_9x6");
 
     constructor(proxy: Proxy) {

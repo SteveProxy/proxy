@@ -31,7 +31,7 @@ export class Core extends Plugin {
     }
 
     test(): void {
-        const builder = this.proxy.client.context.pagesBuilder(this.proxy);
+        const builder = this.proxy.client.context.pagesBuilder();
 
         builder.setPages([
             new Page()

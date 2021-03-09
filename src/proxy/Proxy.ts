@@ -1,5 +1,5 @@
-import { createClient, Server, states } from "minecraft-protocol";
 import minecraftPath from "minecraft-path";
+import { createClient, Server, states } from "minecraft-protocol";
 
 import { Context } from "./modules/Context";
 import { PacketManager } from "./modules/packetManager/PacketManager";
@@ -15,24 +15,26 @@ export class Proxy {
 
     client: IClient;
     protected server: Server;
-    protected clientClosed: boolean;
+    protected clientClosed = false;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     bridge: IClient;
-    protected bridgeClosed: boolean;
+    protected bridgeClosed = false;
 
     packetManager: PacketManager;
     pluginManager: PluginManager;
 
     constructor({ server, client, config }: IProxyOptions) {
+        client.context = new Context({
+            client,
+            proxy: this
+        });
+        
         this.config = config;
 
         this.client = client;
         this.server = server;
-
-        this.bridgeClosed = false;
-        this.clientClosed = false;
 
         this.packetManager = new PacketManager(this);
         this.pluginManager = new PluginManager(this);
@@ -49,7 +51,10 @@ export class Proxy {
             hideErrors
         }) as IClient;
 
-        this.bridge.context = new Context(this.bridge);
+        this.bridge.context = new Context({
+            client: this.bridge,
+            proxy: this
+        });
 
         this.start();
 
@@ -143,4 +148,6 @@ export class Proxy {
     }
 }
 
-export { PacketManager };
+export {
+    PacketManager
+};

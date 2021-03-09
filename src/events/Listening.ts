@@ -4,7 +4,7 @@ import { Event } from "./Event";
 
 import { IClient } from "../interfaces";
 
-export class Listening extends Event {
+export class Listening extends Event<"listening"> {
 
     constructor() {
         super("listening");

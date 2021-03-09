@@ -5,16 +5,18 @@ import { config } from "../../config";
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { Proxy } from "../Proxy";
 
-import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, IClient, ISetCooldownOptions, SetCooldownOptions } from "../../interfaces";
+import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, IClient, ISetCooldownOptions, SetCooldownOptions, IContext } from "../../interfaces";
 
 const { bridge: { title } } = config;
 
 export class Context {
 
     client: IClient;
+    proxy: Proxy;
 
-    constructor(client: IClient) {
+    constructor({ client, proxy }: IContext) {
         this.client = client;
+        this.proxy = proxy;
     }
 
     end(reason: string): void {
@@ -174,7 +176,7 @@ export class Context {
         });
     }
 
-    pagesBuilder(proxy: Proxy): PagesBuilder {
-        return new PagesBuilder(proxy);
+    pagesBuilder(): PagesBuilder {
+        return new PagesBuilder(this.proxy);
     }
 }

@@ -108,7 +108,7 @@ export class Spotify extends Plugin {
 
         if (code && accessToken) {
             if (this.currentPlaying) {
-                this.proxy.client.context.pagesBuilder(this.proxy)
+                this.proxy.client.context.pagesBuilder()
                     .setInventoryType("generic_9x6")
                     .addPages(() => {
                         const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;

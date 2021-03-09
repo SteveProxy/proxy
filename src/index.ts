@@ -1,9 +1,8 @@
 import { createServer } from "minecraft-protocol";
 
-import { Context } from "./proxy/modules/Context";
-
 import { events } from "./events";
 import { config } from "./config";
+import { IClient } from "./interfaces";
 
 const { proxy } = config;
 
@@ -15,11 +14,5 @@ events.forEach((Event) => {
     const { name, handler } = new Event();
 
     // @ts-ignore
-    server.on(name, (client) => {
-        if (client?.username) {
-            client.context = new Context(client);
-        }
-
-        handler(client, server);
-    });
+    server.on(name, (client: IClient) => handler(client, server));
 });
