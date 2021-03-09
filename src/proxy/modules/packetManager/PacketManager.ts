@@ -49,6 +49,10 @@ export class PacketManager extends EventEmitter {
             }
         }
     }
+
+    stop(): void {
+        this.removeAllListeners();
+    }
 }
 
 export interface PacketManager {
@@ -57,4 +61,6 @@ export interface PacketManager {
     once(event: string | symbol, listener: (context: PacketContext) => void): this;
 }
 
-export { PacketContext };
+export {
+    PacketContext
+};
