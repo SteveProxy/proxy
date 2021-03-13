@@ -25,7 +25,7 @@ export class Discord extends Plugin {
                 largeImageKey: "minecraft",
                 largeImageText: `Minecraft ${config.proxy.version}`,
                 smallImageKey: "steve",
-                smallImageText: "SteveProxy",
+                smallImageText: `SteveProxy | ${this.proxy.client.username}`,
                 details: config.bridge.connect,
                 startTimestamp: Date.now()
             });
