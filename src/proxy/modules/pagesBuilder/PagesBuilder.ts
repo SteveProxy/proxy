@@ -109,7 +109,7 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
 
 export class PagesBuilder {
 
-    private proxy: Proxy;
+    readonly proxy: Proxy;
 
     private windowId = 100;
     private inventoryType = 0; // RangeOf<0, 22>
