@@ -1,8 +1,8 @@
-import { Item, NBT, Page } from "../../../proxy/modules/pagesBuilder/PagesBuilder";
+import { Item, NBT, Page } from "../../../../proxy/modules/pagesBuilder/PagesBuilder";
 // import { RangeOf } from "../Utils";
-import { PacketContext } from "../../../proxy/modules/packetManager/PacketManager";
+import { PacketContext } from "../../../../proxy/modules/packetManager/PacketManager";
 import { RawJSONBuilder } from "rawjsonbuilder";
-import { IItem } from "./Context";
+import { IItem } from "../Context";
 
 export type RawPage = Page | (() => Page) | (() => Promise<Page>);
 
