@@ -15,7 +15,7 @@ export class Login extends Event<"login"> {
         super("login");
     }
 
-    async handler(client: IClient, server: Server): Promise<void> {
+    handler(client: IClient, server: Server): void {
         const { uuid, username } = client;
 
         const proxy = new Proxy({ server, client, config });
@@ -28,6 +28,6 @@ export class Login extends Event<"login"> {
             return proxy.client.context.end("Вас нет в белом списке сервера!"); // kick_disconnect doesnt work on 1.16.5
         }
 
-        await proxy.connect(connect);
+        proxy.connect(connect);
     }
 }
