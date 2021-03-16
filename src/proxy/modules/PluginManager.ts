@@ -1,6 +1,7 @@
 import { Proxy } from "../Proxy";
 
 import { PacketContext } from "./packetManager/PacketManager";
+import { ChatManager } from "./chatManager/ChatManager";
 
 import { plugins } from "../plugins";
 import { config } from "../../config";
@@ -17,6 +18,11 @@ export class PluginManager {
     private loadedPlugins: any[] = [];
     private isStarted = false;
 
+    private chatManager = new ChatManager()
+        .onFallback(() => {
+            this.proxy.client.context.send(`${ChatManager.label} §cВремя действия этой страницы истекло, вызовите команду заново.`);
+        });
+
     constructor(proxy: Proxy) {
         this.proxy = proxy;
     }
@@ -27,6 +33,8 @@ export class PluginManager {
 
             this.proxy.packetManager.on("chat", (context: PacketContext) => {
                 if (!context.isFromServer) {
+                    this.chatManager.middleware(context);
+
                     this.commands.forEach(({ handler, hasArguments }, name) => {
                         const commandPrefix = `${prefix}${name}`;
 

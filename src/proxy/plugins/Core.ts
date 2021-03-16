@@ -28,6 +28,28 @@ export class Core extends Plugin {
             header: new RawJSONBuilder()
                 .parse(`${config.bridge.title}\n§r`)
         });
+
+        this.proxy.client.context.send(
+            new RawJSONBuilder()
+                .setText({
+                    text: "тест",
+                    clickEvent: {
+                        action: "run_command",
+                        value: "/help"
+                    }
+                })
+        );
+
+        this.proxy.client.context.chatBuilder()
+            .setPagesHeader("Шапка")
+            .setPagesFooter("Футер")
+            .setPages([
+                new RawJSONBuilder()
+                    .setText("Страница"),
+                new RawJSONBuilder()
+                    .setText("Страница")
+            ])
+            .build();
     }
 
     test(): void {

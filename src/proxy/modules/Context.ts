@@ -2,8 +2,9 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { config } from "../../config";
 
-import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { Proxy } from "../Proxy";
+import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
+import { ChatBuilder } from "./chatManager/ChatBuilder";
 
 import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, IClient, ISetCooldownOptions, SetCooldownOptions, IContext } from "../../interfaces";
 
@@ -178,5 +179,9 @@ export class Context {
 
     pagesBuilder(): PagesBuilder {
         return new PagesBuilder(this.proxy);
+    }
+
+    chatBuilder(): ChatBuilder {
+        return new ChatBuilder(this.proxy);
     }
 }
