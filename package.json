@@ -22,7 +22,7 @@
     "minecraft-data": "^2.79.0",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.23.3",
-    "rawjsonbuilder": "^1.1.2",
+    "rawjsonbuilder": "^1.1.5",
     "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {
