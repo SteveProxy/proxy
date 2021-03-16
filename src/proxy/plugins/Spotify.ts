@@ -240,7 +240,7 @@ export class Spotify extends Plugin {
         if (this.currentPlaying) {
             const { is_playing, progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
-            if (is_playing && progress_ms < duration_ms) {
+            if (is_playing && progress_ms < duration_ms + 1000) {
                 this.currentPlaying.progress_ms += 1000;
 
                 output = output.replace("%e", explicit ? templateExplicit : "")
