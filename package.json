@@ -18,7 +18,7 @@
     "chunk": "0.0.3",
     "discord-rpc": "^3.2.0",
     "lowdb": "^1.0.0",
-    "minecraft-data": "^2.79.0",
+    "minecraft-data": "^2.80.0",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.23.3",
     "rawjsonbuilder": "^1.1.5",
