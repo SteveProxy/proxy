@@ -57,16 +57,16 @@ export class PluginManager {
                                 [];
 
                             if (handlerArgs.length >= argsLength) {
-                                handler(
-                                    context.packet.message.replace(commandPrefix, "")
+                                handler([
+                                    ...context.packet.message.replace(commandPrefix, "")
                                         .trim()
                                         .split(" ")
                                         .slice(0, argsLength),
                                     name === "help" ?
-                                        this.plugins
+                                        [...this.plugins.values()]
                                         :
                                         undefined
-                                );
+                                ]);
                             } else {
                                 this.proxy.client.context.send(`${this.plugins.get(pluginName).meta.prefix} §cКоманде не передан нужный аргумент!`);
                             }
