@@ -37,8 +37,10 @@ export class Skin extends Plugin {
             },
             {
                 name: "steal",
-                hasArguments: true,
-                handler: this.steal
+                handler: this.steal,
+                args: [
+                    "Никнейм игрока"
+                ]
             }
         ];
     }
