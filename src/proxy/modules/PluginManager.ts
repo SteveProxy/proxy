@@ -82,12 +82,14 @@ export class PluginManager {
     private enablePlugin(Plugin: ValuesOf<typeof plugins>): void {
         const plugin = new Plugin(this.proxy);
 
-        const pluginName = plugin.meta.name;
-        const commands = plugin.meta.commands;
+        const { name: pluginName, commands, ignorePluginPrefix } = plugin.meta;
 
         if (commands) {
             commands.forEach(({ name: commandName, handler, args = [] }) => {
-                this.commands.set((`${pluginName} ${commandName}`).trim(), {
+                const commandPrefix = (`${!ignorePluginPrefix ? pluginName : ""} ${commandName}`)
+                    .trim();
+
+                this.commands.set(commandPrefix, {
                     handler: (args) => {
                         handler.apply(plugin, args);
                     },
