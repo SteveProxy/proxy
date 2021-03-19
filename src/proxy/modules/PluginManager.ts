@@ -6,7 +6,7 @@ import { ChatManager } from "./chatManager/ChatManager";
 import { plugins } from "../plugins";
 import { config } from "../../config";
 
-import { CommandsMap, ValuesOf } from "../../interfaces";
+import { CommandsMap, PluginsMap, ValuesOf } from "../../interfaces";
 
 const { bridge: { prefix } } = config;
 
@@ -15,7 +15,7 @@ export class PluginManager {
     proxy: Proxy;
 
     private commands: CommandsMap = new Map();
-    private loadedPlugins: any[] = [];
+    private plugins: PluginsMap = new Map();
     private isStarted = false;
 
     private chatManager = new ChatManager()
@@ -35,22 +35,41 @@ export class PluginManager {
                 if (!context.isFromServer) {
                     this.chatManager.middleware(context);
 
-                    this.commands.forEach(({ handler, hasArguments }, name) => {
+                    this.commands.forEach(({ handler, args, pluginName }, name) => {
                         const commandPrefix = `${prefix}${name}`;
+                        const argsLength = (args as string[]).length;
 
                         if (
-                            hasArguments ?
+                            argsLength ?
                                 context.packet.message.startsWith(commandPrefix)
                                 :
                                 context.packet.message === commandPrefix
                         ) {
                             context.setCanceled(true);
 
-                            handler(
-                                context.packet.message.replace(commandPrefix, "")
-                                    .trim()
+                            const trimmedMessage = context.packet.message.replace(commandPrefix, "")
+                                .trim();
+                            const handlerArgs = trimmedMessage !== "" ?
+                                trimmedMessage
                                     .split(" ")
-                            );
+                                    .slice(0, argsLength)
+                                :
+                                [];
+
+                            if (handlerArgs.length >= argsLength) {
+                                handler(
+                                    context.packet.message.replace(commandPrefix, "")
+                                        .trim()
+                                        .split(" ")
+                                        .slice(0, argsLength),
+                                    name === "help" ?
+                                        this.plugins
+                                        :
+                                        undefined
+                                );
+                            } else {
+                                this.proxy.client.context.send(`${this.plugins.get(pluginName).meta.prefix} §cКоманде не передан нужный аргумент!`);
+                            }
                         }
                     });
                 }
@@ -67,21 +86,23 @@ export class PluginManager {
         const commands = plugin.meta.commands;
 
         if (commands) {
-            commands.forEach(({ name: commandName, handler, hasArguments = false }) => {
+            commands.forEach(({ name: commandName, handler, args = [] }) => {
                 this.commands.set((`${pluginName} ${commandName}`).trim(), {
                     handler: (args) => {
                         handler.apply(plugin, args);
                     },
-                    hasArguments
+                    args,
+                    pluginName
                 });
             });
         }
 
         plugin.start();
-        this.loadedPlugins.push(plugin);
+        this.plugins.set(pluginName, plugin);
     }
 
     stop(): void {
-        this.loadedPlugins.forEach((plugin) => plugin.stop());
+        [...this.plugins.values()]
+            .forEach((plugin) => plugin.stop());
     }
 }
