@@ -340,6 +340,10 @@ export class ChatBuilder {
         }
     }
 
+    get triggerCommandPrefix(): string {
+        return `${ChatManager.prefix} ${this.id}`;
+    }
+
     build(): void {
         this.setPage(this.currentPage);
 
