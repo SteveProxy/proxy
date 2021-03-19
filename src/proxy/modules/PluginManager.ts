@@ -12,7 +12,7 @@ const { bridge: { prefix } } = config;
 
 export class PluginManager {
 
-    proxy: Proxy;
+    readonly proxy: Proxy;
 
     private commands: CommandsMap = new Map();
     private plugins: PluginsMap = new Map();
