@@ -13,6 +13,7 @@ const { bridge: { prefix } } = config;
 export class PluginManager {
 
     readonly proxy: Proxy;
+    static readonly prefix = prefix;
 
     private commands: CommandsMap = new Map();
     private plugins: PluginsMap = new Map();
