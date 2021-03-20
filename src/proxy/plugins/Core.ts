@@ -2,9 +2,12 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../Proxy";
 import { Plugin } from "./Plugin";
+import { PluginManager } from "../modules/PluginManager";
 import { Item, NBT, Page } from "../modules/pagesBuilder/PagesBuilder";
 
 import { config } from "../../config";
+
+import { ICommand, Page as ChatPage } from "../../interfaces";
 
 export class Core extends Plugin {
 
@@ -12,13 +15,20 @@ export class Core extends Plugin {
         super(proxy, {
             name: "core",
             description: "Ядро",
-            prefix: ""
+            prefix: "§3§lCore§r §f|",
+            ignorePluginPrefix: true
         });
 
         this.meta.commands = [
             {
                 name: "test",
+                description: "Тестовая команда",
                 handler: this.test
+            },
+            {
+                name: "help",
+                description: "Список доступных команд",
+                handler: this.help
             }
         ];
     }
@@ -48,6 +58,73 @@ export class Core extends Plugin {
                     .setText("Страница"),
                 new RawJSONBuilder()
                     .setText("Страница")
+            ])
+            .build();
+    }
+
+    help(plugins: any[]): void {
+        plugins = plugins.filter(({ meta: { hidden, commands } }) => !hidden && commands.length);
+
+        const builder = this.proxy.client.context.chatBuilder();
+
+        builder.setPagesHeader(`${config.bridge.title} | Список доступных команд`)
+            .setPages([
+                new RawJSONBuilder()
+                    .setExtra(
+                        plugins.map(({ meta: { name, description, prefix } }, index) => {
+                            builder.addTriggers({
+                                name,
+                                callback: () => builder.setPage(index + 2)
+                            });
+
+                            return new RawJSONBuilder()
+                                .setText({
+                                    text: `${prefix} ${description}${index + 1 < plugins.length ? "\n" : ""}`,
+                                    hoverEvent: {
+                                        action: "show_text",
+                                        contents: new RawJSONBuilder()
+                                            .setText("§7Нажмите, чтобы посмотреть доступные команды плагина.")
+                                    },
+                                    clickEvent: {
+                                        action: "run_command",
+                                        value: `${builder.triggerCommandPrefix} ${name}`
+                                    }
+                                });
+                        })
+                    ),
+                // eslint-disable-next-line array-callback-return
+                ...plugins.map(({ meta: { name: pluginName, description, prefix, commands, ignorePluginPrefix } }) => new RawJSONBuilder()
+                    .setExtra([
+                        new RawJSONBuilder()
+                            .setText(`${prefix} ${description}\n\n`),
+                        // eslint-disable-next-line array-callback-return
+                        ...commands.map(({ name: commandName, hidden, args = [], description }: ICommand, index: number) => {
+                            if (!hidden) {
+                                const command = (`${PluginManager.prefix}${!ignorePluginPrefix ? `${pluginName} ${commandName}` : commandName}`)
+                                    .trim();
+
+                                args = args.map((arg) => `§7<§r${arg}§7>§r`);
+
+                                return new RawJSONBuilder()
+                                    .setExtra([
+                                        new RawJSONBuilder()
+                                            .setText({
+                                                text: `${command}${args.length ? ` ${args}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`,
+                                                hoverEvent: {
+                                                    action: "show_text",
+                                                    contents: new RawJSONBuilder()
+                                                        .setText(`§7Нажмите, чтобы ${args.length ? "вставить команду в чат" : "вызвать команду"}.`)
+                                                },
+                                                clickEvent: {
+                                                    action: args.length ? "suggest_command" : "run_command",
+                                                    value: command
+                                                }
+                                            })
+                                    ]);
+                            }
+                        })
+                    ]))
+                    .filter(Boolean) as ChatPage[]
             ])
             .build();
     }
