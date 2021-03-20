@@ -1,6 +1,5 @@
 import { ChatBuilder } from "./ChatBuilder";
-
-import { config } from "../../../config";
+import { PluginManager } from "../PluginManager";
 
 import { BuildersStorage, FallbackHandler, ITrigger, Middleware, StringButton } from "../../../interfaces";
 import { PacketContext } from "../packetManager/PacketContext";
@@ -10,7 +9,7 @@ const buildersStorage: BuildersStorage = new Map();
 class ChatManager {
 
     fallbackHandler: FallbackHandler;
-    static prefix = `${config.bridge.prefix}chatmanager`;
+    static prefix = `${PluginManager.prefix}chatmanager`;
     static label = "§3§lChatManager§r §f|"
 
     get middleware(): Middleware {
