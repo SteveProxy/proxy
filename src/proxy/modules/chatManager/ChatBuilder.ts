@@ -111,7 +111,7 @@ export class ChatBuilder {
         return this;
     }
 
-    setDefaultButtons(buttons: Button[] = ["first", "back", "stop", "next", "last"]): this {
+    setDefaultButtons(buttons: Button[] = ["first", "back", "next", "last"]): this {
         const defaultButtons: DefaultTextButtonsMap = new Map([
             ["first", "⏪"],
             ["back", "◀"],
@@ -182,12 +182,15 @@ export class ChatBuilder {
                 );
         }
 
+        const tab = new RawJSONBuilder()
+            .setText("\n");
+
         if (Object.keys(this.header.message).length) {
             page = new RawJSONBuilder()
                 .setExtra([
                     this.header,
-                    new RawJSONBuilder()
-                        .setText("\n\n"),
+                    tab,
+                    tab,
                     page
                 ]);
         }
@@ -198,10 +201,10 @@ export class ChatBuilder {
         const defaultButtonsSize = this.defaultButtons.size;
 
         if (footerLength || defaultButtonsSize) {
-            page.addExtra(
-                new RawJSONBuilder()
-                    .setText("\n\n")
-            );
+            page.addExtra([
+                tab,
+                tab
+            ]);
 
             const defaultButtons = [...this.defaultButtons].filter(([, buttonAction]) => !this.infinityLoop ?
                 !(
@@ -232,7 +235,7 @@ export class ChatBuilder {
                             .replace("%m", String(this.pages.length))
                     }§r`),
                 ...[
-                    (defaultButtons.length && this.pages.length > 1 && footerLength) || this.paginationFormat ?
+                    (defaultButtons.length && this.pages.length > 1 && footerLength) || (!defaultButtons.length && this.paginationFormat) ?
                         new RawJSONBuilder()
                             .setText(" §7•§r ")
                         :
@@ -245,6 +248,13 @@ export class ChatBuilder {
                 page.addExtra(this.footer);
             }
         }
+
+        page = new RawJSONBuilder()
+            .setExtra([
+                tab,
+                page,
+                tab
+            ]);
 
         return page;
     }
