@@ -33,10 +33,12 @@ export class Skin extends Plugin {
         this.meta.commands = [
             {
                 name: "",
+                description: "Библиотека скинов лаунчера",
                 handler: this.gui
             },
             {
                 name: "steal",
+                description: "Установить скин игрока",
                 handler: this.steal,
                 args: [
                     "Никнейм игрока"

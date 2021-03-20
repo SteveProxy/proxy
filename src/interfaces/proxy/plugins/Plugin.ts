@@ -9,7 +9,8 @@ export interface IPlugin {
 
 export interface ICommand {
     name: string;
-    handler(...args: any): void;
+    description: string;
     args?: string[];
     hidden?: boolean;
+    handler(...args: any): void;
 }

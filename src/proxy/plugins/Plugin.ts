@@ -8,6 +8,9 @@ export class Plugin {
 
     constructor(proxy: Proxy, meta: IPlugin) {
         this.proxy = proxy;
+
+        meta.commands ||= [];
+
         this.meta = meta;
     }
 

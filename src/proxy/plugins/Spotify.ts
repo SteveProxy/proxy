@@ -34,15 +34,17 @@ export class Spotify extends Plugin {
 
         this.meta.commands = [
             {
+                name: "",
+                description: "Графический интерфейс",
+                handler: this.gui
+            },
+            {
                 name: "auth",
+                description: "Авторизация в плагине",
                 handler: this.auth,
                 args: [
                     "Код авторизации"
                 ]
-            },
-            {
-                name: "",
-                handler: this.gui
             }
         ];
 
