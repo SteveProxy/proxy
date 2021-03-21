@@ -2,14 +2,15 @@ import axios from "axios";
 import minecraftPath from "minecraft-path";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { ASHCON_API_ENDPOINT, MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../utils";
+import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../utils";
 
 import { Plugin } from "./Plugin";
 import { Proxy } from "../Proxy";
+import { API } from "../modules/API";
+import { NBT } from "../modules/pagesBuilder/pagesBuilder";
 
 import { ISkin, IChangeSkinOptions } from "../../interfaces/proxy/plugins/Skin";
-import { NBT } from "../modules/pagesBuilder/components/NBT";
-import { PacketContext } from "../modules/packetManager/PacketContext";
+import { PacketContext } from "../modules/packetManager/packetManager";
 
 const PLAYER_HEAD = minecraftData.findItemOrBlockByName("player_head").id;
 
@@ -131,15 +132,15 @@ export class Skin extends Plugin {
     private steal(nickname: string): void {
         this.proxy.client.context.send(`${this.meta.prefix} Загрузка информации об игроке ${nickname}...`);
 
-        axios.get(`${ASHCON_API_ENDPOINT}/user/${nickname}`)
-            .then(({ data: { textures: { skin: { url }, slim } } }) => {
+        API.getPlayer(nickname)
+            .then(({ textures: { skin: { url }, slim } }) => {
                 this.changeSkin({
                     url,
                     slim
                 });
             })
             .catch((error) => {
-                switch (error?.response?.status) {
+                switch (error) {
                     case 404:
                         this.proxy.client.context.send(`${this.meta.prefix} §cИгрока с никнеймом §f${nickname} §cне существует!`);
 
