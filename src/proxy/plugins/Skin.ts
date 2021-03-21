@@ -2,7 +2,7 @@ import axios from "axios";
 import minecraftPath from "minecraft-path";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { minecraftData, TEXTURES_ENDPOINT } from "../../utils";
+import { ASHCON_API_ENDPOINT, MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../utils";
 
 import { Plugin } from "./Plugin";
 import { Proxy } from "../Proxy";
@@ -10,9 +10,6 @@ import { Proxy } from "../Proxy";
 import { ISkin, IChangeSkinOptions } from "../../interfaces/proxy/plugins/Skin";
 import { NBT } from "../modules/pagesBuilder/components/NBT";
 import { PacketContext } from "../modules/packetManager/PacketContext";
-
-const MINECRAFT_API_ENDPOINT = "https://api.minecraftservices.com/minecraft/profile/skins";
-const ASHCON_API_ENDPOINT = "https://api.ashcon.app/mojang/v2";
 
 const PLAYER_HEAD = minecraftData.findItemOrBlockByName("player_head").id;
 

@@ -5,6 +5,8 @@ import { config } from "./config";
 import { IParsedIP } from "./interfaces";
 
 export const TEXTURES_ENDPOINT = "http://textures.minecraft.net/texture/";
+export const MINECRAFT_API_ENDPOINT = "https://api.minecraftservices.com/minecraft/profile/skins";
+export const ASHCON_API_ENDPOINT = "https://api.ashcon.app/mojang/v2";
 
 export const minecraftData = _minecraftData(config.proxy.version as string);
 
