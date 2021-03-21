@@ -1,3 +1,4 @@
+import chunk from "chunk";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../../Proxy";
@@ -6,7 +7,7 @@ import { buildersStorage, ChatManager } from "./ChatManager";
 
 import { generateID } from "../../../utils";
 
-import { Button, DefaultButtonLabel, DefaultTextButtonsMap, IResetListenTimeoutOptions, ITrigger, Page, StringButton, TriggersMap } from "../../../interfaces";
+import { AutoGeneratePagesOptions, Button, DefaultButtonLabel, DefaultTextButtonsMap, IResetListenTimeoutOptions, ITrigger, Page, StringButton, TriggersMap } from "../../../interfaces";
 
 export class ChatBuilder {
 
@@ -47,6 +48,38 @@ export class ChatBuilder {
         return this;
     }
 
+    autoGeneratePages(options: AutoGeneratePagesOptions): this {
+        if (Array.isArray(options)) {
+            options = {
+                items: options
+            };
+        }
+        
+        const { items, chunkSize = 10 } = options;
+
+        const chunks = chunk(items, chunkSize);
+
+        this.setPages(
+            chunks.map((chunk) => new RawJSONBuilder()
+                .setExtra(
+                    chunk.map((item, index) => new RawJSONBuilder().setExtra([
+                        item,
+                        ...(
+                            index + 1 < chunk.length ?
+                                [
+                                    new RawJSONBuilder()
+                                        .setText("\n")
+                                ]
+                                :
+                                []
+                        )
+                    ]))
+                ))
+        );
+
+        return this;
+    }
+    
     async setPage(pageNumber: number): Promise<void> {
         this.currentPage = pageNumber;
 
