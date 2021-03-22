@@ -58,21 +58,21 @@ export class Proxy {
 
         this.start();
 
-        this.bridge.once("disconnect", ({ reason }) => {
-            this.client.context.end(`Соединение разорвано.\n${reason}`);
-            this.close("bridge");
-        });
+        const bridgeDisconnectEvents = [
+            "disconnect",
+            "error",
+            "end"
+        ];
 
-        this.bridge.once("end", () => {
-            this.client.context.end("Соединение разорвано.");
-            this.close("bridge");
-        });
+        bridgeDisconnectEvents.forEach((event) => {
+            this.bridge.once(event, (data) => {
+                const reason = data?.reason || data || "";
 
-        this.bridge.once("error", (error) => {
-            this.client.context.end(`Соединение разорвано\n${error}`);
-            this.close("bridge");
+                this.client.context.end(`Соединение разорвано.\n${reason}`);
+                this.close("bridge");
 
-            console.error(error);
+                console.error(reason);
+            });
         });
 
         this.client.once("end", () => {
