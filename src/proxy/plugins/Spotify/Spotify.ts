@@ -20,10 +20,12 @@ export class Spotify extends Plugin {
 
     private spotify: SpotifyAPI;
     private state: ISpotify;
-    private currentPlaying?: any; // todo
+
+    private currentPlaying?: any;
     private getCurrentPlayingInterval?: NodeJS.Timeout;
     private actionbarUpdateInterval?: NodeJS.Timeout;
     private cooldown = 0;
+    private authStarted = false;
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -442,34 +444,48 @@ export class Spotify extends Plugin {
             });
     }
 
-    private auth(state: string): void {
-        if (state) {
-            axios.post(this.state.redirectUrl, `state=${state}`)
-                .then(async ({ data: { code } }) => {
-                    if (this.state.code !== code) {
-                        await this.clearCredentials();
-
-                        await db.set(`plugins.${this.meta.name}.code`, code)
-                            .write();
-
-                        this.restart();
-                    } else {
-                        this.proxy.client.context.send(`${this.meta.prefix} §eВы уже авторизованы!`);
-                    }
-                })
-                .catch((error) => {
-                    switch (error?.response?.status) {
-                        case 400:
-                            this.proxy.client.context.send(`${this.meta.prefix} §cНедействительный код для авторизации!`);
-                            break;
-                        default:
-                            this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при получении кода авторизации.`);
-                            break;
-                    }
-                });
-        } else {
-            this.proxy.client.context.send(`${this.meta.prefix} §cВы не передали код для авторизации.`);
+    private async auth(state: string): Promise<void> {
+        if (this.authStarted) {
+            return this.proxy.client.context.send(
+                `${this.meta.prefix} §cДождитесь окончания предыдущей попытки авторизации!`
+            );
         }
+
+        this.authStarted = true;
+
+        this.proxy.client.context.send(`${this.meta.prefix} Авторизация...`);
+
+        await axios.post(this.state.redirectUrl, `state=${state}`)
+            .then(async ({ data: { code } }) => {
+                if (this.state.code !== code) {
+                    await this.clearCredentials();
+
+                    await db.set(`plugins.${this.meta.name}.code`, code)
+                        .write();
+
+                    this.restart();
+                } else {
+                    this.proxy.client.context.send(`${this.meta.prefix} §eВы уже авторизованы!`);
+                }
+            })
+            .catch((error) => {
+                switch (error?.response?.status) {
+                    case 400:
+                        this.proxy.client.context.send(
+                            `${this.meta.prefix} §cНедействительный код для авторизации!`
+                        );
+                        break;
+                    default:
+                        this.proxy.client.context.send(
+                            `${this.meta.prefix} §cПроизошла ошибка при получении кода авторизации.`
+                        );
+
+                        console.error(error);
+                        break;
+                }
+            });
+
+        this.authStarted = false;
     }
 
     private clearCredentials(clearCode = true): void {
