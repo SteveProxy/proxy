@@ -28,7 +28,8 @@ export class Proxy {
     constructor({ server, client, config }: IProxyOptions) {
         client.context = new Context({
             client,
-            proxy: this
+            proxy: this,
+            type: "client"
         });
         
         this.config = config;
@@ -53,7 +54,8 @@ export class Proxy {
 
         this.bridge.context = new Context({
             client: this.bridge,
-            proxy: this
+            proxy: this,
+            type: "bridge"
         });
 
         this.start();

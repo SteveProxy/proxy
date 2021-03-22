@@ -6,7 +6,17 @@ import { IClient } from "../Client";
 export interface IContext {
     proxy: Proxy;
     client: IClient;
+    type: "client" | "bridge";
 }
+
+interface ISendOptions {
+    message: RawJSONBuilder | string;
+    position?: number;
+    sender?: string;
+    useRawJSON?: boolean;
+}
+
+export type SendOptions = ISendOptions | ISendOptions["message"];
 
 export type SendTitleOptions = ITitle | string;
 

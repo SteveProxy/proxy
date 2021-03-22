@@ -2,44 +2,63 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { config } from "../../config";
 
-import { Proxy } from "../Proxy";
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { ChatBuilder } from "./chatManager/ChatBuilder";
 
-import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, IClient, ISetCooldownOptions, SetCooldownOptions, IContext } from "../../interfaces";
+import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, ISetCooldownOptions, SetCooldownOptions, IContext, SendOptions } from "../../interfaces";
 
 const { bridge: { title } } = config;
 
 export class Context {
 
-    client: IClient;
-    proxy: Proxy;
+    client: IContext["client"];
+    proxy: IContext["proxy"];
+    type: IContext["type"];
 
-    constructor({ client, proxy }: IContext) {
+    constructor({ client, proxy, type }: IContext) {
         this.client = client;
         this.proxy = proxy;
+        this.type = type;
     }
 
     end(reason: string): void {
         this.client.end(`${title}\n\n${reason}`);
     }
 
-    send(message: RawJSONBuilder | string): void {
-        this.client.write("chat", {
-            message: (
-                message instanceof RawJSONBuilder ?
-                    message
-                    :
-                    new RawJSONBuilder()
-                        .setText("")
-                        .setExtra(
+    send(options: SendOptions): void {
+        if (typeof options === "object") {
+            if (options instanceof RawJSONBuilder) {
+                options = {
+                    message: options
+                };
+            }
+
+            const { message, useRawJSON = true, position = 0, sender = "0" } = options;
+
+            return this.client.write("chat", {
+                message: useRawJSON ?
+                    (
+                        message instanceof RawJSONBuilder ?
+                            message
+                            :
                             new RawJSONBuilder()
-                                .setText({
-                                    text: message
-                                })
-                        )
-            )
-                .toString(),
+                                .setText(message)
+                    )
+                        .toString()
+                    :
+                    message,
+                position,
+                sender
+            });
+        }
+
+        this.client.write("chat", {
+            message: this.type === "bridge" ?
+                options
+                :
+                new RawJSONBuilder()
+                    .setText(options)
+                    .toString(),
             position: 0,
             sender: "0"
         });
