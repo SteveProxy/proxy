@@ -13,3 +13,4 @@ export * from "./proxy/plugins/Spotify";
 export * from "./proxy/plugins/Plugin";
 export * from "./proxy/plugins/Discord";
 export * from "./proxy/plugins/Skin";
+export * from "./proxy/plugins/Chat";
