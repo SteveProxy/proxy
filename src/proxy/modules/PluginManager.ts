@@ -16,7 +16,7 @@ export class PluginManager {
     static readonly prefix = prefix;
 
     private commands: CommandsMap = new Map();
-    private plugins: PluginsMap = new Map();
+    plugins: PluginsMap = new Map();
     private isStarted = false;
 
     private chatManager = new ChatManager()
@@ -40,36 +40,37 @@ export class PluginManager {
                         const commandPrefix = `${prefix}${name}`;
                         const argsLength = (args as string[]).length;
 
-                        if (
-                            argsLength ?
-                                context.packet.message.startsWith(commandPrefix)
-                                :
-                                context.packet.message === commandPrefix
-                        ) {
-                            context.setCanceled(true);
+                        if (argsLength) {
+                            if (context.packet.message.startsWith(`${commandPrefix} `)) {
+                                context.setCanceled(true);
 
-                            const trimmedMessage = context.packet.message.replace(commandPrefix, "")
-                                .trim();
-                            const handlerArgs = trimmedMessage !== "" ?
-                                trimmedMessage
-                                    .split(" ")
-                                    .slice(0, argsLength)
-                                :
-                                [];
-
-                            if (handlerArgs.length >= argsLength) {
-                                handler([
-                                    ...context.packet.message.replace(commandPrefix, "")
-                                        .trim()
-                                        .split(" ")
-                                        .slice(0, argsLength),
-                                    name === "help" ?
-                                        [...this.plugins.values()]
+                                const trimmedMessage = context.packet.message.replace(commandPrefix, "")
+                                    .trim();
+                                const handlerArgs = trimmedMessage !== "" ?
+                                    argsLength > 1 ?
+                                        trimmedMessage
+                                            .split(" ")
+                                            .slice(0, argsLength)
                                         :
-                                        undefined
-                                ]);
-                            } else {
-                                this.proxy.client.context.send(`${this.plugins.get(pluginName).meta.prefix} §cКоманде не передан нужный аргумент!`);
+                                        [trimmedMessage]
+                                    :
+                                    [];
+
+                                if (handlerArgs.length >= argsLength) {
+                                    return handler(handlerArgs);
+                                }
+                            }
+
+                            if (context.packet.message === commandPrefix) {
+                                context.setCanceled(true);
+
+                                this.proxy.client.context.send(`${this.plugins.get(pluginName).meta.prefix} §cКоманде не переданы нужные аргументы!`);
+                            }
+                        } else {
+                            if (context.packet.message === commandPrefix) {
+                                context.setCanceled(true);
+
+                                return handler();
                             }
                         }
                     });

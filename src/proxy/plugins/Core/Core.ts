@@ -62,7 +62,9 @@ export class Core extends Plugin {
             .build();
     }
 
-    help(plugins: any[]): void {
+    help(): void {
+        let plugins = [...this.proxy.pluginManager.plugins.values()];
+
         plugins = plugins.filter(({ meta: { hidden, commands } }) => !hidden && commands.length);
 
         const builder = this.proxy.client.context.chatBuilder();
