@@ -12,7 +12,7 @@ export class Names extends Plugin {
         super(proxy, {
             name: "names",
             description: "Никнеймы игроков",
-            prefix: "§9§lNames§r §f|"
+            prefix: "§9§lNames"
         });
 
         this.meta.commands = [

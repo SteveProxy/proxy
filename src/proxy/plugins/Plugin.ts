@@ -10,6 +10,7 @@ export class Plugin {
         this.proxy = proxy;
 
         meta.commands ||= [];
+        meta.prefix = `${meta.prefix}§r §f|`;
 
         this.meta = meta;
     }

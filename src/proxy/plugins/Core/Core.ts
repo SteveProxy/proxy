@@ -15,7 +15,7 @@ export class Core extends Plugin {
         super(proxy, {
             name: "core",
             description: "Ядро",
-            prefix: "§3§lCore§r §f|",
+            prefix: "§3§lCore",
             ignorePluginPrefix: true
         });
 

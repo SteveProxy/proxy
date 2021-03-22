@@ -13,7 +13,7 @@ export class Discord extends Plugin {
         super(proxy, {
             name: "discord",
             description: "Discord интеграция",
-            prefix: "§9§lDiscord§r §f|"
+            prefix: "§9§lDiscord"
         });
     }
 

@@ -25,7 +25,7 @@ export class Skin extends Plugin {
         super(proxy, {
             name: "skin",
             description: "Менеджер скинов",
-            prefix: "§5§lSkin§r §f|"
+            prefix: "§5§lSkin"
         });
 
         this.meta.commands = [

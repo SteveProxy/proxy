@@ -29,7 +29,7 @@ export class Spotify extends Plugin {
         super(proxy, {
             name: "spotify",
             description: "Spotify интеграция",
-            prefix: "§2§lSpotify§r §f|"
+            prefix: "§2§lSpotify"
         });
 
         this.meta.commands = [
