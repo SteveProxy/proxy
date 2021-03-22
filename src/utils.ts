@@ -67,3 +67,7 @@ export function humanizeDate(timestamp: string | number): string {
 
     return `${pad(day)}.${pad(month)}.${year}`;
 }
+
+export function randomInteger(min: number, max: number): number {
+    return Math.floor(min + Math.random() * (max + 1 - min));
+}
