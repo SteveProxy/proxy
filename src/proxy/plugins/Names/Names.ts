@@ -1,10 +1,10 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { Proxy } from "../Proxy";
-import { Plugin } from "./Plugin";
-import { API } from "../modules/API";
+import { Proxy } from "../../Proxy";
+import { Plugin } from "../Plugin";
+import { API } from "../../modules/API";
 
-import { humanizeDate } from "../../utils";
+import { humanizeDate } from "../../../utils";
 
 export class Names extends Plugin {
 

@@ -1,9 +1,9 @@
 import { Client } from "discord-rpc";
 
-import { Plugin } from "./Plugin";
-import { Proxy } from "../Proxy";
+import { Plugin } from "../Plugin";
+import { Proxy } from "../../Proxy";
 
-import { config } from "../../config";
+import { config } from "../../../config";
 
 export class Discord extends Plugin {
 

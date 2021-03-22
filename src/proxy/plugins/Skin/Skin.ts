@@ -2,15 +2,15 @@ import axios from "axios";
 import minecraftPath from "minecraft-path";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../utils";
+import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../../utils";
 
-import { Plugin } from "./Plugin";
-import { Proxy } from "../Proxy";
-import { API } from "../modules/API";
-import { NBT } from "../modules/pagesBuilder/pagesBuilder";
-import { PacketContext } from "../modules/packetManager/packetManager";
+import { Plugin } from "../Plugin";
+import { Proxy } from "../../Proxy";
+import { API } from "../../modules/API";
+import { NBT } from "../../modules/pagesBuilder/PagesBuilder";
+import { PacketContext } from "../../modules/packetManager/PacketManager";
 
-import { ISkin, IChangeSkinOptions } from "../../interfaces";
+import { ISkin, IChangeSkinOptions } from "../../../interfaces";
 
 const PLAYER_HEAD = minecraftData.findItemOrBlockByName("player_head").id;
 

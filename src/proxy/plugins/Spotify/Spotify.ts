@@ -2,15 +2,15 @@ import axios from "axios";
 import SpotifyAPI from "spotify-web-api-node";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { Proxy } from "../Proxy";
-import { Plugin } from "./Plugin";
-import { Page, Item, NBT, Slider } from "../modules/pagesBuilder/PagesBuilder";
+import { Proxy } from "../../Proxy";
+import { Plugin } from "../Plugin";
+import { Page, Item, NBT, Slider } from "../../modules/pagesBuilder/PagesBuilder";
 
-import { db } from "../../DB";
+import { db } from "../../../DB";
 
-import { generateID, minecraftData, normalizeDuration } from "../../utils";
+import { generateID, minecraftData, normalizeDuration } from "../../../utils";
 
-import { ISpotify } from "../../interfaces";
+import { ISpotify } from "../../../interfaces";
 
 const NEXT_SONG_ITEM = minecraftData.findItemOrBlockByName("green_stained_glass").id;
 const PREVIOUS_SONG_ITEM = minecraftData.findItemOrBlockByName("red_stained_glass").id;

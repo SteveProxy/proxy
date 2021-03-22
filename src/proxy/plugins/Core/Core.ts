@@ -1,13 +1,13 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { Proxy } from "../Proxy";
-import { Plugin } from "./Plugin";
-import { PluginManager } from "../modules/PluginManager";
-import { Item, NBT, Page } from "../modules/pagesBuilder/PagesBuilder";
+import { Proxy } from "../../Proxy";
+import { Plugin } from "../Plugin";
+import { PluginManager } from "../../modules/PluginManager";
+import { Item, NBT, Page } from "../../modules/pagesBuilder/PagesBuilder";
 
-import { config } from "../../config";
+import { config } from "../../../config";
 
-import { ICommand, Page as ChatPage } from "../../interfaces";
+import { ICommand, Page as ChatPage } from "../../../interfaces";
 
 export class Core extends Plugin {
 

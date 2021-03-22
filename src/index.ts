@@ -2,6 +2,7 @@ import { createServer } from "minecraft-protocol";
 
 import { events } from "./events";
 import { config } from "./config";
+
 import { IClient } from "./interfaces";
 
 const { proxy } = config;
