@@ -8,6 +8,7 @@ import { PluginManager } from "./modules/PluginManager";
 import { parseIP } from "../utils";
 
 import { IClient, IConfig, IProxyOptions } from "../interfaces";
+import { RawJSONBuilder } from "rawjsonbuilder";
 
 export class Proxy {
 
@@ -68,9 +69,13 @@ export class Proxy {
 
         bridgeDisconnectEvents.forEach((event) => {
             this.bridge.once(event, (data) => {
-                const reason = data?.reason || data || "";
+                const reason = data?.reason ?
+                    new RawJSONBuilder(data?.reason)
+                        .toRawString()
+                    :
+                    data || "";
 
-                this.client.context.end(`Соединение разорвано.\n${reason}`);
+                this.client.context.end(`Соединение разорвано.\n\n${reason}`);
                 this.close("bridge");
 
                 console.error(reason);
