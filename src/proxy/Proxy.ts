@@ -1,12 +1,14 @@
 import minecraftPath from "minecraft-path";
+import { RawJSONBuilder } from "rawjsonbuilder";
 import { createClient, Server, states } from "minecraft-protocol";
 
 import { Context } from "./modules/Context";
 import { PacketManager } from "./modules/packetManager/PacketManager";
 import { PluginManager } from "./modules/PluginManager";
 
+import { db } from "../DB";
+
 import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
-import { RawJSONBuilder } from "rawjsonbuilder";
 
 export class Proxy {
 
@@ -41,12 +43,10 @@ export class Proxy {
     }
 
     async start(): Promise<void> {
-        const { lobby: { host, port } } = this.config;
-
-        this.bridge = await this.createBridge({
-            host,
-            port
-        });
+        this.bridge = await this.createBridge(
+            db.get("lobby")
+                .value()
+        );
 
         this.pluginManager
             .start();
@@ -115,7 +115,7 @@ export class Proxy {
                     :
                     data || "";
 
-                /*this.client.context.end(`Соединение разорвано.\n\n${reason}`);*/
+                this.client.context.end(`Соединение разорвано.\n\n${reason}`);
                 this.close("bridge");
 
                 console.error(reason);
