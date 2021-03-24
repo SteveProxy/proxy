@@ -40,8 +40,7 @@ export class Proxy {
     }
 
     get config(): IConfig {
-        return db.get("")
-            .value();
+        return db.value();
     }
 
     async start(): Promise<void> {
