@@ -1,15 +1,28 @@
+import minecraftPath from "minecraft-path";
 import { RawJSONBuilder } from "rawjsonbuilder";
+import { parse } from "prismarine-nbt";
+import { promises as fs } from "fs";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
 import { PluginManager } from "../../modules/PluginManager";
-import { Item, NBT, Page } from "../../modules/pagesBuilder/PagesBuilder";
 
+import { PlayerHead, Head } from "../../modules/pagesBuilder/gui";
+
+import { db } from "../../../DB";
 import { config } from "../../../config";
+import { minecraftData, parseIP } from "../../../utils";
 
-import { ICommand, Page as ChatPage } from "../../../interfaces";
+import { ICommand, IRawServer, IServer, Page as ChatPage } from "../../../interfaces";
 
 export class Core extends Plugin {
+
+    private serversBuilder = this.proxy.client.context.pagesBuilder()
+        .setInventoryType("generic_9x6");
+    private currentServer = Core.parseIP(
+        this.proxy.config.lobby
+    );
+    private changeCurrentServerCooldown = 0;
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -21,9 +34,9 @@ export class Core extends Plugin {
 
         this.meta.commands = [
             {
-                name: "test",
-                description: "Тестовая команда",
-                handler: this.test
+                name: "connect",
+                description: "Подключится к другому серверу",
+                handler: this.connect
             },
             {
                 name: "help",
@@ -36,30 +49,8 @@ export class Core extends Plugin {
     start(): void {
         this.proxy.client.context.sendTab({
             header: new RawJSONBuilder()
-                .parse(`${config.bridge.title}\n§r`)
+                .parse(config.bridge.title)
         });
-
-        this.proxy.client.context.send(
-            new RawJSONBuilder()
-                .setText({
-                    text: "тест",
-                    clickEvent: {
-                        action: "run_command",
-                        value: "/help"
-                    }
-                })
-        );
-
-        this.proxy.client.context.chatBuilder()
-            .setPagesHeader("Шапка")
-            .setPagesFooter("Футер")
-            .setPages([
-                new RawJSONBuilder()
-                    .setText("Страница"),
-                new RawJSONBuilder()
-                    .setText("Страница")
-            ])
-            .build();
     }
 
     help(): void {
@@ -131,56 +122,89 @@ export class Core extends Plugin {
             .build();
     }
 
-    test(): void {
-        const builder = this.proxy.client.context.pagesBuilder();
+    async connect(): Promise<void> {
+        const serversDatBuffer = await fs.readFile(`${minecraftPath()}/servers.dat`);
 
-        builder.setPages([
-            new Page()
-                .setWindowTitle(new RawJSONBuilder()
-                    .setText("test"))
-                .setItems(new Item({
-                    id: 1,
-                    position: 0,
-                    nbt: new NBT("compound", {
-                        display: new NBT("compound", {
-                            Name: new NBT("string", new RawJSONBuilder()
-                                .setText({
-                                    text: "test",
-                                    color: "yellow",
-                                    strikethrough: true
-                                })
-                                .toString())
-                        })
-                    }),
+        // @ts-ignore
+        let { value: { servers: { value: { value: servers } } } } = (await parse(serversDatBuffer))
+            .parsed;
+
+        servers = servers.map((server: IRawServer) => {
+            Object.keys(server)
+                .forEach((key) => {
+                    server[key as keyof IRawServer] = server[key as keyof IRawServer].value;
+                });
+
+            (server as unknown as IServer).ip = Core.parseIP(server.ip as unknown as string);
+
+            return server;
+        })
+            .filter(({ ip }: IServer) => ip && ip !== Core.parseIP(`${config.proxy.host}:${config.proxy.port}`));
+
+        return this.serversBuilder
+            .autoGeneratePages({
+                windowTitle: new RawJSONBuilder()
+                    .setText(`${this.meta.prefix} Выбор сервера`),
+                // eslint-disable-next-line new-cap
+                items: servers.map(({ ip, name }: IServer) => PlayerHead({
+                    name: new RawJSONBuilder()
+                        .setText({
+                            text: name || "Без названия",
+                            color: "white",
+                            italic: false
+                        }),
+                    lore: [
+                        new RawJSONBuilder()
+                            .setText(""),
+                        new RawJSONBuilder()
+                            .setText(
+                                this.currentServer === ip ?
+                                    "§3Выбран"
+                                    :
+                                    "§7Нажмите, для того чтобы выбрать сервер."
+                            )
+                    ],
+                    value: Head.Server,
                     onClick: () => {
-                        this.proxy.client.context.send("TEST");
-                        builder.setPage(2);
-                    }
-                })),
-            new Page()
-                .setWindowTitle(new RawJSONBuilder()
-                    .setText("test"))
-                .setItems(new Item({
-                    id: 12,
-                    position: 2,
-                    nbt: new NBT("compound", {
-                        display: new NBT("compound", {
-                            Name: new NBT("string", new RawJSONBuilder()
-                                .setText({
-                                    text: "test",
-                                    color: "yellow",
-                                    strikethrough: true
-                                })
-                                .toString())
-                        })
-                    }),
-                    onClick: () => {
-                        this.proxy.client.context.send("TEST");
-                        builder.setPage(1);
+                        this.changeServer(ip);
+                        this.connect();
                     }
                 }))
-        ])
-            .setDefaultButtons({ next: { position: 1 } })
+            })
             .build();
+    }
+
+    private changeServer(ip: string) {
+        const COOLDOWN = 3;
+
+        if (this.changeCurrentServerCooldown < Date.now()) {
+            db.set("lobby", parseIP(ip))
+                .write();
+
+            if (this.currentServer === ip) {
+                return this.proxy.client.context.send(`${this.meta.prefix} §cУ вас уже установлен данный сервер!`);
+            }
+
+            this.currentServer = ip;
+
+            this.proxy.client.context.send(`${this.meta.prefix} Сервер изменен. Перезайдите для подключения к нему.`);
+
+            this.changeCurrentServerCooldown = Date.now() + COOLDOWN * 1000;
+
+            this.proxy.client.context.setCooldown({
+                id: minecraftData.findItemOrBlockByName("player_head").id,
+                cooldown: COOLDOWN
+            });
+        }
+    }
+
+    private static parseIP(ip: string | any): string {
+        return Object.values(
+            typeof ip === "string" ?
+                parseIP(ip)
+                :
+                ip
+        )
+            .join(":");
     }
 }
