@@ -62,16 +62,10 @@ export class Skin extends Plugin {
     }
 
     async gui(): Promise<void> {
-        await this.updatePages();
-
-        return this.builder.build();
-    }
-
-    private async updatePages(): Promise<void> {
         const skins = (await this.readSkins())
             .reverse();
 
-        this.builder.autoGeneratePages({
+        return this.builder.autoGeneratePages({
             windowTitle: new RawJSONBuilder()
                 .setText(`${this.meta.prefix} Библиотека скинов`),
             // eslint-disable-next-line new-cap
@@ -94,10 +88,14 @@ export class Skin extends Plugin {
                                 "§7Нажмите, для того чтобы установить скин."
                         )
                 ],
-                onClick: () => this.changeSkin({
-                    url,
-                    slim
-                })
+                onClick: async () => {
+                    await this.changeSkin({
+                        url,
+                        slim
+                    });
+
+                    this.gui();
+                }
             }))
         })
             .setDefaultButtons({
@@ -107,7 +105,8 @@ export class Skin extends Plugin {
                 next: {
                     position: 53
                 }
-            });
+            })
+            .build();
     }
 
     private steal(nickname: string): void {
@@ -125,14 +124,14 @@ export class Skin extends Plugin {
         return url === this.currentSkin;
     }
 
-    private changeSkin({ url, slim }: IChangeSkinOptions): void {
+    private async changeSkin({ url, slim }: IChangeSkinOptions): Promise<void> {
         if (this.cooldown < Date.now()) {
             if (url !== this.currentSkin) {
                 this.updateCooldown();
 
                 this.proxy.client.context.send(`${this.meta.prefix} Установка скина...`);
 
-                axios.post(MINECRAFT_API_ENDPOINT, {
+                await axios.post(MINECRAFT_API_ENDPOINT, {
                     url,
                     variant: slim ? "slim" : "classic"
                 }, {
@@ -140,11 +139,8 @@ export class Skin extends Plugin {
                         Authorization: `Bearer ${this.proxy.bridge.session.accessToken}`
                     }
                 })
-                    .then(async () => {
+                    .then(() => {
                         this.currentSkin = url;
-
-                        await this.updatePages();
-                        this.builder.rerender();
 
                         this.proxy.client.context.send(`${this.meta.prefix} Скин успешно установлен! Перезайдите на сервер, чтобы обновить текущий скин.`);
                     })

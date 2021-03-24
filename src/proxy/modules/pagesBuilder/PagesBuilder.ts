@@ -123,6 +123,7 @@ export class PagesBuilder {
     private autoRerenderInterval = 0;
     private defaultButtons: DefaultButtonsMap = new Map();
 
+    private built = false;
     private stopped = false;
 
     constructor(proxy: Proxy) {
@@ -339,6 +340,7 @@ export class PagesBuilder {
 
     stop(): void {
         this.stopped = true;
+        this.built = false;
 
         this.proxy.client.write("close_window", {
             windowId: this.windowId
@@ -358,7 +360,17 @@ export class PagesBuilder {
     }
 
     async build(): Promise<void> {
-        if (this.pages.length) {
+        if (!this.pages.length) {
+            throw new Error("Pages not set.");
+        }
+
+        if (!this.built) {
+            this.built = true;
+
+            if (this.stopped) {
+                this.stopped = false;
+            }
+
             this.proxy.client.context.openWindow({
                 windowId: this.windowId,
                 inventoryType: this.inventoryType,
@@ -405,6 +417,9 @@ export class PagesBuilder {
             this.proxy.packetManager.once("close_window", (context) => {
                 context.setCanceled(true);
 
+                this.stopped = true;
+                this.built = false;
+
                 this.proxy.packetManager.removeListener("window_click", windowClickListener);
                 this.proxy.packetManager.removeListener("set_slot", setSlotListener);
 
@@ -432,7 +447,7 @@ export class PagesBuilder {
                 });
             });
         } else {
-            throw new Error("Pages not set.");
+            this.rerender();
         }
     }
 
