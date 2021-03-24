@@ -43,3 +43,4 @@ export interface IAutoGeneratePagesOptions {
 }
 
 export * from "./gui/Slider";
+export * from "./gui/PlayerHead";

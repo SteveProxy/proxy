@@ -7,8 +7,9 @@ import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../
 import { Plugin } from "../Plugin";
 import { Proxy } from "../../Proxy";
 import { API } from "../../modules/API";
-import { NBT } from "../../modules/pagesBuilder/PagesBuilder";
 import { PacketContext } from "../../modules/packetManager/PacketManager";
+
+import { PlayerHead } from "../../modules/pagesBuilder/gui";
 
 import { ISkin, IChangeSkinOptions } from "../../../interfaces";
 
@@ -73,49 +74,29 @@ export class Skin extends Plugin {
         this.builder.autoGeneratePages({
             windowTitle: new RawJSONBuilder()
                 .setText(`${this.meta.prefix} Библиотека скинов`),
-            items: skins.map(({ url, slim, name }) => ({
-                id: PLAYER_HEAD,
+            // eslint-disable-next-line new-cap
+            items: skins.map(({ url, slim, name }) => PlayerHead({
+                url,
+                name: new RawJSONBuilder()
+                    .setText({
+                        text: name || "Без названия",
+                        color: "white",
+                        italic: false
+                    }),
+                lore: [
+                    new RawJSONBuilder()
+                        .setText(""),
+                    new RawJSONBuilder()
+                        .setText(
+                            this.isSelected(url) ?
+                                "§5Выбран"
+                                :
+                                "§7Нажмите, для того чтобы установить скин."
+                        )
+                ],
                 onClick: () => this.changeSkin({
                     url,
                     slim
-                }),
-                nbt: new NBT("compound", {
-                    display: new NBT("compound", {
-                        Name: new NBT("string", new RawJSONBuilder()
-                            .setText({
-                                text: name || "Без названия",
-                                color: "white",
-                                italic: false
-                            })),
-                        Lore: new NBT("list", new NBT("string", [
-                            new RawJSONBuilder()
-                                .setText(""),
-                            new RawJSONBuilder()
-                                .setText(
-                                    this.isSelected(url) ?
-                                        "§5Выбран"
-                                        :
-                                        "§7Нажмите, для того чтобы установить скин."
-                                )
-                        ]))
-                    }),
-                    SkullOwner: new NBT("compound", {
-                        Name: new NBT("string", this.proxy.client.username),
-                        Properties: new NBT("compound", {
-                            textures: new NBT("list", new NBT("compound", [{
-                                Value: new NBT("string", Buffer.from(
-                                    JSON.stringify({
-                                        textures: {
-                                            SKIN: {
-                                                url
-                                            }
-                                        }
-                                    })
-                                )
-                                    .toString("base64"))
-                            }]))
-                        })
-                    })
                 })
             }))
         })
