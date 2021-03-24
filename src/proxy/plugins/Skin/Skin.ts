@@ -126,32 +126,32 @@ export class Skin extends Plugin {
 
     private async changeSkin({ url, slim }: IChangeSkinOptions): Promise<void> {
         if (this.cooldown < Date.now()) {
-            if (url !== this.currentSkin) {
-                this.updateCooldown();
-
-                this.proxy.client.context.send(`${this.meta.prefix} Установка скина...`);
-
-                await axios.post(MINECRAFT_API_ENDPOINT, {
-                    url,
-                    variant: slim ? "slim" : "classic"
-                }, {
-                    headers: {
-                        Authorization: `Bearer ${this.proxy.bridge.session.accessToken}`
-                    }
-                })
-                    .then(() => {
-                        this.currentSkin = url;
-
-                        this.proxy.client.context.send(`${this.meta.prefix} Скин успешно установлен! Перезайдите на сервер, чтобы обновить текущий скин.`);
-                    })
-                    .catch((error) => {
-                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при установке скина!`);
-
-                        console.error(error);
-                    });
-            } else {
-                this.proxy.client.context.send(`${this.meta.prefix} §cУ вас уже установлен данный скин!`);
+            if (url === this.currentSkin) {
+                return this.proxy.client.context.send(`${this.meta.prefix} §cУ вас уже установлен данный скин!`);
             }
+            
+            this.updateCooldown();
+
+            this.proxy.client.context.send(`${this.meta.prefix} Установка скина...`);
+
+            await axios.post(MINECRAFT_API_ENDPOINT, {
+                url,
+                variant: slim ? "slim" : "classic"
+            }, {
+                headers: {
+                    Authorization: `Bearer ${this.proxy.bridge.session.accessToken}`
+                }
+            })
+                .then(() => {
+                    this.currentSkin = url;
+
+                    this.proxy.client.context.send(`${this.meta.prefix} Скин успешно установлен! Перезайдите на сервер, чтобы обновить текущий скин.`);
+                })
+                .catch((error) => {
+                    this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при установке скина!`);
+
+                    console.error(error);
+                });
         }
     }
 
