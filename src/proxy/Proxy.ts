@@ -7,12 +7,11 @@ import { PacketManager } from "./modules/packetManager/PacketManager";
 import { PluginManager } from "./modules/PluginManager";
 
 import { db } from "../DB";
+import { config } from "../config";
 
 import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 
 export class Proxy {
-
-    readonly config: IConfig;
 
     client: IClient;
     protected server: Server;
@@ -26,20 +25,23 @@ export class Proxy {
     packetManager: PacketManager;
     pluginManager: PluginManager;
 
-    constructor({ server, client, config }: IProxyOptions) {
+    constructor({ server, client }: IProxyOptions) {
         client.context = new Context({
             client,
             proxy: this,
             type: "client"
         });
 
-        this.config = config;
-
         this.client = client;
         this.server = server;
 
         this.packetManager = new PacketManager(this);
         this.pluginManager = new PluginManager(this);
+    }
+
+    get config(): IConfig {
+        return db.get("")
+            .value();
     }
 
     async start(): Promise<void> {
@@ -86,10 +88,8 @@ export class Proxy {
     }*/
 
     private async createBridge({ host, port }: IParsedIP): Promise<IClient> {
-        const { proxy } = this.config;
-
         const bridge = createClient({
-            ...proxy,
+            ...config.proxy,
             host,
             port,
             ...(await Proxy.getSession())

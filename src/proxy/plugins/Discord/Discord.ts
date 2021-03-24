@@ -3,8 +3,6 @@ import { Client } from "discord-rpc";
 import { Plugin } from "../Plugin";
 import { Proxy } from "../../Proxy";
 
-import { config } from "../../../config";
-
 export class Discord extends Plugin {
 
     private client: Client = new Client({ transport: "ipc" });
@@ -19,21 +17,22 @@ export class Discord extends Plugin {
 
     start(): void {
         const client = this.client;
+        const { proxy: { version }, lobby: { host, port }, plugins: { discord } } = this.proxy.config;
 
         client.on("ready", () => {
             client.setActivity({
                 largeImageKey: "minecraft",
-                largeImageText: `Minecraft ${config.proxy.version}`,
+                largeImageText: `Minecraft ${version}`,
                 smallImageKey: "steve",
                 smallImageText: `SteveProxy | ${this.proxy.client.username}`,
-                details: `${config.lobby.host}:${config.lobby.port}`,
+                details: `${host}:${port}`,
                 startTimestamp: Date.now()
             });
 
             this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${client.user.username}.`);
         });
 
-        client.login(config.plugins.discord)
+        client.login(discord)
             .catch((error) => {
                 this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при авторизации!`);
 

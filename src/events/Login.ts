@@ -18,7 +18,7 @@ export class Login extends Event<"login"> {
     handler(client: IClient, server: Server): void {
         const { uuid, username } = client;
 
-        const proxy = new Proxy({ server, client, config });
+        const proxy = new Proxy({ server, client });
 
         if (whitelist.length && !(
             whitelist.includes(uuid) ||

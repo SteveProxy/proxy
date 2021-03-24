@@ -3,6 +3,8 @@ import { EventEmitter } from "events";
 import { PacketContext } from "./PacketContext";
 import { Proxy } from "../../Proxy";
 
+import { config } from "../../../config";
+
 import { IPacketSwindlerOptions } from "../../../interfaces";
 
 export class PacketManager extends EventEmitter {
@@ -22,7 +24,7 @@ export class PacketManager extends EventEmitter {
     }
 
     packetSwindler({ packet, meta, isFromServer, send }: IPacketSwindlerOptions): void {
-        if (!this.proxy.config.bridge.ignoredPackets.includes(meta.name)) {
+        if (!config.bridge.ignoredPackets.includes(meta.name)) {
             const previousPacketTime = this.currentPacketTime;
 
             this.currentPacketTime = new Date()
