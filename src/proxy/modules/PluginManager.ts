@@ -109,4 +109,9 @@ export class PluginManager {
         [...this.plugins.values()]
             .forEach((plugin) => plugin.stop());
     }
+
+    restart(): void {
+        this.stop();
+        this.start();
+    }
 }

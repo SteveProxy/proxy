@@ -5,6 +5,8 @@ import { config } from "./config";
 
 import { IClient } from "./interfaces";
 
+/*import "./lobby";*/
+
 const { proxy } = config;
 
 const server = createServer(proxy);

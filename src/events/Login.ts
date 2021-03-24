@@ -7,7 +7,7 @@ import { IClient, IConfig } from "../interfaces";
 
 import config from "../../config.json";
 
-const { bridge: { whitelist, connect } }: IConfig = config;
+const { bridge: { whitelist } }: IConfig = config;
 
 export class Login extends Event<"login"> {
 
@@ -28,6 +28,6 @@ export class Login extends Event<"login"> {
             return proxy.client.context.end("Вас нет в белом списке сервера!"); // kick_disconnect doesnt work on 1.16.5
         }
 
-        proxy.connect(connect);
+        proxy.start();
     }
 }

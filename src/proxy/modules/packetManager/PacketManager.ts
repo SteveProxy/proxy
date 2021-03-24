@@ -50,7 +50,7 @@ export class PacketManager extends EventEmitter {
         }
     }
 
-    stop(): void {
+    clear(): void {
         this.removeAllListeners();
     }
 }

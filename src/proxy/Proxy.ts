@@ -5,9 +5,7 @@ import { Context } from "./modules/Context";
 import { PacketManager } from "./modules/packetManager/PacketManager";
 import { PluginManager } from "./modules/PluginManager";
 
-import { parseIP } from "../utils";
-
-import { IClient, IConfig, IProxyOptions } from "../interfaces";
+import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
 export class Proxy {
@@ -32,7 +30,7 @@ export class Proxy {
             proxy: this,
             type: "client"
         });
-        
+
         this.config = config;
 
         this.client = client;
@@ -42,24 +40,66 @@ export class Proxy {
         this.pluginManager = new PluginManager(this);
     }
 
-    async connect(ip = "192.168.1.51"): Promise<void> {
-        const { proxy: { version, hideErrors } } = this.config;
+    async start(): Promise<void> {
+        const { lobby: { host, port } } = this.config;
 
-        this.bridge = createClient({
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            ...parseIP(ip), // @ts-ignore Invalid lib types
-            ...await this.getSession(),
-            version,
-            hideErrors
+        this.bridge = await this.createBridge({
+            host,
+            port
+        });
+
+        this.pluginManager
+            .start();
+
+        this.startRedirect();
+
+        this.client.once("end", () => {
+            this.bridge.end("");
+            this.close("client");
+        });
+    }
+
+    // Method doesnt work, infinity loading terrain
+    /*async connect(ip: string): Promise<void> {
+        const bridge = await this.createBridge(
+            parseIP(ip)
+        );
+
+        const packetsCache: [string, any][] = [];
+        const packetsHandler = (packet: any, meta: any) => packetsCache.push([meta.name, packet]);
+
+        bridge.on("packet", packetsHandler);
+
+        bridge.once("login", (packet) => {
+            this.bridge.end("");
+
+            this.bridge = bridge;
+
+            this.startRedirect();
+
+            bridge.removeListener("packet", packetsHandler);
+            packetsCache.forEach(([name, packet]) => this.bridge.write(name, packet));
+            this.client.write("login", packet);
+
+            this.pluginManager.restart();
+        });
+    }*/
+
+    private async createBridge({ host, port }: IParsedIP): Promise<IClient> {
+        const { proxy } = this.config;
+
+        const bridge = createClient({
+            ...proxy,
+            host,
+            port,
+            ...(await Proxy.getSession())
         }) as IClient;
 
-        this.bridge.context = new Context({
-            client: this.bridge,
+        bridge.context = new Context({
+            client: bridge,
             proxy: this,
             type: "bridge"
         });
-
-        this.start();
 
         const bridgeDisconnectEvents = [
             "disconnect",
@@ -68,37 +108,26 @@ export class Proxy {
         ];
 
         bridgeDisconnectEvents.forEach((event) => {
-            this.bridge.once(event, (data) => {
+            bridge.once(event, (data) => {
                 const reason = data?.reason ?
                     new RawJSONBuilder(data?.reason)
                         .toRawString()
                     :
                     data || "";
 
-                this.client.context.end(`Соединение разорвано.\n\n${reason}`);
+                /*this.client.context.end(`Соединение разорвано.\n\n${reason}`);*/
                 this.close("bridge");
 
                 console.error(reason);
             });
         });
 
-        this.client.once("end", () => {
-            this.bridge.end("");
-            this.close("client");
-        });
+        return bridge;
     }
 
-    private start() {
-        this.pluginManager
-            .start();
-
+    private startRedirect(): void {
         this.redirect(this.bridge, this.client);
-
-        setTimeout(() => {
-            if (this.bridge) {
-                this.redirect(this.client, this.bridge);
-            }
-        }, 1);
+        this.redirect(this.client, this.bridge);
     }
 
     private redirect(from: IClient, to: IClient) {
@@ -106,20 +135,24 @@ export class Proxy {
 
         from.on("packet", (packet, meta) => {
             if (
-                meta.state === states.PLAY &&
-                from.state === states.PLAY &&
+                meta?.state === states.PLAY &&
+                from?.state === states.PLAY &&
                 !(this.clientClosed && this.bridgeClosed)
             ) {
-                if (meta.name === "compress") {
-                    to.compressionThreshold = packet.threshold;
-                    from.compressionThreshold = packet.threshold;
-                } else {
-                    this.packetManager.packetSwindler({
-                        packet,
-                        meta,
-                        isFromServer,
-                        send: (data: any) => to.write(meta.name, data)
-                    });
+                switch (meta.name) {
+                    case "compress":
+                        from.compressionThreshold = packet.threshold;
+                        to.compressionThreshold = packet.threshold;
+
+                        break;
+                    default:
+                        this.packetManager.packetSwindler({
+                            packet,
+                            meta,
+                            isFromServer,
+                            send: (data: any) => to.write(meta.name, data)
+                        });
+                        break;
                 }
             }
         });
@@ -134,11 +167,11 @@ export class Proxy {
 
         if (channel === "client") {
             this.pluginManager.stop();
-            this.packetManager.stop();
+            this.packetManager.clear();
         }
     }
 
-    async getSession(): Promise<any> {
+    private static async getSession(): Promise<any> {
         const { accounts, activeAccountLocalId, mojangClientToken: clientToken } = (await import(`file://${minecraftPath()}/launcher_accounts.json`))
             .default;
 

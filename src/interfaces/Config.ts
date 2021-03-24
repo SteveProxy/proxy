@@ -2,14 +2,15 @@ import { ServerOptions } from "minecraft-protocol";
 
 import { ISpotify } from "./proxy/plugins/Spotify";
 import { IDiscord } from "./proxy/plugins/Discord";
+import { IParsedIP } from "./Utils";
 
 export interface IConfig {
-    proxy: ServerOptions;
+    proxy: ServerOptions & IParsedIP;
+    lobby: IParsedIP;
     bridge: {
         whitelist: string[];
         prefix: string;
         title: string;
-        connect: string;
         ignoredPackets: string[];
     };
     plugins: {
