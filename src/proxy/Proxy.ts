@@ -63,7 +63,6 @@ export class Proxy {
         });
     }
 
-    // Method doesnt work, infinity loading terrain
     async connect(ip: string): Promise<void> {
         if (this.connectionStarted) {
             return this.client.context.send(
