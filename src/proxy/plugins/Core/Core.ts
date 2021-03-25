@@ -98,13 +98,11 @@ export class Core extends Plugin {
     }
 
     clearTab(): void {
-        this.tab.forEach((UUID) => {
-            this.proxy.client.write("player_info", {
-                action: 4,
-                data: [{
-                    UUID
-                }]
-            });
+        this.proxy.client.write("player_info", {
+            action: 4,
+            data: [...this.tab].map((UUID) => ({
+                UUID
+            }))
         });
 
         this.tab.clear();
