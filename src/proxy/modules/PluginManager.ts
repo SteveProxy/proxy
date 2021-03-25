@@ -15,7 +15,7 @@ export class PluginManager {
     readonly proxy: Proxy;
     static readonly prefix = prefix;
 
-    private commands: CommandsMap = new Map();
+    commands: CommandsMap = new Map();
     plugins: PluginsMap = new Map();
     private isStarted = false;
 
@@ -106,8 +106,17 @@ export class PluginManager {
     }
 
     stop(): void {
-        [...this.plugins.values()]
-            .forEach((plugin) => plugin.stop());
+        if (this.isStarted) {
+            [...this.plugins.values()]
+                .forEach((plugin) => plugin.stop());
+
+            this.plugins = new Map();
+            this.commands = new Map();
+
+            this.isStarted = false;
+
+            this.proxy.packetManager.clear();
+        }
     }
 
     restart(): void {
