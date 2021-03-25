@@ -414,7 +414,7 @@ export class PagesBuilder {
                 :
                 null;
 
-            this.proxy.packetManager.once("close_window", (context) => {
+            this.proxy.packetManager.once(["close_window", "respawn"], (context) => {
                 context.setCanceled(true);
 
                 this.stopped = true;

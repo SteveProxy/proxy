@@ -52,15 +52,29 @@ export class PacketManager extends EventEmitter {
         }
     }
 
+    once(events: string | symbol | (string | symbol)[], listener: (context: PacketContext) => void): this {
+        events = Array.isArray(events) ? events : [events];
+
+        events.forEach((event) => {
+            super.once(event, listener);
+        });
+
+        return this;
+    }
+
+    on(events: string | symbol | (string | symbol)[], listener: (context: PacketContext) => void): this {
+        events = Array.isArray(events) ? events : [events];
+
+        events.forEach((event) => {
+            super.on(event, listener);
+        });
+
+        return this;
+    }
+
     clear(): void {
         this.removeAllListeners();
     }
-}
-
-export interface PacketManager {
-    on(event: string | symbol, listener: (context: PacketContext) => void): this;
-
-    once(event: string | symbol, listener: (context: PacketContext) => void): this;
 }
 
 export {
