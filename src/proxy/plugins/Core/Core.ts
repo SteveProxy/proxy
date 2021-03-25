@@ -9,7 +9,6 @@ import { PluginManager } from "../../modules/PluginManager";
 
 import { PlayerHead, Head } from "../../modules/pagesBuilder/gui";
 
-import { db } from "../../../DB";
 import { config } from "../../../config";
 import { minecraftData, parseIP } from "../../../utils";
 
@@ -17,11 +16,11 @@ import { ICommand, IRawServer, IServer, Page as ChatPage } from "../../../interf
 
 export class Core extends Plugin {
 
+    private tab: Set<string> = new Set();
+    private bossBar: Set<string> = new Set();
+
     private serversBuilder = this.proxy.client.context.pagesBuilder()
         .setInventoryType("generic_9x6");
-    private currentServer = Core.parseIP(
-        this.proxy.config.lobby
-    );
     private changeCurrentServerCooldown = 0;
 
     constructor(proxy: Proxy) {
@@ -47,13 +46,73 @@ export class Core extends Plugin {
     }
 
     start(): void {
+        this.sendBrandTab();
+
+        this.listenTabChanges();
+        this.listenBossBarChanges();
+    }
+
+    stop(): void {
+        this.clearTab();
+        this.clearBossBar();
+    }
+
+    listenBossBarChanges(): void {
+        this.proxy.packetManager.on("boss_bar", ({ packet: { action, entityUUID } }) => {
+            switch (action) {
+                case 0:
+                    return this.bossBar.add(entityUUID);
+                case 1:
+                    return this.bossBar.delete(entityUUID);
+            }
+        });
+    }
+
+    clearBossBar(): void {
+        this.bossBar.forEach((entityUUID) => {
+            this.proxy.client.write("boss_bar", {
+                action: 1,
+                entityUUID
+            });
+        });
+
+        this.bossBar.clear();
+    }
+
+    listenTabChanges(): void {
+        this.proxy.packetManager.on("player_info", ({ packet: { action, data } }) => {
+            data.forEach(({ UUID }: { UUID: string }) => {
+                switch (action) {
+                    case 0:
+                        return this.tab.add(UUID);
+                    case 4:
+                        return this.tab.delete(UUID);
+                }
+            });
+        });
+    }
+
+    clearTab(): void {
+        this.tab.forEach((UUID) => {
+            this.proxy.client.write("player_info", {
+                action: 4,
+                data: [{
+                    UUID
+                }]
+            });
+        });
+
+        this.tab.clear();
+    }
+
+    private sendBrandTab(): void {
         this.proxy.client.context.sendTab({
             header: new RawJSONBuilder()
                 .parse(config.bridge.title)
         });
     }
 
-    help(): void {
+    private help(): void {
         let plugins = [...this.proxy.pluginManager.plugins.values()];
 
         plugins = plugins.filter(({ meta: { hidden, commands } }) => !hidden && commands.length);
@@ -158,7 +217,7 @@ export class Core extends Plugin {
                             .setText(""),
                         new RawJSONBuilder()
                             .setText(
-                                this.currentServer === ip ?
+                                this.proxy.currentServer === ip ?
                                     "§3Выбран"
                                     :
                                     "§7Нажмите, для того чтобы выбрать сервер."
@@ -166,7 +225,7 @@ export class Core extends Plugin {
                     ],
                     value: Head.Server,
                     onClick: () => {
-                        this.changeServer(ip);
+                        this.connectToServer(ip);
                         this.connect();
                     }
                 }))
@@ -174,20 +233,15 @@ export class Core extends Plugin {
             .build();
     }
 
-    private changeServer(ip: string) {
+    private connectToServer(ip: string) {
         const COOLDOWN = 3;
 
         if (this.changeCurrentServerCooldown < Date.now()) {
-            db.set("lobby", parseIP(ip))
-                .write();
-
-            if (this.currentServer === ip) {
-                return this.proxy.client.context.send(`${this.meta.prefix} §cУ вас уже установлен данный сервер!`);
+            if (this.proxy.currentServer === ip) {
+                return this.proxy.client.context.send(`${this.meta.prefix} §cВы уже подключены к этому серверу!`);
             }
 
-            this.currentServer = ip;
-
-            this.proxy.client.context.send(`${this.meta.prefix} Сервер изменен. Перезайдите для подключения к нему.`);
+            this.proxy.connect(ip);
 
             this.changeCurrentServerCooldown = Date.now() + COOLDOWN * 1000;
 
