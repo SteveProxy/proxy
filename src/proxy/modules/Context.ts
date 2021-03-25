@@ -21,7 +21,12 @@ export class Context {
         this.type = type;
     }
 
-    end(reason: string): void {
+    end(reason: string | RawJSONBuilder): void {
+        reason = typeof reason === "string" ?
+            reason
+            :
+            reason.toRawString();
+
         this.client.end(`${title}\n\n${reason}`);
     }
 
