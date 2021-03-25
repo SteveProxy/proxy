@@ -3,7 +3,7 @@ import { createServer } from "minecraft-protocol";
 import { config } from "./config";
 import { minecraftData } from "./utils";
 
-const { proxy, lobby: _lobby } = config;
+const { proxy, lobby: _lobby, bridge: { title } } = config;
 
 const lobby = createServer({
     ...proxy,
@@ -30,6 +30,11 @@ lobby.on("login", (client) => {
         isDebug: false,
         isFlat: false
     });
+
+    const channel = client.protocolVersion >= 385 ? "brand" : "MC|Brand"; // 385 = 1.13-pre3
+
+    client.registerChannel(channel, ["string", []]);
+    client.writeChannel(channel, title);
 
     client.write("position", {
         x: 0,
