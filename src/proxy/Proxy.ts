@@ -23,6 +23,9 @@ export class Proxy {
     // @ts-ignore
     bridge: IClient;
     currentServer = "";
+    fallbackServer = Proxy.parseIP(
+        this.config.lobby
+    );
     private bridgeClosed = false;
     private connectionStarted = false;
 
@@ -48,11 +51,7 @@ export class Proxy {
     }
 
     start(): void {
-        this.connect(
-            Proxy.parseIP(
-                this.config.lobby
-            )
-        );
+        this.connect(this.fallbackServer);
 
         this.client.once("end", () => {
             if (this.bridge) {
@@ -86,7 +85,7 @@ export class Proxy {
             parseIP(ip)
         );
 
-        const isLobby = ip === Proxy.parseIP(this.config.lobby);
+        const isFallbackServer = ip === this.fallbackServer;
 
         bridge.once("login", (packet) => {
             this.connectionStarted = false;
@@ -114,7 +113,7 @@ export class Proxy {
 
             this.pluginManager.restart();
 
-            if (isLobby) {
+            if (isFallbackServer) {
                 const connectCommand = this.pluginManager.commands.get("connect");
 
                 if (connectCommand) {
@@ -122,6 +121,14 @@ export class Proxy {
                 }
             }
         });
+    }
+
+    setFallbackServer(server: string | IParsedIP): void {
+        this.fallbackServer = Proxy.parseIP(server);
+    }
+
+    connectToFallbackServer(): void {
+        this.connect(this.fallbackServer);
     }
 
     private async createBridge({ host, port }: IParsedIP): Promise<IClient> {
@@ -162,12 +169,8 @@ export class Proxy {
                     }
 
                     if (this.bridge === bridge) {
-                        if (this.currentServer !== Proxy.parseIP(this.config.lobby)) {
-                            this.connect(
-                                Proxy.parseIP(
-                                    this.config.lobby
-                                )
-                            );
+                        if (this.currentServer !== this.fallbackServer) {
+                            this.connect(this.fallbackServer);
                         }
                     }
                 } else {
@@ -247,7 +250,7 @@ export class Proxy {
         };
     }
 
-    static parseIP(ip: string | any): string {
+    static parseIP(ip: string | IParsedIP): string {
         return Object.values(
             typeof ip === "string" ?
                 parseIP(ip)

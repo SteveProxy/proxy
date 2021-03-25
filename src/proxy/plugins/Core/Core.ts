@@ -250,11 +250,7 @@ export class Core extends Plugin {
     }
 
     lobby(): void {
-        this.proxy.connect(
-            Proxy.parseIP(
-                this.proxy.config.lobby
-            )
-        );
+        this.proxy.connectToFallbackServer();
     }
 
     private connectToServer(ip: string) {
