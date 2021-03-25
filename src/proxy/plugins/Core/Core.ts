@@ -10,7 +10,7 @@ import { PluginManager } from "../../modules/PluginManager";
 import { PlayerHead, Head } from "../../modules/pagesBuilder/gui";
 
 import { config } from "../../../config";
-import { minecraftData, parseIP } from "../../../utils";
+import { minecraftData } from "../../../utils";
 
 import { ICommand, IRawServer, IServer, Page as ChatPage } from "../../../interfaces";
 
@@ -33,14 +33,19 @@ export class Core extends Plugin {
 
         this.meta.commands = [
             {
-                name: "connect",
-                description: "Подключится к другому серверу",
-                handler: this.connect
-            },
-            {
                 name: "help",
                 description: "Список доступных команд",
                 handler: this.help
+            },
+            {
+                name: "connect",
+                description: "Подключиться к другому серверу",
+                handler: this.connect
+            },
+            {
+                name: "lobby",
+                description: "Подключиться к лобби",
+                handler: this.lobby
             }
         ];
     }
@@ -194,11 +199,11 @@ export class Core extends Plugin {
                     server[key as keyof IRawServer] = server[key as keyof IRawServer].value;
                 });
 
-            (server as unknown as IServer).ip = Core.parseIP(server.ip as unknown as string);
+            (server as unknown as IServer).ip = Proxy.parseIP(server.ip as unknown as string);
 
             return server;
         })
-            .filter(({ ip }: IServer) => ip && ip !== Core.parseIP(`${config.proxy.host}:${config.proxy.port}`));
+            .filter(({ ip }: IServer) => ip && ip !== Proxy.parseIP(`${config.proxy.host}:${config.proxy.port}`));
 
         return this.serversBuilder
             .autoGeneratePages({
@@ -233,6 +238,14 @@ export class Core extends Plugin {
             .build();
     }
 
+    lobby(): void {
+        this.proxy.connect(
+            Proxy.parseIP(
+                this.proxy.config.lobby
+            )
+        );
+    }
+
     private connectToServer(ip: string) {
         const COOLDOWN = 3;
 
@@ -250,15 +263,5 @@ export class Core extends Plugin {
                 cooldown: COOLDOWN
             });
         }
-    }
-
-    private static parseIP(ip: string | any): string {
-        return Object.values(
-            typeof ip === "string" ?
-                parseIP(ip)
-                :
-                ip
-        )
-            .join(":");
     }
 }
