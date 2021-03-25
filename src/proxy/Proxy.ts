@@ -9,18 +9,24 @@ import { PluginManager } from "./modules/PluginManager";
 import { db } from "../DB";
 import { config } from "../config";
 
+import { parseIP } from "../utils";
+
 import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 
 export class Proxy {
 
     client: IClient;
-    protected server: Server;
-    protected clientClosed = false;
+    private server: Server;
+    private clientClosed = false;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     bridge: IClient;
-    protected bridgeClosed = false;
+    currentServer = Proxy.parseIP(
+        this.config.lobby
+    );
+    private bridgeClosed = false;
+    private connectionStarted = false;
 
     packetManager: PacketManager;
     pluginManager: PluginManager;
@@ -43,48 +49,71 @@ export class Proxy {
         return db.value();
     }
 
-    async start(): Promise<void> {
-        this.bridge = await this.createBridge(
-            db.get("lobby")
-                .value()
-        );
-
-        this.pluginManager
-            .start();
-
-        this.startRedirect();
+    start(): void {
+        this.connect(this.currentServer);
 
         this.client.once("end", () => {
-            this.bridge.end("");
+            if (this.bridge) {
+                this.bridge.end("");
+            }
+
             this.close("client");
         });
     }
 
     // Method doesnt work, infinity loading terrain
-    /*async connect(ip: string): Promise<void> {
+    async connect(ip: string): Promise<void> {
+        if (this.connectionStarted) {
+            this.client.context.send(`${config.bridge.title} | §cДождидесь окончания предыдущей попытки подключения!`);
+        }
+
+        if (this.bridge) {
+            this.client.context.send(`${config.bridge.title} | Подключение к серверу...`);
+        }
+
+        this.connectionStarted = true;
+
         const bridge = await this.createBridge(
             parseIP(ip)
         );
 
-        const packetsCache: [string, any][] = [];
-        const packetsHandler = (packet: any, meta: any) => packetsCache.push([meta.name, packet]);
-
-        bridge.on("packet", packetsHandler);
+        const isLobby = ip === Proxy.parseIP(this.config.lobby);
 
         bridge.once("login", (packet) => {
-            this.bridge.end("");
+            this.connectionStarted = false;
+            this.currentServer = ip;
+
+            if (this.bridge) {
+                this.bridge.end("");
+            }
 
             this.bridge = bridge;
 
             this.startRedirect();
 
-            bridge.removeListener("packet", packetsHandler);
-            packetsCache.forEach(([name, packet]) => this.bridge.write(name, packet));
             this.client.write("login", packet);
+            this.client.write("respawn", {
+                dimension: packet.dimension,
+                worldName: packet.worldName,
+                hashedSeed: packet.hashedSeed,
+                gamemode: packet.gameMode,
+                previousGamemode: packet.previousGamemode,
+                isDebug: packet.isDebug,
+                isFlat: packet.isFlat,
+                copyMetadata: true
+            });
 
             this.pluginManager.restart();
+
+            if (isLobby) {
+                const connectCommand = this.pluginManager.commands.get("connect");
+
+                if (connectCommand) {
+                    connectCommand.handler();
+                }
+            }
         });
-    }*/
+    }
 
     private async createBridge({ host, port }: IParsedIP): Promise<IClient> {
         const bridge = createClient({
@@ -102,6 +131,7 @@ export class Proxy {
 
         const bridgeDisconnectEvents = [
             "disconnect",
+            "kick_disconnect",
             "error",
             "end"
         ];
@@ -114,8 +144,28 @@ export class Proxy {
                     :
                     data || "";
 
-                this.client.context.end(`Соединение разорвано.\n\n${reason}`);
-                this.close("bridge");
+                if (this.bridge) {
+                    bridge.removeAllListeners("packet");
+
+                    if (reason !== "SocketClosed") {
+                        this.client.context.send(`${config.bridge.title} | Соединение разорвано. ${reason}`);
+                    }
+
+                    if (this.bridge === bridge) {
+                        if (this.currentServer !== Proxy.parseIP(this.config.lobby)) {
+                            this.connect(
+                                Proxy.parseIP(
+                                    this.config.lobby
+                                )
+                            );
+                        }
+                    }
+                } else {
+                    this.client.context.end(`Соединение разорвано.\n\n${reason}`);
+                    this.close("bridge");
+                }
+
+                this.connectionStarted = false;
 
                 console.error(reason);
             });
@@ -125,6 +175,8 @@ export class Proxy {
     }
 
     private startRedirect(): void {
+        this.client.removeAllListeners("packet");
+
         this.redirect(this.bridge, this.client);
         this.redirect(this.client, this.bridge);
     }
@@ -151,6 +203,7 @@ export class Proxy {
                             isFromServer,
                             send: (data: any) => to.write(meta.name, data)
                         });
+
                         break;
                 }
             }
@@ -184,6 +237,16 @@ export class Proxy {
             },
             username: selectedProfile.name
         };
+    }
+
+    private static parseIP(ip: string | any): string {
+        return Object.values(
+            typeof ip === "string" ?
+                parseIP(ip)
+                :
+                ip
+        )
+            .join(":");
     }
 }
 
