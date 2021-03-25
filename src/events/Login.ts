@@ -27,7 +27,18 @@ export class Login extends Event<"login"> {
         ) {
             return proxy.client.context.end("Вас нет в белом списке сервера!"); // kick_disconnect doesnt work on 1.16.5
         }
+        
+        this.registerCustomChannels(client);
 
         proxy.start();
+    }
+
+    registerCustomChannels(client: IClient): void {
+        const CUSTOM_CHANNELS: Map<string, any> = new Map([
+            [client.protocolVersion >= 385 ? "brand" : "MC|Brand", ["string", []]] // 385 = 1.13-pre3
+        ]);
+        
+        CUSTOM_CHANNELS.forEach((typeDefinition, channel) => client
+            .registerChannel(channel, typeDefinition));
     }
 }
