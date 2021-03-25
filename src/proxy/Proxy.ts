@@ -22,9 +22,7 @@ export class Proxy {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     bridge: IClient;
-    currentServer = Proxy.parseIP(
-        this.config.lobby
-    );
+    currentServer = "";
     private bridgeClosed = false;
     private connectionStarted = false;
 
@@ -50,7 +48,11 @@ export class Proxy {
     }
 
     start(): void {
-        this.connect(this.currentServer);
+        this.connect(
+            Proxy.parseIP(
+                this.config.lobby
+            )
+        );
 
         this.client.once("end", () => {
             if (this.bridge) {
@@ -64,7 +66,15 @@ export class Proxy {
     // Method doesnt work, infinity loading terrain
     async connect(ip: string): Promise<void> {
         if (this.connectionStarted) {
-            this.client.context.send(`${config.bridge.title} | §cДождидесь окончания предыдущей попытки подключения!`);
+            return this.client.context.send(
+                `${config.bridge.title} | §cДождидесь окончания предыдущей попытки подключения!`
+            );
+        }
+
+        if (this.currentServer === ip) {
+            return this.client.context.send(
+                `${config.bridge.title} | §cВы уже подключены к этому серверу!`
+            );
         }
 
         if (this.bridge) {
@@ -149,6 +159,7 @@ export class Proxy {
 
                     if (reason !== "SocketClosed") {
                         this.client.context.send(`${config.bridge.title} | Соединение разорвано. ${reason}`);
+                        console.error(reason);
                     }
 
                     if (this.bridge === bridge) {
@@ -166,8 +177,6 @@ export class Proxy {
                 }
 
                 this.connectionStarted = false;
-
-                console.error(reason);
             });
         });
 
@@ -239,7 +248,7 @@ export class Proxy {
         };
     }
 
-    private static parseIP(ip: string | any): string {
+    static parseIP(ip: string | any): string {
         return Object.values(
             typeof ip === "string" ?
                 parseIP(ip)
