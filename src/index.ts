@@ -14,8 +14,8 @@ const server = createServer(proxy);
 console.log("[Steve] Starting...");
 
 events.forEach((Event) => {
-    const { name, handler } = new Event();
+    const event = new Event();
 
     // @ts-ignore
-    server.on(name, (client: IClient) => handler(client, server));
+    server.on(event.name, (client: IClient) => event.handler(client, server));
 });
