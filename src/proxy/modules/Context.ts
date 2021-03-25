@@ -147,6 +147,15 @@ export class Context {
         });
     }
 
+    sendBrand(brand: string | RawJSONBuilder): void {
+        brand = typeof brand === "string" ?
+            brand
+            :
+            brand.toRawString();
+
+        this.client.writeChannel(this.client.protocolVersion >= 385 ? "brand" : "MC|Brand", brand); // 385 = 1.13-pre3
+    }
+
     sendBossBar(): void {
         // todo
     }
