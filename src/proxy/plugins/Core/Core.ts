@@ -205,6 +205,19 @@ export class Core extends Plugin {
         })
             .filter(({ ip }: IServer) => ip && ip !== Proxy.parseIP(`${config.proxy.host}:${config.proxy.port}`));
 
+        if (!servers.length) {
+            return this.proxy.client.context.send(
+                new RawJSONBuilder()
+                    .setTranslate({
+                        translate: `${this.meta.prefix} §cНет доступных серверов для подключения! Добавьте нужные сервера во вкладке "%s§c".`,
+                        with: [
+                            new RawJSONBuilder()
+                                .setTranslate("menu.multiplayer")
+                        ]
+                    })
+            );
+        }
+
         return this.serversBuilder
             .autoGeneratePages({
                 windowTitle: new RawJSONBuilder()
