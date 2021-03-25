@@ -5,7 +5,7 @@ import { config } from "./config";
 
 import { IClient } from "./interfaces";
 
-/*import "./lobby";*/
+import "./lobby";
 
 const { proxy } = config;
 
