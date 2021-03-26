@@ -9,7 +9,7 @@ import { PluginManager } from "./modules/PluginManager";
 import { db } from "../DB";
 import { config } from "../config";
 
-import { parseIP } from "../utils";
+import { getVersion, parseIP } from "../utils";
 
 import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 
@@ -99,9 +99,15 @@ export class Proxy {
 
             this.startRedirect();
 
+            const playerDimension = packet.dimension;
+
+            if (getVersion(this.config.proxy.version) <= getVersion("1.8.9")) {
+                packet.dimension = packet.dimension >= 0 ? -1 : 0;
+            }
+
             this.client.write("login", packet);
             this.client.write("respawn", {
-                dimension: packet.dimension,
+                dimension: playerDimension,
                 worldName: packet.worldName,
                 hashedSeed: packet.hashedSeed,
                 gamemode: packet.gameMode,
