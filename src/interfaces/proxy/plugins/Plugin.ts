@@ -1,4 +1,4 @@
-export interface IPlugin {
+export interface IPluginMeta {
     name: string;
     description: string;
     prefix: string;
@@ -7,10 +7,15 @@ export interface IPlugin {
     hidden?: boolean;
 }
 
+export interface IPlugin extends IPluginMeta {
+    cooldown: VoidFunction;
+}
+
 export interface ICommand {
     name: string;
     description: string;
     args?: string[];
     hidden?: boolean;
+    cooldown?: number;
     handler(...args: any): void;
 }

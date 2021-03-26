@@ -22,12 +22,15 @@ export class Names extends Plugin {
                 handler: this.getNicknameHistory,
                 args: [
                     "Никнейм игрока"
-                ]
+                ],
+                cooldown: 10
             }
         ];
     }
 
     getNicknameHistory(nickname: string): void {
+        this.meta.cooldown();
+
         new API(this)
             .getPlayer(nickname)
             .then(({ username_history, username }) => {

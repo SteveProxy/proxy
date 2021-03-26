@@ -1,3 +1,5 @@
+import { RawJSONBuilder } from "rawjsonbuilder";
+
 import { Proxy } from "../Proxy";
 
 import { PacketContext } from "./packetManager/PacketManager";
@@ -5,8 +7,9 @@ import { ChatManager } from "./chatManager/ChatManager";
 
 import { plugins } from "../plugins";
 import { config } from "../../config";
+import { getUntilTime, humanize } from "../../utils";
 
-import { CommandsMap, PluginsMap, ValuesOf } from "../../interfaces";
+import { CommandsMap, CooldownsMap, PluginsMap, ValuesOf, ICooldownOptions } from "../../interfaces";
 
 const { bridge: { prefix } } = config;
 
@@ -17,6 +20,7 @@ export class PluginManager {
 
     commands: CommandsMap = new Map();
     plugins: PluginsMap = new Map();
+    private cooldowns: CooldownsMap = new Map();
     private isStarted = false;
 
     private chatManager = new ChatManager()
@@ -30,79 +34,12 @@ export class PluginManager {
 
     start(): void {
         if (!this.isStarted) {
+            this.isStarted = true;
+
             plugins.forEach((Plugin) => this.enablePlugin(Plugin));
 
-            this.proxy.packetManager.on("chat", (context: PacketContext) => {
-                if (!context.isFromServer) {
-                    this.chatManager.middleware(context);
-
-                    this.commands.forEach(({ handler, args, pluginName }, name) => {
-                        const commandPrefix = `${prefix}${name}`;
-                        const argsLength = (args as string[]).length;
-
-                        if (argsLength) {
-                            if (context.packet.message.startsWith(`${commandPrefix} `)) {
-                                context.setCanceled(true);
-
-                                const trimmedMessage = context.packet.message.replace(commandPrefix, "")
-                                    .trim();
-                                const handlerArgs = trimmedMessage !== "" ?
-                                    argsLength > 1 ?
-                                        trimmedMessage
-                                            .split(" ")
-                                            .slice(0, argsLength)
-                                        :
-                                        [trimmedMessage]
-                                    :
-                                    [];
-
-                                if (handlerArgs.length >= argsLength) {
-                                    return handler(handlerArgs);
-                                }
-                            }
-
-                            if (context.packet.message === commandPrefix) {
-                                context.setCanceled(true);
-
-                                this.proxy.client.context.send(`${this.plugins.get(pluginName).meta.prefix} §cКоманде не переданы нужные аргументы!`);
-                            }
-                        } else {
-                            if (context.packet.message === commandPrefix) {
-                                context.setCanceled(true);
-
-                                return handler();
-                            }
-                        }
-                    });
-                }
-            });
-
-            this.isStarted = true;
+            this.listenChat();
         }
-    }
-
-    private enablePlugin(Plugin: ValuesOf<typeof plugins>): void {
-        const plugin = new Plugin(this.proxy);
-
-        const { name: pluginName, commands, ignorePluginPrefix } = plugin.meta;
-
-        if (commands) {
-            commands.forEach(({ name: commandName, handler, args = [] }) => {
-                const commandPrefix = (`${!ignorePluginPrefix ? pluginName : ""} ${commandName}`)
-                    .trim();
-
-                this.commands.set(commandPrefix, {
-                    handler: (args) => {
-                        handler.apply(plugin, args);
-                    },
-                    args,
-                    pluginName
-                });
-            });
-        }
-
-        plugin.start();
-        this.plugins.set(pluginName, plugin);
     }
 
     stop(): void {
@@ -122,5 +59,108 @@ export class PluginManager {
     restart(): void {
         this.stop();
         this.start();
+    }
+
+    private listenChat(): void {
+        this.proxy.packetManager.on("chat", (context: PacketContext) => {
+            if (!context.isFromServer) {
+                this.chatManager.middleware(context);
+
+                this.commands.forEach(({ handler, args, pluginName }, name) => {
+                    const commandPrefix = `${prefix}${name}`;
+                    const argsLength = (args as string[]).length;
+
+                    if (argsLength) {
+                        if (context.packet.message.startsWith(`${commandPrefix} `)) {
+                            context.setCanceled(true);
+
+                            const trimmedMessage = context.packet.message.replace(commandPrefix, "")
+                                .trim();
+                            const handlerArgs = trimmedMessage !== "" ?
+                                argsLength > 1 ?
+                                    trimmedMessage
+                                        .split(" ")
+                                        .slice(0, argsLength)
+                                    :
+                                    [trimmedMessage]
+                                :
+                                [];
+
+                            if (handlerArgs.length >= argsLength) {
+                                return handler(handlerArgs);
+                            }
+                        }
+
+                        if (context.packet.message === commandPrefix) {
+                            context.setCanceled(true);
+
+                            this.proxy.client.context.send(`${this.plugins.get(pluginName).meta.prefix} §cКоманде не переданы нужные аргументы!`);
+                        }
+                    } else {
+                        if (context.packet.message === commandPrefix) {
+                            context.setCanceled(true);
+
+                            return handler();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private enablePlugin(Plugin: ValuesOf<typeof plugins>): void {
+        const plugin = new Plugin(this.proxy);
+
+        const { name: pluginName, commands, ignorePluginPrefix, prefix } = plugin.meta;
+
+        if (commands) {
+            commands.forEach(({ name: commandName, handler, args = [], cooldown }) => {
+                const commandPrefix = (`${!ignorePluginPrefix ? pluginName : ""} ${commandName}`)
+                    .trim();
+
+                if (cooldown) {
+                    plugin.meta.cooldown = this.cooldown({
+                        command: commandPrefix,
+                        cooldown
+                    });
+                }
+
+                this.commands.set(commandPrefix, {
+                    handler: (args) => {
+                        const cooldown = this.cooldowns.get(commandPrefix);
+
+                        if (cooldown && cooldown > Date.now()) {
+                            const cooldownUntil = getUntilTime(cooldown);
+
+                            return this.proxy.client.context.send(
+                                new RawJSONBuilder()
+                                    .setText(`${prefix} §cВоспользоваться этой командой снова можно будет через `)
+                                    .setExtra(
+                                        new RawJSONBuilder()
+                                            .setText({
+                                                text: humanize(cooldownUntil, { language: "ru" }),
+                                                color: "red",
+                                                bold: true
+                                            })
+                                    )
+                            );
+                        }
+
+                        handler.apply(plugin, args);
+                    },
+                    args,
+                    pluginName
+                });
+            });
+        }
+
+        plugin.start();
+        this.plugins.set(pluginName, plugin);
+    }
+
+    private cooldown({ command, cooldown }: ICooldownOptions): VoidFunction {
+        return () => {
+            this.cooldowns.set(command, Date.now() + cooldown * 1000);
+        };
     }
 }
