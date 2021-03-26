@@ -1,7 +1,7 @@
 import { createServer } from "minecraft-protocol";
 
 import { config } from "./config";
-import { minecraftData } from "./utils";
+import { getVersion, minecraftData } from "./utils";
 
 const { proxy, lobby: _lobby, bridge: { title } } = config;
 
@@ -31,7 +31,7 @@ lobby.on("login", (client) => {
         isFlat: false
     });
 
-    const channel = client.protocolVersion >= 385 ? "brand" : "MC|Brand"; // 385 = 1.13-pre3
+    const channel = client.protocolVersion >= getVersion("1.13-pre3") ? "brand" : "MC|Brand";
 
     client.registerChannel(channel, ["string", []]);
     client.writeChannel(channel, title);

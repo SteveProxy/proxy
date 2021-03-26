@@ -5,7 +5,9 @@ import { IDiscord } from "./proxy/plugins/Discord";
 import { IParsedIP } from "./Utils";
 
 export interface IConfig {
-    proxy: ServerOptions & IParsedIP;
+    proxy: ServerOptions & IParsedIP & {
+        version: string;
+    };
     lobby: IParsedIP;
     bridge: {
         whitelist: string[];

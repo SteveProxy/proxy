@@ -5,6 +5,8 @@ import { config } from "../../config";
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { ChatBuilder } from "./chatManager/ChatBuilder";
 
+import { getVersion } from "../../utils";
+
 import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, ISetCooldownOptions, SetCooldownOptions, IContext, SendOptions } from "../../interfaces";
 
 const { bridge: { title } } = config;
@@ -158,7 +160,7 @@ export class Context {
             :
             brand.toRawString();
 
-        this.client.writeChannel(this.client.protocolVersion >= 385 ? "brand" : "MC|Brand", brand); // 385 = 1.13-pre3
+        this.client.writeChannel(this.client.protocolVersion >= getVersion("1.13-pre3") ? "brand" : "MC|Brand", brand);
     }
 
     sendBossBar(): void {
