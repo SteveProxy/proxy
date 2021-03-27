@@ -49,10 +49,12 @@ export class Skin extends Plugin {
     start(): void {
         const playerInfoHandler = ({ packet: { action, data: [player] } }: PacketContext) => {
             if (action === 0 && player.UUID === this.proxy.bridge.uuid) {
-                this.currentSkin = JSON.parse(Buffer.from(player.properties[0].value, "base64").toString())
-                    .textures
-                    .SKIN
-                    .url;
+                if (player.properties[0]?.value) {
+                    this.currentSkin = JSON.parse(Buffer.from(player.properties[0].value, "base64").toString())
+                        .textures
+                        .SKIN
+                        .url;
+                }
 
                 this.proxy.packetManager.removeListener("player_info", playerInfoHandler);
             }
@@ -129,7 +131,7 @@ export class Skin extends Plugin {
             if (url === this.currentSkin) {
                 return this.proxy.client.context.send(`${this.meta.prefix} §cУ вас уже установлен данный скин!`);
             }
-            
+
             this.updateCooldown();
 
             this.proxy.client.context.send(`${this.meta.prefix} Установка скина...`);
