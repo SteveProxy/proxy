@@ -2,12 +2,20 @@ import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
 
 import _dictionary from "./dictionary.json";
+import emoji from "./emoji.json";
 
 import { randomInteger } from "../../../utils";
 
-import { IDictionary } from "../../../interfaces";
+import { EmojiCategoriesMap, IDictionary } from "../../../interfaces";
+import { RawJSONBuilder } from "rawjsonbuilder";
 
 const dictionary: IDictionary = _dictionary;
+
+const categories: EmojiCategoriesMap = new Map([
+    ["emotions", "Эмоции"],
+    ["actions", "Действия"],
+    ["animals", "Животные"]
+]);
 
 export class Chat extends Plugin {
 
@@ -26,6 +34,12 @@ export class Chat extends Plugin {
                 args: [
                     "Сообщение"
                 ]
+            },
+            {
+                name: "emoji",
+                description: "Список доступных Emoji",
+                ignorePluginPrefix: true,
+                handler: this.emojiList
             }
         ];
     }
@@ -45,5 +59,57 @@ export class Chat extends Plugin {
             })
                 .join("")
         );
+    }
+
+    emojiList(): void {
+        this.proxy.client.context.chatBuilder()
+            .setPagesHeader(`${this.meta.prefix} Список доступных Emoji`)
+            .setPages(
+                [...categories].map(([category, description]) => {
+                    const categoryEmoji = emoji[category];
+
+                    return new RawJSONBuilder()
+                        .setExtra([
+                            new RawJSONBuilder()
+                                .setText(description),
+                            new RawJSONBuilder()
+                                .setText("\n\n"),
+                            ...categoryEmoji.map((emoji, index) => new RawJSONBuilder()
+                                .setExtra([
+                                    new RawJSONBuilder()
+                                        .setText({
+                                            text: emoji,
+                                            bold: true,
+                                            insertion: emoji,
+                                            hoverEvent: {
+                                                action: "show_text",
+                                                contents: new RawJSONBuilder()
+                                                    .setExtra([
+                                                        new RawJSONBuilder()
+                                                            .setText("§7Нажмите с использованием "),
+                                                        new RawJSONBuilder()
+                                                            .setKeybind("key.sneak"),
+                                                        new RawJSONBuilder()
+                                                            .setText("§7, чтобы вставить Emoji в чат.")
+                                                    ])
+                                            }
+                                        }),
+                                    new RawJSONBuilder()
+                                        .setText("    §7|§r    "),
+                                    ...(
+                                        (index + 1) % 2 === 0 ?
+                                            [
+                                                new RawJSONBuilder()
+                                                    .setText("\n")
+                                            ]
+                                            :
+                                            []
+
+                                    )
+                                ]))
+                        ]);
+                })
+            )
+            .build();
     }
 }
