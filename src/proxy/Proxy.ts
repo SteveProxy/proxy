@@ -15,18 +15,17 @@ import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 
 export class Proxy {
 
-    client: IClient;
-    private server: Server;
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     bridge: IClient;
+    client: IClient;
+    private server: Server;
+
+    private connectionStarted = false;
     currentServer = "";
     fallbackServer = Proxy.parseIP(
         this.config.lobby
     );
-    private bridgeClosed = false;
-    private connectionStarted = false;
 
     packetManager: PacketManager;
     pluginManager: PluginManager;
@@ -96,7 +95,6 @@ export class Proxy {
             }
 
             this.bridge = bridge;
-            this.bridgeClosed = false;
 
             this.startRedirect();
 
