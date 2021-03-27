@@ -17,5 +17,6 @@ export interface ICommand {
     args?: string[];
     hidden?: boolean;
     cooldown?: number;
+    ignorePluginPrefix?: boolean;
     handler(...args: any): void;
 }

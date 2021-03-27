@@ -114,8 +114,8 @@ export class PluginManager {
         const { name: pluginName, commands, ignorePluginPrefix, prefix } = plugin.meta;
 
         if (commands) {
-            commands.forEach(({ name: commandName, handler, args = [], cooldown }) => {
-                const commandPrefix = (`${!ignorePluginPrefix ? pluginName : ""} ${commandName}`)
+            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown }) => {
+                const commandPrefix = (`${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? pluginName : ""} ${commandName}`)
                     .trim();
 
                 if (cooldown) {
