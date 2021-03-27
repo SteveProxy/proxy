@@ -180,7 +180,7 @@ export class Proxy {
                     bridge.removeAllListeners("packet");
 
                     if (reason && reason !== "SocketClosed") {
-                        this.client.context.send(`${config.bridge.title} | Соединение разорвано. ${reason}`);
+                        this.client.context.send(`${config.bridge.title} | §cСоединение разорвано. ${reason}`);
                         console.error(reason);
                     }
 
