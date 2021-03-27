@@ -96,6 +96,7 @@ export class Proxy {
             }
 
             this.bridge = bridge;
+            this.bridgeClosed = false;
 
             this.startRedirect();
 
@@ -160,16 +161,25 @@ export class Proxy {
 
         bridgeDisconnectEvents.forEach((event) => {
             bridge.once(event, (data) => {
+                if (this.bridgeClosed && !this.connectionStarted) {
+                    return;
+                }
+
                 const reason = data?.reason ?
                     new RawJSONBuilder(data?.reason)
                         .toRawString()
                     :
-                    data || "";
+                    data instanceof Error ?
+                        data.toString()
+                        :
+                        "";
+
+                this.close("bridge");
 
                 if (this.bridge) {
                     bridge.removeAllListeners("packet");
 
-                    if (reason !== "SocketClosed") {
+                    if (reason && reason !== "SocketClosed") {
                         this.client.context.send(`${config.bridge.title} | Соединение разорвано. ${reason}`);
                         console.error(reason);
                     }
@@ -181,7 +191,6 @@ export class Proxy {
                     }
                 } else {
                     this.client.context.end(`Соединение разорвано.\n\n${reason}`);
-                    this.close("bridge");
                 }
 
                 this.connectionStarted = false;
