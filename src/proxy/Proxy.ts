@@ -17,7 +17,6 @@ export class Proxy {
 
     client: IClient;
     private server: Server;
-    private clientClosed = false;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -58,7 +57,8 @@ export class Proxy {
                 this.bridge.end("");
             }
 
-            this.close("client");
+            this.pluginManager.stop();
+            this.packetManager.clear();
         });
     }
 
@@ -159,11 +159,16 @@ export class Proxy {
             "end"
         ];
 
+        let disconnected = false;
+
         bridgeDisconnectEvents.forEach((event) => {
             bridge.once(event, (data) => {
-                if (this.bridgeClosed && !this.connectionStarted) {
+                if (disconnected) {
                     return;
                 }
+
+                this.connectionStarted = false;
+                disconnected = true;
 
                 const reason = data?.reason ?
                     new RawJSONBuilder(data?.reason)
@@ -173,8 +178,6 @@ export class Proxy {
                         data.toString()
                         :
                         "";
-
-                this.close("bridge");
 
                 if (this.bridge) {
                     bridge.removeAllListeners("packet");
@@ -192,8 +195,6 @@ export class Proxy {
                 } else {
                     this.client.context.end(`Соединение разорвано.\n\n${reason}`);
                 }
-
-                this.connectionStarted = false;
             });
         });
 
@@ -213,8 +214,7 @@ export class Proxy {
         from.on("packet", (packet, meta) => {
             if (
                 meta?.state === states.PLAY &&
-                from?.state === states.PLAY &&
-                !(this.clientClosed && this.bridgeClosed)
+                from?.state === states.PLAY
             ) {
                 switch (meta.name) {
                     case "compress":
@@ -234,19 +234,6 @@ export class Proxy {
                 }
             }
         });
-    }
-
-    private close(channel: "bridge" | "client"): void {
-        const context = `${channel}Closed` as ("bridgeClosed" | "clientClosed");
-
-        if (!this[context]) {
-            this[context] = true;
-        }
-
-        if (channel === "client") {
-            this.pluginManager.stop();
-            this.packetManager.clear();
-        }
     }
 
     private static async getSession(): Promise<any> {
