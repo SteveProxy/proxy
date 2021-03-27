@@ -34,6 +34,7 @@ export const humanize = humanizeDuration.humanizer({
 const pad = (number: number) => String(number > 9 ? number : `0${number}`);
 
 export function getVersion(version: string | number): number | string {
+    // @ts-ignore Invalid lib types
     const versionObject = versions.pc.filter((versionObject) => versionObject[
         typeof version === "string" ?
             "minecraftVersion"
