@@ -1,5 +1,7 @@
 import { createServer } from "minecraft-protocol";
 
+import { NBT } from "./proxy/modules/pagesBuilder/components/NBT";
+
 import { config } from "./config";
 import { getVersion, minecraftData } from "./utils";
 
@@ -21,7 +23,23 @@ lobby.on("login", (client) => {
         previousGameMode: 255,
         worldNames: loginPacket.worldNames,
         dimensionCodec: loginPacket.dimensionCodec,
-        dimension: loginPacket.dimension,
+        dimension: new NBT("compound", {
+            infiniburn: new NBT("string", "minecraft:infiniburn_end"),
+            effects: new NBT("string", "minecraft:the_end"),
+            ultrawarm: new NBT("byte", 0),
+            logical_height: new NBT("int", 256),
+            natural: new NBT("byte", 0),
+            bed_works: new NBT("byte", 0),
+            fixed_time: new NBT("long", [0, 6000]),
+            coordinate_scale: new NBT("double", 1),
+            piglin_safe: new NBT("byte", 0),
+            has_skylight: new NBT("byte", 0),
+            has_ceiling: new NBT("byte", 0),
+            ambient_light: new NBT("float", 0),
+            has_raids: new NBT("byte", 1),
+            respawn_anchor_works: new NBT("byte", 0)
+        })
+            .build(),
         worldName: "minecraft:overworld",
         hashedSeed: [0, 0],
         viewDistance: 10,
