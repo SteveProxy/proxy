@@ -19,9 +19,9 @@
     "discord-rpc": "^3.2.0",
     "humanize-duration": "^3.25.1",
     "lowdb": "^1.0.0",
-    "minecraft-data": "^2.81.0",
+    "minecraft-data": "^2.82.2",
     "minecraft-path": "^1.0.0",
-    "minecraft-protocol": "^1.24.1",
+    "minecraft-protocol": "^1.24.2",
     "prismarine-nbt": "github:SteveProxy/prismarine-nbt",
     "rawjsonbuilder": "^1.1.12",
     "spotify-web-api-node": "^5.0.2"
@@ -33,7 +33,7 @@
     "@types/lowdb": "^1.0.9",
     "@types/node": "^14.14.37",
     "@types/spotify-web-api-node": "^5.0.1",
-    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/eslint-plugin": "^4.20.0",
     "@typescript-eslint/parser": "^4.20.0",
     "eslint": "^7.23.0",
     "typescript": "^4.2.3"
