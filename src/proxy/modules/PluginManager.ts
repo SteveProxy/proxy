@@ -66,12 +66,12 @@ export class PluginManager {
             if (!context.isFromServer) {
                 this.chatManager.middleware(context);
 
-                this.commands.forEach(({ handler, args, pluginName }, name) => {
+                this.commands.forEach(({ pluginName, handler, args = [], argsRequired = true }, name) => {
                     const commandPrefix = `${prefix}${name}`;
-                    const argsLength = (args as string[]).length;
+                    const argsLength = args.length;
 
                     if (argsLength) {
-                        if (context.packet.message.startsWith(`${commandPrefix} `)) {
+                        if (context.packet.message.startsWith(`${commandPrefix}${!argsRequired ? "" : " "}`)) {
                             context.setCanceled(true);
 
                             const trimmedMessage = context.packet.message.replace(commandPrefix, "")
@@ -86,7 +86,7 @@ export class PluginManager {
                                 :
                                 [];
 
-                            if (handlerArgs.length >= argsLength) {
+                            if (handlerArgs.length >= argsLength || !argsRequired) {
                                 return handler(handlerArgs);
                             }
                         }
@@ -114,7 +114,7 @@ export class PluginManager {
         const { name: pluginName, commands, ignorePluginPrefix, prefix } = plugin.meta;
 
         if (commands) {
-            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown }) => {
+            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown, argsRequired = false }) => {
                 const commandPrefix = (`${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? pluginName : ""} ${commandName}`)
                     .trim();
 
@@ -126,6 +126,7 @@ export class PluginManager {
                 }
 
                 this.commands.set(commandPrefix, {
+                    pluginName,
                     handler: (args) => {
                         const cooldown = this.cooldowns.get(commandPrefix);
 
@@ -138,7 +139,7 @@ export class PluginManager {
                                     .setExtra(
                                         new RawJSONBuilder()
                                             .setText({
-                                                text: humanize(cooldownUntil, { language: "ru" }),
+                                                text: humanize(cooldownUntil),
                                                 color: "red",
                                                 bold: true
                                             })
@@ -149,7 +150,7 @@ export class PluginManager {
                         handler.apply(plugin, args);
                     },
                     args,
-                    pluginName
+                    argsRequired
                 });
             });
         }
