@@ -34,7 +34,6 @@ export const humanize = humanizeDuration.humanizer({
 const pad = (number: number) => String(number > 9 ? number : `0${number}`);
 
 export function getVersion(version: string | number): number | string {
-    // @ts-ignore Invalid lib types
     const versionObject = versions.pc.filter((versionObject) => versionObject[
         typeof version === "string" ?
             "minecraftVersion"
@@ -86,6 +85,12 @@ export function parseIP(ip: string): IParsedIP {
     };
 }
 
+export function isValidIP(ip: string): boolean {
+    return Boolean(
+        ip.match(/^((?:[a-zA-Z0-9])(?:[a-zA-Z0-9\-.]){1,61}(?:\.[a-zA-Z]{2,})+|\[(?:(?:(?:[a-fA-F0-9]){1,4})(?::(?:[a-fA-F0-9]){1,4}){7}|::1|::)]|(?:(?:[0-9]{1,3})(?:\.[0-9]{1,3}){3}))(?::([0-9]{1,5}))?$/)
+    );
+}
+
 export function generateID(length: number): string {
     const characters = "abcdefghijklmnopqrstuvwxyz1234567890";
 
@@ -115,6 +120,12 @@ export function humanizeDate(timestamp: string | number): string {
     const year = currentDate.getFullYear();
 
     return `${pad(day)}.${pad(month)}.${year}`;
+}
+
+export function getCurrentTime(): string {
+    const date = new Date();
+
+    return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export function randomInteger(min: number, max: number): number {
