@@ -46,7 +46,8 @@ export class Spotify extends Plugin {
                 handler: this.auth,
                 args: [
                     "Код авторизации"
-                ]
+                ],
+                argsRequired: false
             }
         ];
 
@@ -88,24 +89,8 @@ export class Spotify extends Plugin {
                 this.refreshToken();
             }
         } else {
-            this.proxy.client.context.send(new RawJSONBuilder()
-                .setText(`${this.meta.prefix} Для работы плагина необходима авторизация.`)
-                .setExtra([
-                    new RawJSONBuilder()
-                        .setText("["),
-                    new RawJSONBuilder().setText({
-                        text: "Авторизоваться",
-                        color: "dark_green",
-                        bold: true,
-                        underlined: true,
-                        clickEvent: {
-                            action: "open_url",
-                            value: this.spotify.createAuthorizeURL(this.state.scope, generateID(6))
-                        }
-                    }),
-                    new RawJSONBuilder()
-                        .setText("]")
-                ]));
+            this.proxy.client.context.send(`${this.meta.prefix} Для работы плагина необходима авторизация.`);
+            this.auth();
         }
     }
 
@@ -244,9 +229,9 @@ export class Spotify extends Plugin {
         let { template: { explicit: templateExplicit, output } } = this.state;
 
         if (this.currentPlaying) {
-            const { is_playing, progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
+            const { progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
-            if (is_playing && progress_ms < duration_ms + 1000) {
+            if (this.currentPlaying.is_playing && progress_ms < duration_ms + 1000) {
                 this.currentPlaying.progress_ms += 1000;
 
                 output = output.replace("%e", explicit ? templateExplicit : "")
@@ -405,12 +390,8 @@ export class Spotify extends Plugin {
                 :
                 this.spotify.authorizationCodeGrant(this.state.code)
         )
-            .then(({ body: { access_token, refresh_token, expires_in, scope } }: any) => {
-                scope = scope.split(" ")
-                    .sort()
-                    .toString();
-
-                if (scope === this.state.scope.sort().toString()) {
+            .then(({ body: { access_token, refresh_token, expires_in, scope: scopes } }: any) => {
+                if (this.state.scope.toString() === this.state.scope.filter((scope) => scopes.includes(scope)).toString()) {
                     this.spotify.setAccessToken(access_token);
 
                     db.set(`plugins.${this.meta.name}.accessToken`, access_token)
@@ -427,6 +408,7 @@ export class Spotify extends Plugin {
                     this.restart();
                 } else {
                     this.proxy.client.context.send(`${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`);
+                    this.auth();
                 }
             })
             .catch(({ statusCode }) => {
@@ -444,7 +426,25 @@ export class Spotify extends Plugin {
             });
     }
 
-    private async auth(state: string): Promise<void> {
+    private async auth(state = ""): Promise<void> {
+        if (!state) {
+            return this.proxy.client.context.send(
+                new RawJSONBuilder()
+                    .setText(`${this.meta.prefix} `)
+                    .setExtra([
+                        new RawJSONBuilder().setText({
+                            text: "Авторизоваться",
+                            underlined: true,
+                            bold: true,
+                            clickEvent: {
+                                action: "open_url",
+                                value: this.spotify.createAuthorizeURL(this.state.scope, generateID(6))
+                            }
+                        })
+                    ])
+            );
+        }
+
         if (this.authStarted) {
             return this.proxy.client.context.send(
                 `${this.meta.prefix} §cДождитесь окончания предыдущей попытки авторизации!`
