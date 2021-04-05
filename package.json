@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node --experimental-modules --experimental-json-modules --unhandled-rejections=warn --es-module-specifier-resolution=node ./dist/index.js",
-    "build": "tsc && node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/cleanUpBuild.js",
     "prebuild": "node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/buildInit.js",
+    "build": "tsc && node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/cleanUpBuild.js",
     "eslint:check": "eslint ./src/**/*",
     "eslint:fix": "eslint ./src/**/* --fix"
   },
@@ -22,8 +22,8 @@
     "minecraft-data": "^2.82.2",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.24.2",
-    "prismarine-nbt": "github:SteveProxy/prismarine-nbt",
-    "rawjsonbuilder": "^1.1.12",
+    "prismarine-nbt": "^1.5.0",
+    "rawjsonbuilder": "^1.1.13",
     "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {
