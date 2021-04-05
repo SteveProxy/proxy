@@ -22,7 +22,7 @@
     "minecraft-data": "^2.82.2",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.24.2",
-    "prismarine-nbt": "^1.5.0",
+    "prismarine-nbt": "github:SteveProxy/prismarine-nbt",
     "rawjsonbuilder": "^1.1.13",
     "spotify-web-api-node": "^5.0.2"
   },
