@@ -9,7 +9,7 @@ import { PluginManager } from "./modules/PluginManager";
 import { db } from "../DB";
 import { config } from "../config";
 
-import { getVersion, parseIP } from "../utils";
+import { getCurrentTime, getVersion, parseIP } from "../utils";
 
 import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 
@@ -181,7 +181,47 @@ export class Proxy {
                     bridge.removeAllListeners("packet");
 
                     if (reason && reason !== "SocketClosed") {
-                        this.client.context.send(`${config.bridge.title} | §cСоединение разорвано. ${reason}`);
+                        const disconnectTime = getCurrentTime();
+
+                        this.client.context.send(
+                            new RawJSONBuilder()
+                                .setExtra([
+                                    new RawJSONBuilder()
+                                        .setText(`${config.bridge.title} | §cСоединение разорвано. ${reason}`),
+                                    new RawJSONBuilder()
+                                        .setText("\n\n"),
+                                    ...(
+                                        this.currentServer !== this.fallbackServer ?
+                                            [
+                                                new RawJSONBuilder()
+                                                    .setText({
+                                                        text: `   §7[§f${disconnectTime}§7]   `,
+                                                        hoverEvent: {
+                                                            action: "show_text",
+                                                            value: new RawJSONBuilder()
+                                                                .setText(`§7Вы были отключеный от сервера в §f${disconnectTime}§7.`)
+                                                        }
+                                                    })
+                                            ]
+                                            :
+                                            []
+                                    ),
+                                    new RawJSONBuilder()
+                                        .setText({
+                                            text: "   §7[§fПереподключиться§7]   ",
+                                            hoverEvent: {
+                                                action: "show_text",
+                                                value: new RawJSONBuilder()
+                                                    .setText("§7Нажмите, чтобы переподключиться к серверу.")
+                                            },
+                                            clickEvent: {
+                                                action: "run_command",
+                                                value: `${PluginManager.prefix}connect ${host}:${port}`
+                                            }
+                                        })
+                                ])
+                        );
+
                         console.error(reason);
                     }
 
@@ -210,10 +250,7 @@ export class Proxy {
         const isFromServer = from === this.bridge;
 
         from.on("packet", (packet, meta) => {
-            if (
-                meta?.state === states.PLAY &&
-                from?.state === states.PLAY
-            ) {
+            if (meta?.state === states.PLAY && from?.state === states.PLAY) {
                 switch (meta.name) {
                     case "compress":
                         from.compressionThreshold = packet.threshold;
