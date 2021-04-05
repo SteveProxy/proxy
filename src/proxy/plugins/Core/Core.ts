@@ -10,7 +10,6 @@ import { PluginManager } from "../../modules/PluginManager";
 import { PlayerHead, Head } from "../../modules/pagesBuilder/gui";
 
 import { config } from "../../../config";
-import { minecraftData } from "../../../utils";
 
 import { ICommand, IRawServer, IServer, Page as ChatPage } from "../../../interfaces";
 
@@ -21,7 +20,6 @@ export class Core extends Plugin {
 
     private serversBuilder = this.proxy.client.context.pagesBuilder()
         .setInventoryType("generic_9x6");
-    private changeCurrentServerCooldown = 0;
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -39,13 +37,17 @@ export class Core extends Plugin {
             },
             {
                 name: "connect",
-                description: "Подключиться к другому серверу",
-                handler: this.connect
+                description: "Подключиться к серверу",
+                handler: this.connect,
+                args: [
+                    "IP-Адрес"
+                ],
+                argsRequired: false
             },
             {
                 name: "lobby",
                 description: "Подключиться к лобби",
-                handler: this.lobby
+                handler: this.proxy.connectToFallbackServer
             }
         ];
     }
@@ -184,7 +186,11 @@ export class Core extends Plugin {
             .build();
     }
 
-    async connect(): Promise<void> {
+    async connect(ip = ""): Promise<void> {
+        if (ip) {
+            return this.proxy.connect(ip);
+        }
+
         const serversDatBuffer = await fs.readFile(`${minecraftPath()}/servers.dat`);
 
         // @ts-ignore
@@ -241,34 +247,11 @@ export class Core extends Plugin {
                     ],
                     value: Head.Server,
                     onClick: () => {
-                        this.connectToServer(ip);
+                        this.proxy.connect(ip);
                         this.connect();
                     }
                 }))
             })
             .build();
-    }
-
-    lobby(): void {
-        this.proxy.connectToFallbackServer();
-    }
-
-    private connectToServer(ip: string) {
-        const COOLDOWN = 3;
-
-        if (this.changeCurrentServerCooldown < Date.now()) {
-            if (this.proxy.currentServer === ip) {
-                return this.proxy.client.context.send(`${this.meta.prefix} §cВы уже подключены к этому серверу!`);
-            }
-
-            this.proxy.connect(ip);
-
-            this.changeCurrentServerCooldown = Date.now() + COOLDOWN * 1000;
-
-            this.proxy.client.context.setCooldown({
-                id: minecraftData.findItemOrBlockByName("player_head").id,
-                cooldown: COOLDOWN
-            });
-        }
     }
 }
