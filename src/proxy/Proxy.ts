@@ -9,7 +9,7 @@ import { PluginManager } from "./modules/PluginManager";
 import { db } from "../DB";
 import { config } from "../config";
 
-import { getCurrentTime, getVersion, parseIP } from "../utils";
+import { getCurrentTime, getVersion, isValidIP, parseIP } from "../utils";
 
 import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 
@@ -66,6 +66,10 @@ export class Proxy {
             return this.client.context.send(
                 `${config.bridge.title} | §cДождидесь окончания предыдущей попытки подключения!`
             );
+        }
+
+        if (!isValidIP(ip)) {
+            return this.client.context.send(`${config.bridge.title} | §cНеверный IP-Адрес!`);
         }
 
         if (this.currentServer === ip) {
