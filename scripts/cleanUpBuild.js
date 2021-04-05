@@ -16,5 +16,5 @@ if (dist.includes("src")) {
 
 await Promise.all([
     fs.rm(`./${OUT_DIR}/interfaces`, RM_OPTIONS),
-    fs.rm(`./build`, RM_OPTIONS)
+    fs.rm("./build", RM_OPTIONS)
 ]);
