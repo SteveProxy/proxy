@@ -66,7 +66,7 @@ export class PluginManager {
             if (!context.isFromServer) {
                 this.chatManager.middleware(context);
 
-                this.commands.forEach(({ pluginName, handler, args = [], argsRequired = true }, name) => {
+                this.commands.forEach(({ pluginName, handler, args = [], argsRequired }, name) => {
                     const commandPrefix = `${prefix}${name}`;
                     const argsLength = args.length;
 
@@ -114,7 +114,7 @@ export class PluginManager {
         const { name: pluginName, commands, ignorePluginPrefix, prefix } = plugin.meta;
 
         if (commands) {
-            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown, argsRequired = false }) => {
+            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown, argsRequired = true }) => {
                 const commandPrefix = (`${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? pluginName : ""} ${commandName}`)
                     .trim();
 
