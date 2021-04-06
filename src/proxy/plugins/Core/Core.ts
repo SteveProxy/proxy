@@ -155,9 +155,9 @@ export class Core extends Plugin {
                         new RawJSONBuilder()
                             .setText(`${prefix} ${description}\n\n`),
                         // eslint-disable-next-line array-callback-return
-                        ...commands.map(({ name: commandName, hidden, args = [], description }: ICommand, index: number) => {
+                        ...commands.map(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, hidden, args = [], description }: ICommand, index: number) => {
                             if (!hidden) {
-                                const command = (`${PluginManager.prefix}${!ignorePluginPrefix ? `${pluginName} ${commandName}` : commandName}`)
+                                const command = (`${PluginManager.prefix}${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? `${pluginName} ${commandName}` : commandName}`)
                                     .trim();
 
                                 args = args.map((arg) => `§7<§r${arg}§7>§r`);
