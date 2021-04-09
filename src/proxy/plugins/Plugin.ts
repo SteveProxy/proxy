@@ -20,4 +20,9 @@ export class Plugin {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     stop(): void {}
+
+    restart(): void {
+        this.stop();
+        this.start();
+    }
 }
