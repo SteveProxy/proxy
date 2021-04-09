@@ -43,14 +43,16 @@ export class Discord extends Plugin {
     private login(): void {
         const { plugins: { discord } } = this.proxy.config;
 
+        const reconnectAttempts = this.reconnectAttempts;
+
         this.client.login(discord)
             .catch((error) => {
                 console.error(error);
 
                 if (this.reconnectAttempts) {
-                    this.reconnectAttempts--;
+                    setTimeout(() => this.login(), (reconnectAttempts + 1 - this.reconnectAttempts) * 1000);
 
-                    return this.login();
+                    return this.reconnectAttempts--;
                 }
 
                 this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при авторизации!`);
