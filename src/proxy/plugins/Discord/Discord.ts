@@ -8,7 +8,6 @@ export class Discord extends Plugin {
     private client: Client = new Client({ transport: "ipc" });
     private activity: Presence;
     private reconnectAttempts = 3;
-    private activityUpdatesInterval?: NodeJS.Timeout;
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -34,7 +33,14 @@ export class Discord extends Plugin {
         client.on("ready", () => {
             this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${client.user.username}.`);
 
-            this.startActivityUpdates();
+            const details = this.proxy.currentServer === this.proxy.fallbackServer ?
+                "В лобби"
+                :
+                this.proxy.currentServer;
+
+            this.setActivity({
+                details
+            });
         });
 
         this.login();
@@ -59,20 +65,7 @@ export class Discord extends Plugin {
             });
     }
 
-    private startActivityUpdates() {
-        this.activityUpdatesInterval = setInterval(() => {
-            const details = this.proxy.currentServer === this.proxy.fallbackServer ?
-                "В лобби"
-                :
-                this.proxy.currentServer;
-
-            this.setActivity({
-                details
-            });
-        }, 1_000);
-    }
-
-    private setActivity(activity: Presence) {
+    setActivity(activity: Presence): void {
         const updatedActivity = {
             ...this.activity,
             ...activity
@@ -87,9 +80,5 @@ export class Discord extends Plugin {
 
     stop(): void {
         this.client.destroy();
-
-        if (this.activityUpdatesInterval) {
-            clearInterval(this.activityUpdatesInterval);
-        }
     }
 }
