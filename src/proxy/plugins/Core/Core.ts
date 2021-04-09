@@ -47,7 +47,7 @@ export class Core extends Plugin {
             {
                 name: "lobby",
                 description: "Подключиться к лобби",
-                handler: this.proxy.connectToFallbackServer
+                handler: this.proxy.connectToFallbackServer.bind(this.proxy)
             }
         ];
     }
