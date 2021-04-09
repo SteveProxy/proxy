@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import SpotifyAPI from "spotify-web-api-node";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
@@ -19,6 +19,7 @@ const SONG_ITEM = minecraftData.findItemOrBlockByName("name_tag").id;
 export class Spotify extends Plugin {
 
     private spotify: SpotifyAPI;
+    private client: AxiosInstance;
     private state: ISpotify;
 
     private currentPlaying?: any;
@@ -54,12 +55,15 @@ export class Spotify extends Plugin {
         this.state = db.get(`plugins.${this.meta.name}`)
             .value();
 
-        const { clientSecret, clientId, redirectUrl: redirectUri } = this.state;
+        const { clientId, redirectUrl: redirectUri } = this.state;
 
         this.spotify = new SpotifyAPI({
             clientId,
-            clientSecret,
             redirectUri
+        });
+
+        this.client = axios.create({
+            baseURL: redirectUri
         });
     }
 
@@ -382,42 +386,27 @@ export class Spotify extends Plugin {
     }
 
     private refreshToken(): void {
-        this.proxy.client.context.send(`${this.meta.prefix} Обновление токена...`);
+        this.client.post("", `token=${this.state.refreshToken}`)
+            .then(({ data }) => data)
+            .then(({ access_token: accessToken, expires_in: expiresIn }: any) => {
+                this.spotify.setAccessToken(accessToken);
 
-        (
-            this.state.refreshToken ?
-                this.spotify.refreshAccessToken()
-                :
-                this.spotify.authorizationCodeGrant(this.state.code)
-        )
-            .then(({ body: { access_token, refresh_token, expires_in, scope: scopes } }: any) => {
-                if (this.state.scope.toString() === this.state.scope.filter((scope) => scopes.includes(scope)).toString()) {
-                    this.spotify.setAccessToken(access_token);
+                db.update(`plugins.${this.meta.name}`, (state) => ({
+                    ...state,
+                    accessToken,
+                    expiresIn
+                }))
+                    .write();
 
-                    db.set(`plugins.${this.meta.name}.accessToken`, access_token)
-                        .set(`plugins.${this.meta.name}.expiresIn`, Date.now() + expires_in * 1000)
-                        .write();
-
-                    if (refresh_token) {
-                        this.spotify.setRefreshToken(refresh_token);
-
-                        db.set(`plugins.${this.meta.name}.refreshToken`, refresh_token)
-                            .write();
-                    }
-
-                    this.restart();
-                } else {
-                    this.proxy.client.context.send(`${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`);
-                    this.auth();
-                }
+                this.restart();
             })
-            .catch(({ statusCode }) => {
+            .catch(({ response: { data: { statusCode } } }) => {
                 switch (statusCode) {
                     case 400:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена, авторизуйтесь заново!`);
 
                         this.clearCredentials();
-                        this.start();
+                        this.restart();
                         break;
                     default:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена.`);
@@ -455,24 +444,35 @@ export class Spotify extends Plugin {
 
         this.proxy.client.context.send(`${this.meta.prefix} Авторизация...`);
 
-        await axios.post(this.state.redirectUrl, `state=${state}`)
-            .then(async ({ data: { code } }) => {
-                if (this.state.code !== code) {
-                    await this.clearCredentials();
-
-                    await db.set(`plugins.${this.meta.name}.code`, code)
-                        .write();
-
-                    this.restart();
-                } else {
-                    this.proxy.client.context.send(`${this.meta.prefix} §eВы уже авторизованы!`);
+        await this.client.post("", `state=${state}`)
+            .then(({ data }) => data)
+            .then(({ code, access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, scope: scopes }) => {
+                if (this.state.code === code) {
+                    return this.proxy.client.context.send(`${this.meta.prefix} §eВы уже авторизованы!`);
                 }
+
+                if (this.state.scope.toString() !== this.state.scope.filter((scope) => scopes.includes(scope)).toString()) {
+                    this.proxy.client.context.send(`${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`);
+                    return this.auth();
+                }
+
+                db.update(`plugins.${this.meta.name}`, (state) => ({
+                    ...state,
+                    code,
+                    accessToken,
+                    refreshToken,
+                    expiresIn
+                }))
+                    .write();
+
+                this.restart();
             })
-            .catch((error) => {
-                switch (error?.response?.status) {
+
+            .catch(({ response: { data: { statusCode, body } } }) => {
+                switch (statusCode) {
                     case 400:
                         this.proxy.client.context.send(
-                            `${this.meta.prefix} §cНедействительный код для авторизации!`
+                            `${this.meta.prefix} §cНедействительный код для авторизации или срок его действия истек!`
                         );
                         break;
                     default:
@@ -480,7 +480,7 @@ export class Spotify extends Plugin {
                             `${this.meta.prefix} §cПроизошла ошибка при получении кода авторизации.`
                         );
 
-                        console.error(error);
+                        console.error(body);
                         break;
                 }
             });
@@ -508,10 +508,5 @@ export class Spotify extends Plugin {
         if (this.getCurrentPlayingInterval) {
             clearInterval(this.getCurrentPlayingInterval);
         }
-    }
-
-    restart(): void {
-        this.stop();
-        this.start();
     }
 }

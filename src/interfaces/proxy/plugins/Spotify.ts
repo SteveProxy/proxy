@@ -7,7 +7,6 @@ export interface ISpotify {
     username: string;
     market: string;
     clientId: string;
-    clientSecret: string;
     redirectUrl: string;
     template: {
         explicit: string;
