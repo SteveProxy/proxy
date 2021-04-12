@@ -4,6 +4,7 @@ import { Proxy } from "../Proxy";
 
 import { PacketContext } from "./packetManager/PacketManager";
 import { ChatManager } from "./chatManager/ChatManager";
+import { QuestionBuilder } from "./QuestionBuilder";
 
 import { plugins } from "../plugins";
 import { config } from "../../config";
@@ -53,6 +54,7 @@ export class PluginManager {
             this.isStarted = false;
 
             this.proxy.packetManager.clear();
+            QuestionBuilder.stop();
         }
     }
 
@@ -65,6 +67,7 @@ export class PluginManager {
         this.proxy.packetManager.on("chat", (context: PacketContext) => {
             if (!context.isFromServer) {
                 this.chatManager.middleware(context);
+                QuestionBuilder.middleware(context);
 
                 this.commands.forEach(({ pluginName, handler, args = [], argsRequired }, name) => {
                     const commandPrefix = `${prefix}${name}`;
@@ -72,7 +75,7 @@ export class PluginManager {
 
                     if (argsLength) {
                         if (context.packet.message.startsWith(`${commandPrefix}${!argsRequired ? "" : " "}`)) {
-                            context.setCanceled(true);
+                            context.setCanceled();
 
                             const trimmedMessage = context.packet.message.replace(commandPrefix, "")
                                 .trim();
@@ -92,13 +95,13 @@ export class PluginManager {
                         }
 
                         if (context.packet.message === commandPrefix) {
-                            context.setCanceled(true);
+                            context.setCanceled();
 
                             this.proxy.client.context.send(`${this.plugins.get(pluginName).meta.prefix} §cКоманде не переданы нужные аргументы!`);
                         }
                     } else {
                         if (context.packet.message === commandPrefix) {
-                            context.setCanceled(true);
+                            context.setCanceled();
 
                             return handler();
                         }

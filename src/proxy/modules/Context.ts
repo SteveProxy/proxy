@@ -1,15 +1,12 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
-import { config } from "../../config";
-
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { ChatBuilder } from "./chatManager/ChatBuilder";
 
 import { getVersion } from "../../utils";
 
 import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, ISetCooldownOptions, SetCooldownOptions, IContext, SendOptions } from "../../interfaces";
-
-const { bridge: { title } } = config;
+import { QuestionBuilder } from "./QuestionBuilder";
 
 export class Context {
 
@@ -24,12 +21,11 @@ export class Context {
     }
 
     end(reason: string | RawJSONBuilder): void {
-        reason = typeof reason === "string" ?
-            reason
-            :
-            reason.toRawString();
+        if (typeof reason !== "string") {
+            reason = reason.toRawString();
+        }
 
-        this.client.end(`${title}\n\n${reason}`);
+        this.client.end(`${this.proxy.config.bridge.title}\n\n${reason}`);
     }
 
     send(options: SendOptions): void {
@@ -155,10 +151,9 @@ export class Context {
     }
 
     sendBrand(brand: string | RawJSONBuilder): void {
-        brand = typeof brand === "string" ?
-            brand
-            :
-            brand.toRawString();
+        if (typeof brand !== "string") {
+            brand = brand.toRawString();
+        }
 
         this.client.writeChannel(this.client.protocolVersion >= getVersion("1.13-pre3") ? "brand" : "MC|Brand", brand);
     }
@@ -193,12 +188,11 @@ export class Context {
     }
 
     setCooldown(options: SetCooldownOptions): void {
-        options = typeof options === "object" ?
-            options
-            :
-            {
+        if (typeof options !== "object") {
+            options = {
                 id: options
             };
+        }
 
         let { id, cooldown = 1 } = options as ISetCooldownOptions;
 
@@ -218,5 +212,9 @@ export class Context {
 
     chatBuilder(): ChatBuilder {
         return new ChatBuilder(this.proxy);
+    }
+
+    questionBuilder(): QuestionBuilder {
+        return new QuestionBuilder(this.proxy);
     }
 }
