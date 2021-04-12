@@ -49,6 +49,7 @@ class ChatManager {
     }
 }
 
+export * from "./components";
 export {
     ChatManager,
     buildersStorage,

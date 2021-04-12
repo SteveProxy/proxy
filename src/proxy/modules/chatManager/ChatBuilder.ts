@@ -3,7 +3,7 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../../Proxy";
 
-import { buildersStorage, ChatManager } from "./ChatManager";
+import { buildersStorage, bullet, ChatManager, separator } from "./ChatManager";
 
 import { generateID } from "../../../utils";
 
@@ -54,7 +54,7 @@ export class ChatBuilder {
                 items: options
             };
         }
-        
+
         const { items, chunkSize = 10 } = options;
 
         const chunks = chunk(items, chunkSize);
@@ -79,7 +79,7 @@ export class ChatBuilder {
 
         return this;
     }
-    
+
     async setPage(pageNumber: number): Promise<void> {
         this.currentPage = pageNumber;
 
@@ -215,15 +215,12 @@ export class ChatBuilder {
                 );
         }
 
-        const tab = new RawJSONBuilder()
-            .setText("\n");
-
         if (Object.keys(this.header.message).length) {
             page = new RawJSONBuilder()
                 .setExtra([
                     this.header,
-                    tab,
-                    tab,
+                    separator,
+                    separator,
                     page
                 ]);
         }
@@ -235,8 +232,8 @@ export class ChatBuilder {
 
         if (footerLength || defaultButtonsSize) {
             page.addExtra([
-                tab,
-                tab
+                separator,
+                separator
             ]);
 
             const defaultButtons = [...this.defaultButtons].filter(([, buttonAction]) => !this.infinityLoop ?
@@ -267,14 +264,12 @@ export class ChatBuilder {
                         this.paginationFormat.replace("%c", String(this.currentPage))
                             .replace("%m", String(this.pages.length))
                     }§r`),
-                ...[
+                ...(
                     (defaultButtons.length && this.pages.length > 1 && footerLength) || (!defaultButtons.length && this.paginationFormat) ?
-                        new RawJSONBuilder()
-                            .setText(" §7•§r ")
+                        [bullet]
                         :
-                        new RawJSONBuilder()
-                            .setText("")
-                ]
+                        []
+                )
             ]);
 
             if (footerLength) {
@@ -284,9 +279,9 @@ export class ChatBuilder {
 
         page = new RawJSONBuilder()
             .setExtra([
-                tab,
+                separator,
                 page,
-                tab
+                separator
             ]);
 
         return page;
@@ -388,6 +383,10 @@ export class ChatBuilder {
     }
 
     build(): void {
+        if (!this.pages.length) {
+            throw new Error("Pages not set.");
+        }
+
         this.setPage(this.currentPage);
 
         this.resetListenTimeout({
