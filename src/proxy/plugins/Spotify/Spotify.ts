@@ -20,7 +20,8 @@ export class Spotify extends Plugin {
 
     private spotify: SpotifyAPI;
     private client: AxiosInstance;
-    private state: ISpotify;
+    private state: ISpotify = db.get(`plugins.${this.meta.name}`)
+        .value();
 
     private currentPlaying?: any;
     private getCurrentPlayingInterval?: NodeJS.Timeout;
@@ -52,9 +53,6 @@ export class Spotify extends Plugin {
             }
         ];
 
-        this.state = db.get(`plugins.${this.meta.name}`)
-            .value();
-
         const { clientId, redirectUrl: redirectUri } = this.state;
 
         this.spotify = new SpotifyAPI({
@@ -74,28 +72,30 @@ export class Spotify extends Plugin {
 
         this.state = state;
 
-        if (code) {
-            this.spotify.setRefreshToken(refreshToken);
-
-            if (accessToken && expiresIn > Date.now()) {
-                this.spotify.setAccessToken(accessToken);
-
-                this.getUser()
-                    .then(() => {
-                        this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.state.username}.`);
-
-                        this.getCurrentPlaying();
-
-                        this.getCurrentPlayingInterval = setInterval(this.getCurrentPlaying.bind(this), 3 * 1000);
-                        this.actionbarUpdateInterval = setInterval(this.actionbarUpdate.bind(this), 1000);
-                    });
-            } else {
-                this.refreshToken();
-            }
-        } else {
+        if (!code) {
             this.proxy.client.context.send(`${this.meta.prefix} Для работы плагина необходима авторизация.`);
             this.auth();
+
+            return;
         }
+
+        this.spotify.setRefreshToken(refreshToken);
+
+        if (!accessToken || expiresIn <= Date.now()) {
+            return this.refreshToken();
+        }
+
+        this.spotify.setAccessToken(accessToken);
+
+        this.getUser()
+            .then(() => {
+                this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.state.username}.`);
+
+                this.getCurrentPlaying();
+
+                this.getCurrentPlayingInterval = setInterval(this.getCurrentPlaying.bind(this), 3 * 1000);
+                this.actionbarUpdateInterval = setInterval(this.actionbarUpdate.bind(this), 1000);
+            });
     }
 
     private gui(): void {
