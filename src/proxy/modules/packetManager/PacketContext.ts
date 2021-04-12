@@ -28,7 +28,7 @@ export class PacketContext {
         this.packetDelta = packetDelta;
     }
 
-    setCanceled(cancel: boolean): this {
+    setCanceled(cancel = true): this {
         this.canceled = cancel;
 
         return this;
