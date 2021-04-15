@@ -5,7 +5,7 @@ import { PluginManager } from "./PluginManager";
 import { bullet, separator } from "./chatManager/components";
 
 import { Proxy } from "../Proxy";
-import { IAnswer, Middleware, Question, QuestionItem, QuestionMessage, QuestionSet, QuestionValidator } from "../../interfaces";
+import { CancelHandler, IAnswer, Middleware, Question, QuestionItem, QuestionMessage, QuestionSet, QuestionValidator } from "../../interfaces";
 import { PacketContext } from "./packetManager/PacketContext";
 
 let currentBuilder: QuestionBuilder | undefined;
@@ -18,6 +18,7 @@ export class QuestionBuilder {
     private questions: QuestionSet = new Set();
     private answers: string[] = [];
     private paginationFormat = "%c §7/§r %m";
+    private cancelHandler: CancelHandler = null;
     private currentQuestion = 1;
     private validationStarted = false;
 
@@ -72,6 +73,12 @@ export class QuestionBuilder {
         this.paginationFormat = format;
 
         this.saveContext();
+
+        return this;
+    }
+
+    onCancel(handler: CancelHandler): this {
+        this.cancelHandler = handler;
 
         return this;
     }
@@ -192,7 +199,7 @@ export class QuestionBuilder {
     }
 
     stop(): void {
-        currentBuilder = undefined;
+        QuestionBuilder.stop();
     }
 
     static stop(): void {
@@ -234,6 +241,10 @@ export class QuestionBuilder {
                         break;
                     }
                     case "cancel":
+                        if (currentBuilder.cancelHandler) {
+                            currentBuilder.cancelHandler();
+                        }
+
                         return currentBuilder.stop();
                 }
 

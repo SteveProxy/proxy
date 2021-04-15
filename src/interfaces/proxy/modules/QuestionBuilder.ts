@@ -1,9 +1,11 @@
 import { RawJSONBuilder } from "rawjsonbuilder";
 
+export type CancelHandler = ((...params: any) => unknown) | null;
+
 export type RawQuestionMessage = string;
 export type QuestionMessage = RawJSONBuilder;
 
-export type QuestionValidator = ((answer: string) => boolean | Promise<boolean>) | undefined;
+export type QuestionValidator = ((answer: string) => boolean | Promise<boolean> | void) | undefined;
 
 export type QuestionItem = [QuestionMessage | RawQuestionMessage] | [QuestionMessage | RawQuestionMessage, QuestionValidator];
 export type QuestionSet = Set<[QuestionMessage] | [QuestionMessage, QuestionValidator]>;
