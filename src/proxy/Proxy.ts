@@ -145,7 +145,7 @@ export class Proxy {
             ...config.proxy,
             host,
             port,
-            ...(await Proxy.getSession())
+            ...(await this.getSession())
         }) as IClient;
 
         bridge.context = new Context({
@@ -275,20 +275,26 @@ export class Proxy {
         });
     }
 
-    private static async getSession(): Promise<any> {
-        const { accounts, activeAccountLocalId, mojangClientToken: clientToken } = (await import(`file://${minecraftPath()}/launcher_accounts.json`))
-            .default;
+    private async getSession(): Promise<any> {
+        try {
+            const { accounts, activeAccountLocalId, mojangClientToken: clientToken } = (await import(`file://${minecraftPath()}/launcher_accounts.json`))
+                .default;
 
-        const { accessToken, minecraftProfile: selectedProfile } = accounts[activeAccountLocalId];
+            const { accessToken, minecraftProfile: selectedProfile } = accounts[activeAccountLocalId];
 
-        return {
-            session: {
-                accessToken,
-                selectedProfile,
-                clientToken
-            },
-            username: selectedProfile.name
-        };
+            return {
+                session: {
+                    accessToken,
+                    selectedProfile,
+                    clientToken
+                },
+                username: selectedProfile.name
+            };
+        } catch (error) {
+            this.client.context.end("Произошла ошибка при чтении файла с сессией.");
+
+            console.log(error);
+        }
     }
 
     static parseIP(ip: string | IParsedIP): string {
