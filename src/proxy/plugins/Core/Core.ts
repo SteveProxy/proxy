@@ -166,7 +166,7 @@ export class Core extends Plugin {
                                     .setExtra([
                                         new RawJSONBuilder()
                                             .setText({
-                                                text: `${command}${args.length ? ` ${args}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`,
+                                                text: `${command}${args.length ? ` ${args.join(" ")}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`,
                                                 hoverEvent: {
                                                     action: "show_text",
                                                     contents: new RawJSONBuilder()
