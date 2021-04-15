@@ -196,7 +196,9 @@ export class Context {
 
         let { id, cooldown = 1 } = options as ISetCooldownOptions;
 
-        id = Array.isArray(id) ? id : [id];
+        if (!Array.isArray(id)) {
+            id = [id];
+        }
 
         id.forEach((id) => {
             this.client.write("set_cooldown", {
