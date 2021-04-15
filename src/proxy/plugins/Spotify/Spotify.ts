@@ -20,8 +20,7 @@ export class Spotify extends Plugin {
 
     private spotify: SpotifyAPI;
     private client: AxiosInstance;
-    private state: ISpotify = db.get(`plugins.${this.meta.name}`)
-        .value();
+    private state: ISpotify = this.proxy.config.plugins.spotify;
 
     private currentPlaying?: any;
     private getCurrentPlayingInterval?: NodeJS.Timeout;
@@ -66,8 +65,7 @@ export class Spotify extends Plugin {
     }
 
     start(): void {
-        const state = db.get(`plugins.${this.meta.name}`)
-            .value();
+        const state = this.proxy.config.plugins.spotify;
         const { accessToken, code, expiresIn, refreshToken } = state;
 
         this.state = state;
@@ -264,12 +262,18 @@ export class Spotify extends Plugin {
                     this.currentPlaying = data;
                 }
             })
-            .catch(({ statusCode }) => {
+            .catch(({ statusCode, syscall, ...error }) => {
+                if (syscall === "connect") {
+                    return;
+                }
+
                 switch (statusCode) {
                     case 401:
                         this.refreshToken();
                         break;
                     default:
+                        console.log(syscall, error);
+
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`);
                         break;
                 }
@@ -428,6 +432,11 @@ export class Spotify extends Plugin {
                             clickEvent: {
                                 action: "open_url",
                                 value: this.spotify.createAuthorizeURL(this.state.scope, generateID(6))
+                            },
+                            hoverEvent: {
+                                action: "show_text",
+                                value: new RawJSONBuilder()
+                                    .setText("§7Нажмите, чтобы открыть страницу с авторизацией.")
                             }
                         })
                     ])
