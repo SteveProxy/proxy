@@ -262,8 +262,8 @@ export class Spotify extends Plugin {
                     this.currentPlaying = data;
                 }
             })
-            .catch(({ statusCode, syscall, ...error }) => {
-                if (syscall === "connect") {
+            .catch(({ statusCode, syscall, code }) => {
+                if (syscall === "connect" || code === "ENOTFOUND") {
                     return;
                 }
 
@@ -272,7 +272,7 @@ export class Spotify extends Plugin {
                         this.refreshToken();
                         break;
                     default:
-                        console.log(syscall, error);
+                        console.log(statusCode);
 
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`);
                         break;
@@ -390,6 +390,8 @@ export class Spotify extends Plugin {
     }
 
     private refreshToken(): void {
+        this.stop();
+
         this.client.post("", `token=${this.state.refreshToken}`)
             .then(({ data }) => data)
             .then(({ access_token: accessToken, expires_in: expiresIn }: any) => {
