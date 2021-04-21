@@ -22,6 +22,7 @@ export class Spotify extends Plugin {
     private client: AxiosInstance;
     private state: ISpotify = this.proxy.config.plugins.spotify;
 
+    private username = "";
     private currentPlaying?: any;
     private getCurrentPlayingInterval?: NodeJS.Timeout;
     private actionbarUpdateInterval?: NodeJS.Timeout;
@@ -87,7 +88,7 @@ export class Spotify extends Plugin {
 
         this.getUser()
             .then(() => {
-                this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.state.username}.`);
+                this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.username}.`);
 
                 this.getCurrentPlaying();
 
@@ -109,14 +110,7 @@ export class Spotify extends Plugin {
                         return new Page()
                             .setWindowTitle(
                                 new RawJSONBuilder()
-                                    .setText(this.meta.prefix)
-                                    .setExtra(
-                                        new RawJSONBuilder()
-                                            .setText({
-                                                text: ` ${this.state.username}`,
-                                                color: "white"
-                                            })
-                                    )
+                                    .setText(`${this.meta.prefix} §f${this.username}`)
                             )
                             .setItems([
                                 new Item({
@@ -284,11 +278,8 @@ export class Spotify extends Plugin {
         this.proxy.client.context.send(`${this.meta.prefix} Загрузка данных пользователя...`);
 
         return this.spotify.getMe()
-            .then(({ body: { display_name } }) => {
-                this.state.username = display_name as string;
-
-                db.set(`plugins.${this.meta.name}.username`, display_name)
-                    .write();
+            .then(({ body: { display_name = "" } }) => {
+                this.username = display_name;
             })
             .catch(({ body: { error: { status, message } } }) => {
                 switch (status) {
@@ -297,6 +288,7 @@ export class Spotify extends Plugin {
                         break;
                     default:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке информации о пользователе.`);
+
                         console.error(message);
                         break;
                 }
