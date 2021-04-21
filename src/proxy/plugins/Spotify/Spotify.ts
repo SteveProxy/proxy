@@ -499,16 +499,15 @@ export class Spotify extends Plugin {
         this.authStarted = false;
     }
 
-    private clearCredentials(clearCode = true): void {
-        db.set(`plugins.${this.meta.name}.accessToken`, "")
-            .set(`plugins.${this.meta.name}.refreshToken`, "")
-            .set(`plugins.${this.meta.name}.expiresIn`, 0)
+    private clearCredentials(): void {
+        db.update(`plugins.${this.meta.name}`, (state) => ({
+            ...state,
+            accessToken: "",
+            refreshToken: "",
+            expiresIn: 0,
+            code: ""
+        }))
             .write();
-
-        if (clearCode) {
-            db.set(`plugins.${this.meta.name}.code`, "")
-                .write();
-        }
     }
 
     stop(): void {
