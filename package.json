@@ -19,7 +19,7 @@
     "discord-rpc": "^3.2.0",
     "humanize-duration": "^3.25.1",
     "lowdb": "^1.0.0",
-    "minecraft-data": "^2.82.2",
+    "minecraft-data": "^2.84.0",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.25.0",
     "prismarine-nbt": "github:SteveProxy/prismarine-nbt",
