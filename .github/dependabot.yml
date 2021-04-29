@@ -1,0 +1,28 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: humanize-duration
+    versions:
+    - 3.25.2
+  - dependency-name: "@typescript-eslint/eslint-plugin"
+    versions:
+    - 4.16.1
+    - 4.22.0
+  - dependency-name: rawjsonbuilder
+    versions:
+    - 1.1.13
+    - 1.1.5
+  - dependency-name: minecraft-data
+    versions:
+    - 2.82.2
+  - dependency-name: "@typescript-eslint/parser"
+    versions:
+    - 4.18.0
+  - dependency-name: "@types/spotify-web-api-node"
+    versions:
+    - 5.0.2
