@@ -5,3 +5,6 @@ export const separator = new RawJSONBuilder()
 
 export const bullet = new RawJSONBuilder()
     .setText(" §7•§r ");
+
+export const space = new RawJSONBuilder()
+    .setText(" ");
