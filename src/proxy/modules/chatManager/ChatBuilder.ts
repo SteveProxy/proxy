@@ -215,7 +215,7 @@ export class ChatBuilder {
                 );
         }
 
-        if (Object.keys(this.header.message).length) {
+        if (Object.keys(this.header["message"]).length) {
             page = new RawJSONBuilder()
                 .setExtra([
                     this.header,
@@ -227,7 +227,7 @@ export class ChatBuilder {
 
         page = new RawJSONBuilder(page);
 
-        const footerLength = Object.keys(this.footer.message).length;
+        const footerLength = Object.keys(this.footer["message"]).length;
         const defaultButtonsSize = this.defaultButtons.size;
 
         if (footerLength || defaultButtonsSize) {
