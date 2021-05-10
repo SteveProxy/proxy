@@ -14,28 +14,33 @@
   "author": "MrZillaGold <Pronin Egor | mrzillagold@gmail.com>",
   "license": "CC-BY-NC-ND-4.0",
   "dependencies": {
+    "@vk-io/authorization": "^1.1.0",
     "axios": "^0.21.1",
     "chunk": "0.0.3",
     "discord-rpc": "^3.2.0",
-    "humanize-duration": "^3.26.0",
+    "humanize-duration": "^3.25.1",
     "lowdb": "^1.0.0",
-    "minecraft-data": "^2.84.0",
+    "minecraft-data": "^2.82.2",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.25.0",
+    "moment": "^2.29.1",
     "prismarine-nbt": "github:SteveProxy/prismarine-nbt",
-    "rawjsonbuilder": "^1.1.14",
-    "spotify-web-api-node": "^5.0.2"
+    "rawjsonbuilder": "^1.1.19",
+    "spotify-web-api-node": "^5.0.2",
+    "vk-io": "^4.2.0"
   },
   "devDependencies": {
     "@types/chunk": "0.0.0",
     "@types/discord-rpc": "^3.0.5",
     "@types/humanize-duration": "^3.18.1",
     "@types/lowdb": "^1.0.9",
-    "@types/node": "^15.0.2",
+    "@types/node": "^14.14.39",
+    "@types/node-fetch": "^2.5.10",
     "@types/spotify-web-api-node": "^5.0.1",
-    "@typescript-eslint/eslint-plugin": "^4.22.1",
-    "@typescript-eslint/parser": "^4.22.1",
-    "eslint": "^7.25.0",
+    "@types/tough-cookie": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.21.0",
+    "@typescript-eslint/parser": "^4.21.0",
+    "eslint": "^7.23.0",
     "typescript": "^4.2.4"
   }
 }
