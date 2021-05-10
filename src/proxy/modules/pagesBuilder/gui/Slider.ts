@@ -6,7 +6,9 @@ import { ISliderOptions } from "../../../../interfaces";
 
 export function Slider({ cellsCount, initialPosition, value, nbt, onClick, max }: ISliderOptions): Item[] {
     const cells = Math.ceil(value / (max / cellsCount));
-    const placeholders = cellsCount - cells;
+    let placeholders = cellsCount - cells;
+
+    placeholders = placeholders >= 0 ? placeholders : 0;
 
     const getNBT = (index: number) => {
         index += 1;
