@@ -24,7 +24,7 @@ export class Message extends Middleware {
             return;
         }
 
-        const { name, title, push_settings, unread_count } = await this.vk.getByMultipleId(context);
+        const { name, chat_settings: { title = "" } = {}, push_settings, unread_count } = await this.vk.getByMultipleId(context);
 
         if (push_settings?.disabled_forever || push_settings?.no_sound) {
             return next();
