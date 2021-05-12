@@ -112,7 +112,7 @@ export class Message extends Middleware {
                                                 separator,
                                                 new RawJSONBuilder()
                                                     .setTranslate({
-                                                        translate: "§7Нажмите с использование %s§7, чтобы отправить сообщение.",
+                                                        translate: "§7Нажмите с использованием %s§7, чтобы отправить сообщение.",
                                                         with: [
                                                             new RawJSONBuilder()
                                                                 .setKeybind("key.sneak")
