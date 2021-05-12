@@ -1,5 +1,5 @@
 import { MessageContext } from "vk-io";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ClickAction, HoverAction, RawJSONBuilder } from "rawjsonbuilder";
 
 import { PluginManager } from "../../../modules/PluginManager";
 import { Middleware } from "./Middleware";
@@ -78,11 +78,11 @@ export class Message extends Middleware {
                                     text: name,
                                     insertion: `${PluginManager.prefix}${this.meta.name} send ${context.peerId}`,
                                     clickEvent: {
-                                        action: "open_url",
+                                        action: ClickAction.OPEN_URL,
                                         value: `${LINK_PREFIX}${context.isUser ? "id" : "club"}${Math.abs(context.senderId)}`
                                     },
                                     hoverEvent: {
-                                        action: "show_text",
+                                        action: HoverAction.SHOW_TEXT,
                                         value: new RawJSONBuilder()
                                             .setExtra([
                                                 new RawJSONBuilder()

@@ -56,7 +56,7 @@ export class VK extends Plugin {
                 description: "Отправка сообщения",
                 handler: this.send,
                 args: [
-                    "Пользователь",
+                    "Получатель",
                     "Сообщение"
                 ],
                 hidden: true,
