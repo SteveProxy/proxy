@@ -18,7 +18,7 @@
     "axios": "^0.21.1",
     "chunk": "0.0.3",
     "discord-rpc": "^3.2.0",
-    "humanize-duration": "^3.25.1",
+    "humanize-duration": "^3.26.0",
     "lowdb": "^1.0.0",
     "minecraft-data": "^2.84.0",
     "minecraft-path": "^1.0.0",
