@@ -1,4 +1,4 @@
-import { APIErrorCode, CallbackService, CallbackServiceRetry, ICallbackServiceCaptchaPayload, ICallbackServiceTwoFactorPayload } from "vk-io";
+import { APIErrorCode, CallbackService, CallbackServiceRetry, getRandomId, ICallbackServiceCaptchaPayload, ICallbackServiceTwoFactorPayload } from "vk-io";
 import { AuthErrorCode, DirectAuthorization, officialAppCredentials } from "@vk-io/authorization";
 import { ClickAction, RawJSONBuilder } from "rawjsonbuilder";
 
@@ -18,7 +18,7 @@ import { IVK } from "../../../interfaces";
 import { NotificationsNotificationItem } from "vk-io/lib/api/schemas/objects";
 
 const { AUTHORIZATION_FAILED, FAILED_PASSED_CAPTCHA, FAILED_PASSED_TWO_FACTOR, TOO_MUCH_TRIES, WRONG_OTP, USERNAME_OR_PASSWORD_IS_INCORRECT, INVALID_PHONE_NUMBER, PAGE_BLOCKED, OTP_FORMAT_IS_INCORRECT } = AuthErrorCode;
-const { AUTH } = APIErrorCode;
+const { AUTH, MESSAGES_USER_BLOCKED, MESSAGES_DENY_SEND, MESSAGES_PRIVACY, MESSAGES_CHAT_USER_NO_ACCESS, PARAM } = APIErrorCode;
 
 export class VK extends Plugin {
 
@@ -50,6 +50,17 @@ export class VK extends Plugin {
                     "Логин",
                     "Пароль"
                 ]
+            },
+            {
+                name: "send",
+                description: "Отправка сообщения",
+                handler: this.send,
+                args: [
+                    "Пользователь",
+                    "Сообщение"
+                ],
+                hidden: true,
+                sliceArgs: false
             }
         ];
 
@@ -335,6 +346,41 @@ export class VK extends Plugin {
                 new Error("Authorization canceled by user.")
             );
         };
+    }
+
+    private send(peer_id: number, message: string) {
+        this.vk.api.messages.send({
+            peer_id,
+            message,
+            random_id: getRandomId()
+        })
+            .then(() => {
+                this.proxy.client.context.send(`${this.meta.prefix} Сообщение отправлено.`);
+            })
+            .catch((error) => {
+                const { code } = error;
+
+                switch (code) {
+                    case PARAM:
+                        this.proxy.client.context.send(`${this.meta.prefix} §cОдин из параметров неверный! Проверьте правильность ввода и попробуйте снова.`);
+
+                        break;
+                    case MESSAGES_USER_BLOCKED:
+                        return this.proxy.client.context.send(`${this.meta.prefix} §cНельзя отправлять сообщения пользователю, который находится в чёрном списке.`);
+                    case MESSAGES_DENY_SEND:
+                        return this.proxy.client.context.send(`${this.meta.prefix} §cПользователь добавил вас в чёрный список.`);
+                    case MESSAGES_PRIVACY:
+                        return this.proxy.client.context.send(`${this.meta.prefix} §cПользователь ограничил круг лиц, которые могут ему написать.`);
+                    case MESSAGES_CHAT_USER_NO_ACCESS:
+                        return this.proxy.client.context.send(`${this.meta.prefix} §cУ вас нет доступа к этому чату!`);
+                    default:
+                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при отправке сообщения.`);
+
+                        break;
+                }
+
+                console.log(error);
+            });
     }
 
     private clearCredentials() {

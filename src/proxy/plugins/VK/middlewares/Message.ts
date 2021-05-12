@@ -1,6 +1,7 @@
 import { MessageContext } from "vk-io";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
+import { PluginManager } from "../../../modules/PluginManager";
 import { Middleware } from "./Middleware";
 import { Markdown } from "../Markdown";
 
@@ -75,6 +76,7 @@ export class Message extends Middleware {
                             new RawJSONBuilder()
                                 .setText({
                                     text: name,
+                                    insertion: `${PluginManager.prefix}${this.meta.name} send ${context.peerId}`,
                                     clickEvent: {
                                         action: "open_url",
                                         value: `${LINK_PREFIX}${context.isUser ? "id" : "club"}${Math.abs(context.senderId)}`
@@ -104,6 +106,16 @@ export class Message extends Middleware {
                                                         with: [
                                                             new RawJSONBuilder()
                                                                 .setText(String(unread_count))
+                                                        ]
+                                                    }),
+                                                separator,
+                                                separator,
+                                                new RawJSONBuilder()
+                                                    .setTranslate({
+                                                        translate: "§7Нажмите с использование %s§7, чтобы отправить сообщение.",
+                                                        with: [
+                                                            new RawJSONBuilder()
+                                                                .setKeybind("key.sneak")
                                                         ]
                                                     })
                                             ])
