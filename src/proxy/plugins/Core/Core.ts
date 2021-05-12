@@ -1,5 +1,5 @@
 import minecraftPath from "minecraft-path";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ClickAction, HoverAction, RawJSONBuilder } from "rawjsonbuilder";
 import { parse } from "prismarine-nbt";
 import { promises as fs } from "fs";
 
@@ -7,7 +7,7 @@ import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
 import { PluginManager } from "../../modules/PluginManager";
 
-import { PlayerHead, Head } from "../../modules/pagesBuilder/gui";
+import { Head, PlayerHead } from "../../modules/pagesBuilder/gui";
 
 import { config } from "../../../config";
 
@@ -138,12 +138,12 @@ export class Core extends Plugin {
                                 .setText({
                                     text: `${prefix} ${description}${index + 1 < plugins.length ? "\n" : ""}`,
                                     hoverEvent: {
-                                        action: "show_text",
+                                        action: HoverAction.SHOW_TEXT,
                                         contents: new RawJSONBuilder()
                                             .setText("§7Нажмите, чтобы посмотреть доступные команды плагина.")
                                     },
                                     clickEvent: {
-                                        action: "run_command",
+                                        action: ClickAction.RUN_COMMAND,
                                         value: `${builder.triggerCommandPrefix} ${name}`
                                     }
                                 });
@@ -168,18 +168,19 @@ export class Core extends Plugin {
                                             .setText({
                                                 text: `${command}${args.length ? ` ${args.join(" ")}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`,
                                                 hoverEvent: {
-                                                    action: "show_text",
+                                                    action: HoverAction.SHOW_TEXT,
                                                     contents: new RawJSONBuilder()
                                                         .setText(`§7Нажмите, чтобы ${args.length ? "вставить команду в чат" : "вызвать команду"}.`)
                                                 },
                                                 clickEvent: {
-                                                    action: args.length ? "suggest_command" : "run_command",
+                                                    action: args.length ? ClickAction.SUGGEST_COMMAND : ClickAction.RUN_COMMAND,
                                                     value: command
                                                 }
                                             })
                                     ]);
                             }
                         })
+                            .filter(Boolean)
                     ]))
                     .filter(Boolean) as ChatPage[]
             ])
