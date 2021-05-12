@@ -84,14 +84,13 @@ export class Chat extends Plugin {
                                             hoverEvent: {
                                                 action: "show_text",
                                                 contents: new RawJSONBuilder()
-                                                    .setExtra([
-                                                        new RawJSONBuilder()
-                                                            .setText("§7Нажмите с использованием "),
-                                                        new RawJSONBuilder()
-                                                            .setKeybind("key.sneak"),
-                                                        new RawJSONBuilder()
-                                                            .setText("§7, чтобы вставить Emoji в чат.")
-                                                    ])
+                                                    .setTranslate({
+                                                        translate: "§7Нажмите с использованием %s§7, чтобы вставить Emoji в чат.",
+                                                        with: [
+                                                            new RawJSONBuilder()
+                                                                .setKeybind("key.sneak")
+                                                        ]
+                                                    })
                                             }
                                         }),
                                     new RawJSONBuilder()
