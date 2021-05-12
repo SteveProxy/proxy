@@ -19,5 +19,6 @@ export interface ICommand {
     hidden?: boolean;
     cooldown?: number;
     ignorePluginPrefix?: boolean;
+    sliceArgs?: boolean;
     handler(...args: any): void;
 }

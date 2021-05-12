@@ -69,7 +69,7 @@ export class PluginManager {
                 this.chatManager.middleware(context);
                 QuestionBuilder.middleware(context);
 
-                this.commands.forEach(({ pluginName, handler, args = [], argsRequired }, name) => {
+                this.commands.forEach(({ pluginName, handler, args = [], argsRequired, sliceArgs }, name) => {
                     const commandPrefix = `${prefix}${name}`;
                     const argsLength = args.length;
 
@@ -79,15 +79,28 @@ export class PluginManager {
 
                             const trimmedMessage = context.packet.message.replace(commandPrefix, "")
                                 .trim();
-                            const handlerArgs = trimmedMessage !== "" ?
-                                argsLength > 1 ?
-                                    trimmedMessage
-                                        .split(" ")
-                                        .slice(0, argsLength)
-                                    :
-                                    [trimmedMessage]
-                                :
-                                [];
+
+                            let handlerArgs = [];
+
+                            if (trimmedMessage !== "") {
+                                if (argsLength > 1) {
+                                    const args = trimmedMessage
+                                        .split(" ");
+
+                                    if (sliceArgs) {
+                                        handlerArgs = args.slice(0, argsLength);
+                                    } else {
+                                        handlerArgs = [
+                                            args[0],
+                                            args.slice(1)
+                                                .reduce((acc: string, arg: string) => `${acc} ${arg}`, "")
+                                                .trim()
+                                        ];
+                                    }
+                                } else {
+                                    handlerArgs = [trimmedMessage];
+                                }
+                            }
 
                             if (handlerArgs.length >= argsLength || !argsRequired) {
                                 return handler(handlerArgs);
@@ -117,7 +130,7 @@ export class PluginManager {
         const { name: pluginName, commands, ignorePluginPrefix, prefix } = plugin.meta;
 
         if (commands) {
-            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown, argsRequired = true }) => {
+            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown, argsRequired = true, sliceArgs = true }) => {
                 const commandPrefix = (`${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? pluginName : ""} ${commandName}`)
                     .trim();
 
@@ -153,7 +166,8 @@ export class PluginManager {
                         handler.apply(plugin, args);
                     },
                     args,
-                    argsRequired
+                    argsRequired,
+                    sliceArgs
                 });
             });
         }
