@@ -34,7 +34,7 @@
     "@types/discord-rpc": "^3.0.5",
     "@types/humanize-duration": "^3.25.0",
     "@types/lowdb": "^1.0.10",
-    "@types/node": "^15.3.1",
+    "@types/node": "^15.6.1",
     "@types/node-fetch": "^2.5.10",
     "@types/spotify-web-api-node": "^5.0.1",
     "@types/tough-cookie": "^4.0.0",
