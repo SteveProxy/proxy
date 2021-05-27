@@ -27,7 +27,7 @@
     "prismarine-nbt": "github:SteveProxy/prismarine-nbt",
     "rawjsonbuilder": "^1.1.19",
     "spotify-web-api-node": "^5.0.2",
-    "vk-io": "^4.2.0"
+    "vk-io": "^4.3.0"
   },
   "devDependencies": {
     "@types/chunk": "0.0.0",
