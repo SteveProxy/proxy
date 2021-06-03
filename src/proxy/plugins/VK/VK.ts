@@ -2,8 +2,6 @@ import { APIErrorCode, CallbackService, CallbackServiceRetry, getRandomId, ICall
 import { AuthErrorCode, DirectAuthorization, officialAppCredentials } from "@vk-io/authorization";
 import { ClickAction, RawJSONBuilder } from "rawjsonbuilder";
 
-import { db } from "../../../DB";
-
 import { Plugin } from "../Plugin";
 import { Proxy } from "../../Proxy";
 import { PluginManager } from "../../modules/PluginManager";
@@ -14,13 +12,13 @@ import { middlewares } from "./middlewares";
 import { API_VERSION } from "./constants";
 import { separator } from "../../modules/chatManager/components";
 
-import { IVK } from "../../../interfaces";
+import { IVK, PluginConfigFactory } from "../../../interfaces";
 import { NotificationsNotificationItem } from "vk-io/lib/api/schemas/objects";
 
 const { AUTHORIZATION_FAILED, FAILED_PASSED_CAPTCHA, FAILED_PASSED_TWO_FACTOR, TOO_MUCH_TRIES, WRONG_OTP, USERNAME_OR_PASSWORD_IS_INCORRECT, INVALID_PHONE_NUMBER, PAGE_BLOCKED, OTP_FORMAT_IS_INCORRECT } = AuthErrorCode;
 const { AUTH, MESSAGES_USER_BLOCKED, MESSAGES_DENY_SEND, MESSAGES_PRIVACY, MESSAGES_CHAT_USER_NO_ACCESS, PARAM } = APIErrorCode;
 
-export class VK extends Plugin {
+export class VK extends Plugin<PluginConfigFactory<"vk">> {
 
     private state: IVK = this.proxy.config.plugins.vk;
     // @ts-ignore
@@ -236,12 +234,10 @@ export class VK extends Plugin {
 
         await direct.run()
             .then(({ token, user }) => {
-                db.update(`plugins.${this.meta.name}`, (state) => ({
-                    ...state,
+                this.updateConfig({
                     token,
                     user
-                }))
-                    .write();
+                });
 
                 this.restart();
             })
@@ -384,12 +380,10 @@ export class VK extends Plugin {
     }
 
     private clearCredentials() {
-        db.update(`plugins.${this.meta.name}`, (state) => ({
-            ...state,
+        this.updateConfig({
             token: "",
             user: 0
-        }))
-            .write();
+        });
     }
 
     stop(): void {

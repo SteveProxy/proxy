@@ -1,7 +1,9 @@
-import { IPlugin, IPluginMeta } from "../../interfaces";
+import { db } from "../../DB";
+
+import { IConfig, IPlugin, IPluginMeta } from "../../interfaces";
 import { Proxy } from "../Proxy";
 
-export class Plugin {
+export class Plugin<C extends IConfig["plugins"][keyof IConfig["plugins"]] | undefined = undefined> {
 
     meta: IPlugin;
     proxy: Proxy;
@@ -13,6 +15,16 @@ export class Plugin {
         meta.prefix = `${meta.prefix}§r §f|`;
 
         this.meta = meta as IPlugin;
+    }
+
+    updateConfig(updates: Partial<C>): void {
+        // @ts-ignore
+        (db.data as IConfig).plugins[this.meta.name] = { // @ts-ignore
+            ...(db.data as IConfig).plugins[this.meta.name],
+            ...updates
+        };
+
+        db.write();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

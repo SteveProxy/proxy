@@ -6,17 +6,15 @@ import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
 import { Page, Item, NBT, Slider } from "../../modules/pagesBuilder/PagesBuilder";
 
-import { db } from "../../../DB";
-
 import { generateID, minecraftData, normalizeDuration } from "../../../utils";
 
-import { ISpotify } from "../../../interfaces";
+import { ISpotify, PluginConfigFactory } from "../../../interfaces";
 
 const NEXT_SONG_ITEM = minecraftData.findItemOrBlockByName("green_stained_glass").id;
 const PREVIOUS_SONG_ITEM = minecraftData.findItemOrBlockByName("red_stained_glass").id;
 const SONG_ITEM = minecraftData.findItemOrBlockByName("name_tag").id;
 
-export class Spotify extends Plugin {
+export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
 
     private spotify: SpotifyAPI;
     private client: AxiosInstance;
@@ -389,12 +387,10 @@ export class Spotify extends Plugin {
             .then(({ access_token: accessToken, expires_in: expiresIn }: any) => {
                 this.spotify.setAccessToken(accessToken);
 
-                db.update(`plugins.${this.meta.name}`, (state) => ({
-                    ...state,
+                this.updateConfig({
                     accessToken,
                     expiresIn
-                }))
-                    .write();
+                });
 
                 this.restart();
             })
@@ -459,14 +455,12 @@ export class Spotify extends Plugin {
                     return this.auth();
                 }
 
-                db.update(`plugins.${this.meta.name}`, (state) => ({
-                    ...state,
+                this.updateConfig({
                     code,
                     accessToken,
                     refreshToken,
                     expiresIn
-                }))
-                    .write();
+                });
 
                 this.restart();
             })
@@ -492,14 +486,12 @@ export class Spotify extends Plugin {
     }
 
     private clearCredentials(): void {
-        db.update(`plugins.${this.meta.name}`, (state) => ({
-            ...state,
+        this.updateConfig({
             accessToken: "",
             refreshToken: "",
             expiresIn: 0,
             code: ""
-        }))
-            .write();
+        });
     }
 
     stop(): void {

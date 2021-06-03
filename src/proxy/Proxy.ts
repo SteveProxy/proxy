@@ -45,7 +45,7 @@ export class Proxy {
     }
 
     get config(): IConfig {
-        return db.value();
+        return db.data as IConfig;
     }
 
     start(): void {

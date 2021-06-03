@@ -1,14 +1,13 @@
 import { ServerOptions } from "minecraft-protocol";
 
-import { ISpotify } from "./proxy/plugins/Spotify";
-import { IDiscord } from "./proxy/plugins/Discord";
-import { IVK } from "./proxy/plugins/VK";
+import { ISpotify, IDiscord, IVK } from "./proxy";
 
 import { IParsedIP } from "./Utils";
 
 export interface IConfig {
     proxy: ServerOptions & IParsedIP & {
         version: string;
+        favicon: string;
     };
     lobby: IParsedIP;
     bridge: {

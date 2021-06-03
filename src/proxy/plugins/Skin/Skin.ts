@@ -169,12 +169,14 @@ export class Skin extends Plugin {
     }
 
     private async readSkins(): Promise<ISkin[]> {
-        const skins: Omit<ISkin, "url"> = (await import(`file://${minecraftPath()}/launcher_skins.json`))
-            .default;
+        const skins = Object.values<Omit<ISkin, "url">>(
+            (await import(`file://${minecraftPath()}/launcher_skins.json`))
+                .default
+        );
 
-        return Object.entries(skins)
-            .map(([, skin]) => ({
-                ...skin as unknown as Omit<ISkin, "url">, // @ts-ignore
+        return skins
+            .map((skin) => ({
+                ...skin,
                 url: `${TEXTURES_ENDPOINT}${skin.textureId}`
             }));
     }
