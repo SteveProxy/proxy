@@ -17,12 +17,7 @@ export class Discord extends Plugin<PluginConfigFactory<"discord">> {
             description: "Discord интеграция",
             prefix: "§9§lDiscord"
         }, {
-            clientId: "818385655691214868",
-            scopes: [
-                "rpc",
-                "rpc.api",
-                "activity.write"
-            ]
+            clientId: "818385655691214868"
         });
 
         const { proxy: { version } } = this.proxy.config;
