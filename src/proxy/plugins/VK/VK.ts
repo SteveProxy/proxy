@@ -36,6 +36,15 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
             name: "vk",
             description: "VK Интеграция",
             prefix: "§9§lVK"
+        }, {
+            token: "",
+            user: 0,
+            scope: [
+                "friends",
+                "offline",
+                "notifications",
+                "messages"
+            ]
         });
 
         this.meta.commands = [

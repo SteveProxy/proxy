@@ -3,7 +3,9 @@ import { Client, Presence } from "discord-rpc";
 import { Plugin } from "../Plugin";
 import { Proxy } from "../../Proxy";
 
-export class Discord extends Plugin {
+import { PluginConfigFactory } from "../../../interfaces";
+
+export class Discord extends Plugin<PluginConfigFactory<"discord">> {
 
     private client: Client = new Client({ transport: "ipc" });
     private activity: Presence;
@@ -14,6 +16,13 @@ export class Discord extends Plugin {
             name: "discord",
             description: "Discord интеграция",
             prefix: "§9§lDiscord"
+        }, {
+            clientId: "818385655691214868",
+            scopes: [
+                "rpc",
+                "rpc.api",
+                "activity.write"
+            ]
         });
 
         const { proxy: { version } } = this.proxy.config;

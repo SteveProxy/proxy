@@ -32,6 +32,24 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
             name: "spotify",
             description: "Spotify интеграция",
             prefix: "§2§lSpotify"
+        }, {
+            code: "",
+            accessToken: "",
+            expiresIn: 0,
+            refreshToken: "",
+            scope: [
+                "user-modify-playback-state",
+                "user-read-currently-playing",
+                "user-read-playback-state",
+                "user-read-private"
+            ],
+            market: "RU",
+            clientId: "43801ea120f44b81854f55dfc4e4c711",
+            redirectUrl: "https://steveproxy.herokuapp.com/spotify/",
+            template: {
+                explicit: "[§cE§r]",
+                output: "%e %n - §2%a§r (§7%p§r / §7%d§r)"
+            }
         });
 
         this.meta.commands = [

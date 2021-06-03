@@ -8,13 +8,19 @@ export class Plugin<C extends IConfig["plugins"][keyof IConfig["plugins"]] | und
     meta: IPlugin;
     proxy: Proxy;
 
-    protected constructor(proxy: Proxy, meta: IPluginMeta) {
+    protected constructor(proxy: Proxy, meta: IPluginMeta, defaultConfig?: C) {
         this.proxy = proxy;
 
         meta.commands ||= [];
         meta.prefix = `${meta.prefix}§r §f|`;
 
         this.meta = meta as IPlugin;
+
+        // @ts-ignore
+        if (defaultConfig && !this.proxy.config.plugins[this.meta.name]) {
+            // @ts-ignore
+            this.updateConfig(defaultConfig);
+        }
     }
 
     updateConfig(updates: Partial<C>): void {
