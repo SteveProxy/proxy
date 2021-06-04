@@ -269,6 +269,9 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                         data.item.artists = data.item.artists.map(({ name }: any) => name);
                     }
 
+                    data.item.duration_ms = this.floorMilliseconds(data.item.duration_ms);
+                    data.progress_ms = this.floorMilliseconds(Number(data.progress_ms));
+
                     this.currentPlaying = data;
                 }
             })
@@ -510,6 +513,10 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
             expiresIn: 0,
             code: ""
         });
+    }
+
+    protected floorMilliseconds(value: number): number {
+        return Math.floor(value / 1000) * 1000;
     }
 
     stop(): void {
