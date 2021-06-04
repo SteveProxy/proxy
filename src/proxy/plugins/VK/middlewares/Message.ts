@@ -128,6 +128,16 @@ export class Message extends Middleware {
                     separator,
                     Markdown.convertTextToRawJson(context.text),
                     ...(
+                        context.hasForwards ?
+                            [
+                                separator,
+                                new RawJSONBuilder()
+                                    .setText("§7§oПересланное сообщение§r")
+                            ]
+                            :
+                            []
+                    ),
+                    ...(
                         context.attachments.length ?
                             [
                                 separator,
