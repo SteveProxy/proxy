@@ -20,7 +20,7 @@ export class API {
         return new Promise((resolve) => {
             if (isValidNickname(nickname)) {
                 plugin.proxy.client.context.send(
-                    `${plugin.meta.prefix} Загрузка информации об игроке ${nickname}...`
+                    `${plugin.meta.prefix} Загрузка информации об игроке §l${nickname}§r...`
                 );
 
                 axios.get(`${ASHCON_API_ENDPOINT}/user/${nickname}`)

@@ -35,7 +35,7 @@ export class Names extends Plugin {
             .getPlayer(nickname)
             .then(({ username_history, username }) => {
                 this.proxy.client.context.chatBuilder()
-                    .setPagesHeader(`${this.meta.prefix} История никнейма ${username}`)
+                    .setPagesHeader(`${this.meta.prefix} История никнейма §l${username}`)
                     .autoGeneratePages(
                         username_history
                             .reverse()
