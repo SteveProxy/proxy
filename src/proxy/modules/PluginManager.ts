@@ -1,3 +1,4 @@
+import moment from "moment";
 import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../Proxy";
@@ -8,7 +9,6 @@ import { QuestionBuilder } from "./QuestionBuilder";
 
 import { plugins } from "../plugins";
 import { config } from "../../config";
-import { getUntilTime, humanize } from "../../utils";
 
 import { CommandsMap, CooldownsMap, PluginsMap, ValuesOf, ICooldownOptions } from "../../interfaces";
 
@@ -146,16 +146,14 @@ export class PluginManager {
                     handler: (args) => {
                         const cooldown = this.cooldowns.get(commandPrefix);
 
-                        if (cooldown && cooldown > Date.now()) {
-                            const cooldownUntil = getUntilTime(cooldown);
-
+                        if (Number(cooldown) > Date.now()) {
                             return this.proxy.client.context.send(
                                 new RawJSONBuilder()
-                                    .setText(`${prefix} §cВоспользоваться этой командой снова можно будет через `)
+                                    .setText(`${prefix} §cВоспользоваться этой командой снова можно будет `)
                                     .setExtra(
                                         new RawJSONBuilder()
                                             .setText({
-                                                text: humanize(cooldownUntil),
+                                                text: moment(cooldown).fromNow(),
                                                 color: "red",
                                                 bold: true
                                             })

@@ -1,9 +1,13 @@
-import humanizeDuration from "humanize-duration";
+import moment from "moment";
 import _minecraftData, { versions } from "minecraft-data";
 
 import { config } from "./config";
 
 import { IParsedIP } from "./interfaces";
+
+import "moment/locale/ru";
+
+moment.locale("ru");
 
 export const TEXTURES_ENDPOINT = "http://textures.minecraft.net/texture/";
 export const MINECRAFT_API_ENDPOINT = "https://api.minecraftservices.com/minecraft/profile/skins";
@@ -12,24 +16,6 @@ export const ASHCON_API_ENDPOINT = "https://api.ashcon.app/mojang/v2";
 export const minecraftData = _minecraftData(config.proxy.version as string);
 
 export const nameRegExp = /^([a-z0-9_]{1,16}|[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}|[0-9a-f]{8}[0-9a-f]{4}[0-5][0-9a-f]{3}[089ab][0-9a-f]{3}[0-9a-f]{12})$/gi;
-
-export const humanize = humanizeDuration.humanizer({
-    language: "ru",
-    languages: {
-        ru: {
-            y: (y) => declOfNum(y as number, ["год", "года", "лет"]),
-            mo: (mo) => declOfNum(mo as number, ["месяц", "месяца", "месяцев"]),
-            w: (w) => declOfNum(w as number, ["неделю", "недели", "недель"]),
-            d: (d) => declOfNum(d as number, ["день", "дня", "дней"]),
-            h: (h) => declOfNum(h as number, ["час", "часа", "часов"]),
-            m: (m) => declOfNum(m as number, ["минуту", "минуты", "минут"]),
-            s: (s) => declOfNum(s as number, ["секунду", "секунды", "секунд"]),
-            ms: (ms) => declOfNum(ms as number, ["миллисекунду", "миллисекунды", "миллисекунд"])
-        }
-    },
-    delimiter: " ",
-    round: true
-});
 
 const pad = (number: number) => String(number > 9 ? number : `0${number}`);
 
@@ -136,6 +122,10 @@ export function declOfNum(n: number, titles: string[]): string {
     return titles[(n % 10 === 1 && n % 100 !== 11) ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
 }
 
-export function getUntilTime(timestamp: number): number {
-    return timestamp - Date.now();
-}
+moment.relativeTimeThreshold("s", 60);
+moment.relativeTimeThreshold("ss", 0);
+moment.relativeTimeThreshold("m", 60);
+moment.relativeTimeThreshold("h", 24);
+moment.relativeTimeThreshold("d", 31);
+moment.relativeTimeThreshold("M", 12);
+moment.relativeTimeThreshold("y", 365);

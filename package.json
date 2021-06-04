@@ -18,7 +18,6 @@
     "axios": "^0.21.1",
     "chunk": "0.0.3",
     "discord-rpc": "^3.2.0",
-    "humanize-duration": "^3.26.0",
     "lowdb": "^2.1.0",
     "minecraft-data": "^2.84.0",
     "minecraft-path": "^1.0.0",
@@ -32,7 +31,6 @@
   "devDependencies": {
     "@types/chunk": "0.0.0",
     "@types/discord-rpc": "^3.0.5",
-    "@types/humanize-duration": "^3.25.0",
     "@types/lowdb": "^1.0.10",
     "@types/node": "^15.9.0",
     "@types/node-fetch": "^2.5.10",

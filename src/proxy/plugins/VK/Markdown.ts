@@ -9,11 +9,7 @@ import { separator } from "../../modules/chatManager/components";
 
 import { NotificationsNotificationItem } from "vk-io/lib/api/schemas/objects";
 
-import "moment/locale/ru";
-
 const { AUDIO, AUDIO_MESSAGE, DOCUMENT, GIFT, GRAFFITI, LINK, PHOTO, POLL, STICKER, STORY, VIDEO, WALL, WALL_REPLY } = AttachmentType;
-
-moment.locale("ru");
 
 export class Markdown {
 
