@@ -5,7 +5,7 @@
   "main": "./src/index.ts",
   "type": "module",
   "scripts": {
-    "start": "node --experimental-modules --experimental-json-modules --unhandled-rejections=warn --es-module-specifier-resolution=node ./dist/index.js",
+    "start": "node --experimental-modules --experimental-json-modules --experimental-specifier-resolution=node --unhandled-rejections=warn --loader ts-node/esm ./src/index.ts",
     "prebuild": "node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/buildInit.js",
     "build": "tsc && node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/cleanUpBuild.js",
     "eslint:check": "eslint ./src/**/*",
@@ -41,6 +41,7 @@
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
     "eslint": "^7.27.0",
+    "ts-node": "^10.0.0",
     "typescript": "^4.3.2"
   }
 }
