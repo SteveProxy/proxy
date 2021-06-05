@@ -8,6 +8,7 @@ import { PluginManager } from "./modules/PluginManager";
 
 import { db } from "../DB";
 import { config } from "../config";
+import { separator } from "./modules/chatManager/components";
 
 import { getCurrentTime, getVersion, isValidIP, parseIP } from "../utils";
 
@@ -192,8 +193,8 @@ export class Proxy {
                                 .setExtra([
                                     new RawJSONBuilder()
                                         .setText(`${config.bridge.title} | §cСоединение разорвано. ${reason}`),
-                                    new RawJSONBuilder()
-                                        .setText("\n\n"),
+                                    separator,
+                                    separator,
                                     ...(
                                         this.currentServer !== this.fallbackServer ?
                                             [
