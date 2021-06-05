@@ -236,21 +236,32 @@ export class ChatBuilder {
                 separator
             ]);
 
-            const defaultButtons = [...this.defaultButtons].filter(([, buttonAction]) => !this.infinityLoop ?
-                !(
-                    (this.currentPage === 1 && (buttonAction === "first" || buttonAction === "back")) ||
-                    (this.currentPage === this.pages.length && (buttonAction === "last" || buttonAction === "next"))
-                )
-                :
-                true)
-                .map(([buttonLabel, buttonAction], index) => new RawJSONBuilder()
-                    .setText({
-                        text: `${buttonLabel}${index + 1 < defaultButtonsSize ? " §7|§r " : " "}`,
-                        clickEvent: {
-                            action: "run_command",
-                            value: `${ChatManager.prefix} ${this.id} ${buttonAction}`
-                        }
-                    }));
+            const defaultButtons = [...this.defaultButtons]
+                .filter(([, buttonAction]) => (
+                    !this.infinityLoop ?
+                        !(
+                            (this.currentPage === 1 && (buttonAction === "first" || buttonAction === "back")) ||
+                            (this.currentPage === this.pages.length && (buttonAction === "last" || buttonAction === "next"))
+                        )
+                        :
+                        true
+                ))
+                .map(([buttonLabel, buttonAction], index) => (
+                    new RawJSONBuilder()
+                        .setTranslate({
+                            translate: `%s${index + 1 < defaultButtonsSize ? " §7|§r " : " "}`,
+                            with: [
+                                new RawJSONBuilder()
+                                    .setText({
+                                        text: buttonLabel,
+                                        clickEvent: {
+                                            action: "run_command",
+                                            value: `${ChatManager.prefix} ${this.id} ${buttonAction}`
+                                        }
+                                    })
+                            ]
+                        })
+                ));
 
             page.addExtra([
                 ...(
