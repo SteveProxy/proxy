@@ -8,6 +8,7 @@ export interface IConfig {
     proxy: ServerOptions & IParsedIP & {
         version: string;
         favicon: string;
+        description: string[];
     };
     lobby: IParsedIP;
     bridge: {
