@@ -5,7 +5,7 @@ import { promises as fs } from "fs";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
-import { PluginManager, Head, PlayerHead } from "../../modules";
+import { PluginManager, Head, PlayerHead, separator } from "../../modules";
 
 import { config } from "../../../config";
 
@@ -116,9 +116,8 @@ export class Core extends Plugin {
     }
 
     private help(): void {
-        let plugins = [...this.proxy.pluginManager.plugins.values()];
-
-        plugins = plugins.filter(({ meta: { hidden, commands } }) => !hidden && commands.length);
+        const plugins = [...this.proxy.pluginManager.plugins.values()]
+            .filter(({ meta: { hidden, commands } }) => !hidden && commands.length);
 
         const builder = this.proxy.client.context.chatBuilder();
 
@@ -148,38 +147,43 @@ export class Core extends Plugin {
                         })
                     ),
                 // eslint-disable-next-line array-callback-return
-                ...plugins.map(({ meta: { name: pluginName, description, prefix, commands, ignorePluginPrefix } }) => new RawJSONBuilder()
-                    .setExtra([
-                        new RawJSONBuilder()
-                            .setText(`${prefix} ${description}\n\n`),
-                        // eslint-disable-next-line array-callback-return
-                        ...commands.map(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, hidden, args = [], description }: ICommand, index: number) => {
-                            if (!hidden) {
-                                const command = (`${PluginManager.prefix}${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? `${pluginName} ${commandName}` : commandName}`)
-                                    .trim();
+                ...plugins.map(({ meta: { name: pluginName, description, prefix, commands, ignorePluginPrefix } }) => (
+                    new RawJSONBuilder()
+                        .setExtra([
+                            new RawJSONBuilder()
+                                .setText(`${prefix} ${description}`),
+                            separator,
+                            separator,
+                            // eslint-disable-next-line array-callback-return
+                            ...commands.map(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, hidden, args = [], description }: ICommand, index: number) => {
+                                if (!hidden) {
+                                    const command = (`${PluginManager.prefix}${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? `${pluginName} ${commandName}` : commandName}`)
+                                        .trim();
 
-                                args = args.map((arg) => `§7<§r${arg}§7>§r`);
+                                    args = args.map((arg) => `§7<§r${arg}§7>§r`);
 
-                                return new RawJSONBuilder()
-                                    .setExtra([
-                                        new RawJSONBuilder()
-                                            .setText({
-                                                text: `${command}${args.length ? ` ${args.join(" ")}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`,
-                                                hoverEvent: {
-                                                    action: HoverAction.SHOW_TEXT,
-                                                    contents: new RawJSONBuilder()
-                                                        .setText(`§7Нажмите, чтобы ${args.length ? "вставить команду в чат" : "вызвать команду"}.`)
-                                                },
-                                                clickEvent: {
-                                                    action: args.length ? ClickAction.SUGGEST_COMMAND : ClickAction.RUN_COMMAND,
-                                                    value: command
-                                                }
-                                            })
-                                    ]);
-                            }
-                        })
-                            .filter(Boolean)
-                    ]))
+                                    return new RawJSONBuilder()
+                                        .setExtra([
+                                            new RawJSONBuilder()
+                                                .setText({
+                                                    text: `${command}${args.length ? ` ${args.join(" ")}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`,
+                                                    hoverEvent: {
+                                                        action: HoverAction.SHOW_TEXT,
+                                                        contents: new RawJSONBuilder()
+                                                            .setText(`§7Нажмите, чтобы ${args.length ? "вставить команду в чат" : "вызвать команду"}.`)
+                                                    },
+                                                    clickEvent: {
+                                                        action: args.length ? ClickAction.SUGGEST_COMMAND : ClickAction.RUN_COMMAND,
+                                                        value: command
+                                                    }
+                                                })
+                                        ]);
+                                }
+
+                                return "";
+                            })
+                        ])
+                ))
                     .filter(Boolean) as ChatPage[]
             ])
             .build();
