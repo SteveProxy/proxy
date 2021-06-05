@@ -2,15 +2,14 @@ import { APIErrorCode, CallbackService, CallbackServiceRetry, getRandomId, ICall
 import { AuthErrorCode, DirectAuthorization, officialAppCredentials } from "@vk-io/authorization";
 import { ClickAction, RawJSONBuilder } from "rawjsonbuilder";
 
-import { Plugin } from "../Plugin";
-import { Proxy } from "../../Proxy";
-import { PluginManager } from "../../modules/PluginManager";
-import { VK as _VK } from "./API";
-import { Markdown } from "./Markdown";
-
 import { middlewares } from "./middlewares";
 import { API_VERSION } from "./constants";
-import { separator } from "../../modules/chatManager/components";
+
+import { Plugin } from "../Plugin";
+import { Proxy } from "../../Proxy";
+import { PluginManager, separator } from "../../modules";
+import { VK as _VK } from "./API";
+import { Markdown } from "./Markdown";
 
 import { IVK, PluginConfigFactory } from "../../../interfaces";
 import { NotificationsNotificationItem } from "vk-io/lib/api/schemas/objects";

@@ -5,9 +5,7 @@ import { promises as fs } from "fs";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
-import { PluginManager } from "../../modules/PluginManager";
-
-import { Head, PlayerHead } from "../../modules/pagesBuilder/gui";
+import { PluginManager, Head, PlayerHead } from "../../modules";
 
 import { config } from "../../../config";
 

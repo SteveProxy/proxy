@@ -2,13 +2,10 @@ import minecraftPath from "minecraft-path";
 import { RawJSONBuilder } from "rawjsonbuilder";
 import { createClient, Server, states } from "minecraft-protocol";
 
-import { Context } from "./modules/Context";
-import { PacketManager } from "./modules/packetManager/PacketManager";
-import { PluginManager } from "./modules/PluginManager";
-
 import { db } from "../DB";
 import { config } from "../config";
-import { separator } from "./modules/chatManager/components";
+
+import { Context, PacketManager, PluginManager, separator } from "./modules";
 
 import { getCurrentTime, getVersion, isValidIP, parseIP } from "../utils";
 

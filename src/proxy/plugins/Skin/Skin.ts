@@ -6,10 +6,7 @@ import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../
 
 import { Plugin } from "../Plugin";
 import { Proxy } from "../../Proxy";
-import { API } from "../../modules/API";
-import { PacketContext } from "../../modules/packetManager/PacketManager";
-
-import { PlayerHead } from "../../modules/pagesBuilder/gui";
+import { API, PacketContext, PlayerHead } from "../../modules";
 
 import { ISkin, IChangeSkinOptions } from "../../../interfaces";
 

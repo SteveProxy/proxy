@@ -1,11 +1,9 @@
 import { MessageContext } from "vk-io";
 import { ClickAction, HoverAction, RawJSONBuilder } from "rawjsonbuilder";
 
-import { PluginManager } from "../../../modules/PluginManager";
+import { PluginManager, separator, space } from "../../../modules";
 import { Middleware } from "./Middleware";
 import { Markdown } from "../Markdown";
-
-import { separator, space } from "../../../modules/chatManager/components";
 
 import { IMiddlewareOptions } from "../../../../interfaces";
 import { LINK_PREFIX } from "../constants";

@@ -2,7 +2,7 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
-import { API } from "../../modules/API";
+import { API } from "../../modules";
 
 import { humanizeDate } from "../../../utils";
 

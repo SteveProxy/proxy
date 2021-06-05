@@ -1,6 +1,6 @@
 import { createServer } from "minecraft-protocol";
 
-import { NBT } from "./proxy/modules/pagesBuilder/PagesBuilder";
+import { NBT } from "./proxy/modules";
 
 import { config } from "./config";
 import { getVersion, minecraftData } from "./utils";

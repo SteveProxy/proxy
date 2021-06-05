@@ -5,7 +5,7 @@ import { Attachment, AttachmentType, AudioMessageAttachment, ExternalAttachment,
 import { LINK_PREFIX } from "./constants";
 
 import { normalizeDuration } from "../../../utils";
-import { separator } from "../../modules/chatManager/components";
+import { separator } from "../../modules";
 
 import { NotificationsNotificationItem } from "vk-io/lib/api/schemas/objects";
 

@@ -1,13 +1,16 @@
-import { Proxy } from "../../Proxy";
-import { Plugin } from "../Plugin";
+import { RawJSONBuilder } from "rawjsonbuilder";
 
 import _dictionary from "./dictionary.json";
 import emoji from "./emoji.json";
 
+import { separator } from "../../modules";
+
+import { Proxy } from "../../Proxy";
+import { Plugin } from "../Plugin";
+
 import { randomInteger } from "../../../utils";
 
 import { EmojiCategoriesMap, IDictionary } from "../../../interfaces";
-import { RawJSONBuilder } from "rawjsonbuilder";
 
 const dictionary: IDictionary = _dictionary;
 
@@ -72,8 +75,8 @@ export class Chat extends Plugin {
                         .setExtra([
                             new RawJSONBuilder()
                                 .setText(description),
-                            new RawJSONBuilder()
-                                .setText("\n\n"),
+                            separator,
+                            separator,
                             ...categoryEmoji.map((emoji, index) => new RawJSONBuilder()
                                 .setExtra([
                                     new RawJSONBuilder()
@@ -98,8 +101,7 @@ export class Chat extends Plugin {
                                     ...(
                                         (index + 1) % 2 === 0 ?
                                             [
-                                                new RawJSONBuilder()
-                                                    .setText("\n")
+                                                separator
                                             ]
                                             :
                                             []

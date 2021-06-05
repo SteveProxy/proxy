@@ -4,7 +4,7 @@ import { RawJSONBuilder } from "rawjsonbuilder";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
-import { Page, Item, NBT, Slider } from "../../modules/pagesBuilder/PagesBuilder";
+import { Page, Item, NBT, Slider } from "../../modules";
 
 import { generateID, minecraftData, normalizeDuration } from "../../../utils";
 
