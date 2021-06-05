@@ -116,125 +116,125 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
     private gui(): void {
         const { code, accessToken } = this.state;
 
-        if (code && accessToken) {
-            if (this.currentPlaying) {
-                this.proxy.client.context.pagesBuilder()
-                    .setInventoryType("generic_9x6")
-                    .addPages(() => {
-                        const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
-
-                        return new Page()
-                            .setWindowTitle(
-                                new RawJSONBuilder()
-                                    .setText(`${this.meta.prefix} §f${this.username}`)
-                            )
-                            .setItems([
-                                new Item({
-                                    id: SONG_ITEM,
-                                    position: 4,
-                                    nbt: new NBT("compound", {
-                                        display: new NBT("compound", {
-                                            Name: new NBT("string", new RawJSONBuilder()
-                                                .setText({
-                                                    text: `${is_playing ? "⏵" : "⏸"} ${explicit ? "[§cE§r] " : ""}${name}`,
-                                                    italic: false
-                                                })),
-                                            Lore: new NBT("list", new NBT("string", [
-                                                new RawJSONBuilder()
-                                                    .setText(`§2${artists.join("§f, §2")}`),
-                                                new RawJSONBuilder()
-                                                    .setText(""),
-                                                new RawJSONBuilder()
-                                                    .setText(`§7${normalizeDuration(progress_ms)} §f/ §7${normalizeDuration(duration_ms)}`)
-                                            ]))
-                                        })
-                                    }),
-                                    onClick: () => this.changePlaybackState()
-                                }),
-                                new Item({
-                                    id: PREVIOUS_SONG_ITEM,
-                                    position: 2,
-                                    nbt: new NBT("compound", {
-                                        display: new NBT("compound", {
-                                            Name: new NBT("string", new RawJSONBuilder()
-                                                .setText({
-                                                    text: "§cНазад",
-                                                    italic: false
-                                                }))
-                                        })
-                                    }),
-                                    onClick: () => {
-                                        this.skipTo("previous");
-                                    }
-                                }),
-                                new Item({
-                                    id: NEXT_SONG_ITEM,
-                                    position: 6,
-                                    nbt: new NBT("compound", {
-                                        display: new NBT("compound", {
-                                            Name: new NBT("string", new RawJSONBuilder()
-                                                .setText({
-                                                    text: "§2Далее",
-                                                    italic: false
-                                                }))
-                                        })
-                                    }),
-                                    onClick: () => {
-                                        this.skipTo();
-                                    }
-                                }),
-                                // eslint-disable-next-line new-cap
-                                ...Slider({
-                                    cellsCount: 7,
-                                    initialPosition: 19,
-                                    value: volume_percent,
-                                    max: 100,
-                                    onClick: (value) => this.setVolume(value),
-                                    nbt: (value) => new NBT("compound", {
-                                        display: new NBT("compound", {
-                                            Name: new NBT("string", new RawJSONBuilder()
-                                                .setText({
-                                                    text: `Текущая громкость §2${volume_percent}§f%`,
-                                                    italic: false
-                                                })),
-                                            Lore: new NBT("list", new NBT("string", [
-                                                new RawJSONBuilder()
-                                                    .setText(`§7Нажмите, для того чтобы установить громкость на §2${value}§f%`)
-                                            ]))
-                                        })
-                                    })
-                                }),
-                                // eslint-disable-next-line new-cap
-                                ...Slider({
-                                    cellsCount: 7,
-                                    initialPosition: 37,
-                                    value: progress_ms,
-                                    max: duration_ms,
-                                    onClick: (value) => this.seekTo(value),
-                                    nbt: (value) => new NBT("compound", {
-                                        display: new NBT("compound", {
-                                            Name: new NBT("string", new RawJSONBuilder()
-                                                .setText({
-                                                    text: `Текущая позиция §2${normalizeDuration(progress_ms)}`,
-                                                    italic: false
-                                                })),
-                                            Lore: new NBT("list", new NBT("string", [
-                                                new RawJSONBuilder()
-                                                    .setText(`§7Нажмите, для того чтобы установить позицию на §2${normalizeDuration(value)}`)
-                                            ]))
-                                        })
-                                    })
-                                })
-                            ]);
-                    })
-                    .setAutoRerenderInterval(1000)
-                    .build();
-            } else {
-                this.proxy.client.context.send(`${this.meta.prefix} §cВ данный момент ничего не играет!`);
-            }
-        } else {
-            this.proxy.client.context.send(`${this.meta.prefix} §cПеред использованием этой команды необходимо авторизоваться!`);
+        if (!code || !accessToken) {
+            return this.proxy.client.context.send(`${this.meta.prefix} §cПеред использованием этой команды необходимо авторизоваться!`);
         }
+
+        if (!this.currentPlaying) {
+            return this.proxy.client.context.send(`${this.meta.prefix} §cВ данный момент ничего не играет!`);
+        }
+
+        this.proxy.client.context.pagesBuilder()
+            .setInventoryType("generic_9x6")
+            .addPages(() => {
+                const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
+
+                return new Page()
+                    .setWindowTitle(
+                        new RawJSONBuilder()
+                            .setText(`${this.meta.prefix} §f${this.username}`)
+                    )
+                    .setItems([
+                        new Item({
+                            id: SONG_ITEM,
+                            position: 4,
+                            nbt: new NBT("compound", {
+                                display: new NBT("compound", {
+                                    Name: new NBT("string", new RawJSONBuilder()
+                                        .setText({
+                                            text: `${is_playing ? "⏵" : "⏸"} ${explicit ? "[§cE§r] " : ""}${name}`,
+                                            italic: false
+                                        })),
+                                    Lore: new NBT("list", new NBT("string", [
+                                        new RawJSONBuilder()
+                                            .setText(`§2${artists.join("§f, §2")}`),
+                                        new RawJSONBuilder()
+                                            .setText(""),
+                                        new RawJSONBuilder()
+                                            .setText(`§7${normalizeDuration(progress_ms)} §f/ §7${normalizeDuration(duration_ms)}`)
+                                    ]))
+                                })
+                            }),
+                            onClick: () => this.changePlaybackState()
+                        }),
+                        new Item({
+                            id: PREVIOUS_SONG_ITEM,
+                            position: 2,
+                            nbt: new NBT("compound", {
+                                display: new NBT("compound", {
+                                    Name: new NBT("string", new RawJSONBuilder()
+                                        .setText({
+                                            text: "§cНазад",
+                                            italic: false
+                                        }))
+                                })
+                            }),
+                            onClick: () => {
+                                this.skipTo("previous");
+                            }
+                        }),
+                        new Item({
+                            id: NEXT_SONG_ITEM,
+                            position: 6,
+                            nbt: new NBT("compound", {
+                                display: new NBT("compound", {
+                                    Name: new NBT("string", new RawJSONBuilder()
+                                        .setText({
+                                            text: "§2Далее",
+                                            italic: false
+                                        }))
+                                })
+                            }),
+                            onClick: () => {
+                                this.skipTo();
+                            }
+                        }),
+                        // eslint-disable-next-line new-cap
+                        ...Slider({
+                            cellsCount: 7,
+                            initialPosition: 19,
+                            value: volume_percent,
+                            max: 100,
+                            onClick: (value) => this.setVolume(value),
+                            nbt: (value) => new NBT("compound", {
+                                display: new NBT("compound", {
+                                    Name: new NBT("string", new RawJSONBuilder()
+                                        .setText({
+                                            text: `Текущая громкость §2${volume_percent}§f%`,
+                                            italic: false
+                                        })),
+                                    Lore: new NBT("list", new NBT("string", [
+                                        new RawJSONBuilder()
+                                            .setText(`§7Нажмите, для того чтобы установить громкость на §2${value}§f%`)
+                                    ]))
+                                })
+                            })
+                        }),
+                        // eslint-disable-next-line new-cap
+                        ...Slider({
+                            cellsCount: 7,
+                            initialPosition: 37,
+                            value: progress_ms,
+                            max: duration_ms,
+                            onClick: (value) => this.seekTo(value),
+                            nbt: (value) => new NBT("compound", {
+                                display: new NBT("compound", {
+                                    Name: new NBT("string", new RawJSONBuilder()
+                                        .setText({
+                                            text: `Текущая позиция §2${normalizeDuration(progress_ms)}`,
+                                            italic: false
+                                        })),
+                                    Lore: new NBT("list", new NBT("string", [
+                                        new RawJSONBuilder()
+                                            .setText(`§7Нажмите, для того чтобы установить позицию на §2${normalizeDuration(value)}`)
+                                    ]))
+                                })
+                            })
+                        })
+                    ]);
+            })
+            .setAutoRerenderInterval(1000)
+            .build();
     }
 
     private actionbarUpdate(): void {
