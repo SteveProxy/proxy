@@ -28,6 +28,8 @@ export class Message extends Middleware {
             return next();
         }
 
+        await context.loadMessagePayload();
+
         this.proxy.client.context.send(
             new RawJSONBuilder()
                 .setExtra([
