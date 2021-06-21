@@ -19,7 +19,7 @@
     "chunk": "0.0.3",
     "discord-rpc": "^4.0.1",
     "lowdb": "^2.1.0",
-    "minecraft-data": "^2.84.0",
+    "minecraft-data": "^2.85.1",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.25.0",
     "moment": "^2.29.1",
