@@ -14,7 +14,7 @@
   "author": "MrZillaGold <Pronin Egor | mrzillagold@gmail.com>",
   "license": "CC-BY-NC-ND-4.0",
   "dependencies": {
-    "@vk-io/authorization": "^1.2.0",
+    "@vk-io/authorization": "^1.2.1",
     "axios": "^0.21.1",
     "chunk": "0.0.3",
     "discord-rpc": "^4.0.1",
