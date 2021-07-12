@@ -24,7 +24,7 @@
     "minecraft-protocol": "^1.25.0",
     "moment": "^2.29.1",
     "prismarine-nbt": "github:SteveProxy/prismarine-nbt",
-    "rawjsonbuilder": "^2.0.0",
+    "rawjsonbuilder": "^2.0.2",
     "spotify-web-api-node": "^5.0.2",
     "vk-io": "^4.3.2"
   },
