@@ -48,9 +48,9 @@ export function PlayerHead({ name, lore, onClick, position, value, url }: IPlaye
             ...itemOptions,
             position
         });
-    } else {
-        return itemOptions;
     }
+
+    return itemOptions;
 }
 
 export enum Head {

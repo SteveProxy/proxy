@@ -1,8 +1,6 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ClickAction, Component, HoverAction, text } from "rawjsonbuilder";
 
 import { PluginManager } from "./PluginManager";
-
-import { bullet, separator } from "./chatManager/components";
 
 import { Proxy } from "../Proxy";
 import { CancelHandler, IAnswer, Middleware, Question, QuestionItem, QuestionMessage, QuestionSet, QuestionValidator } from "../../interfaces";
@@ -40,7 +38,9 @@ export class QuestionBuilder {
 
     addQuestions(questions: Question): this {
         this.convertQuestions(questions)
-            .forEach((question) => this.questions.add(question));
+            .forEach((question) => (
+                this.questions.add(question)
+            ));
 
         this.saveContext();
 
@@ -61,8 +61,7 @@ export class QuestionBuilder {
             const validator = questionItem[1];
 
             if (typeof question === "string") {
-                question = new RawJSONBuilder()
-                    .setText(question);
+                question = text(question);
             }
 
             return [question, validator];
@@ -92,66 +91,52 @@ export class QuestionBuilder {
             const message = question[0];
             const validator = question[1];
 
-            this.proxy.client.context.send(
-                new RawJSONBuilder()
-                    .setExtra([
-                        separator,
-                        message,
-                        separator,
-                        separator,
-                        ...(
-                            this.currentQuestion > 1 ?
-                                [
-                                    new RawJSONBuilder()
-                                        .setText({
-                                            text: "◀",
-                                            clickEvent: {
-                                                action: "run_command",
-                                                value: `${PluginManager.prefix}${QuestionBuilder.prefix} back`
-                                            },
-                                            hoverEvent: {
-                                                action: "show_text",
-                                                value: new RawJSONBuilder()
-                                                    .setText("§7Нажмите, чтобы вернуться к предыдущему вопросу.")
-                                            }
-                                        }),
-                                    bullet
-                                ]
-                                :
-                                []
-                        ),
-                        ...(
-                            this.paginationFormat ?
-                                [
-                                    new RawJSONBuilder()
-                                        .setText(`${
-                                            this.paginationFormat.replace("%c", String(this.currentQuestion))
-                                                .replace("%m", String(this.questions.size))
-                                        }§r`),
-                                    bullet
-                                ]
-                                :
-                                []
-                        ),
-                        new RawJSONBuilder()
-                            .setText({
-                                text: "Отмена",
-                                color: "red",
-                                bold: true,
-                                underlined: true,
-                                clickEvent: {
-                                    action: "run_command",
-                                    value: `${PluginManager.prefix}${QuestionBuilder.prefix} cancel`
-                                },
-                                hoverEvent: {
-                                    action: "show_text",
-                                    value: new RawJSONBuilder()
-                                        .setText("§7Нажмите, чтобы отменить ввод.")
-                                }
-                            }),
-                        separator
-                    ])
-            );
+            const builder = text("")
+                .addNewLine()
+                .addExtra(message)
+                .addNewLine()
+                .addNewLine();
+
+            if (this.currentQuestion > 1) {
+                builder.addExtra(
+                    text("◀")
+                        .setClickEvent({
+                            action: ClickAction.RUN_COMMAND,
+                            value: `${PluginManager.prefix}${QuestionBuilder.prefix} back`
+                        })
+                        .setHoverEvent({
+                            action: HoverAction.SHOW_TEXT,
+                            value: text("Нажмите, чтобы вернуться к предыдущему вопросу.", "gray")
+                        })
+                        .addExtra(` ${Component.BULLET} `)
+                );
+            }
+
+            if (this.paginationFormat) {
+                const pagination = this.paginationFormat
+                    .replace("%c", String(this.currentQuestion))
+                    .replace("%m", String(this.questions.size));
+
+                builder.addExtra(`${pagination}§r`)
+                    .addExtra(` ${Component.BULLET} `);
+            }
+
+            builder.addExtra(
+                text("Отмена", "red")
+                    .setBold()
+                    .setUnderlined()
+                    .setClickEvent({
+                        action: ClickAction.RUN_COMMAND,
+                        value: `${PluginManager.prefix}${QuestionBuilder.prefix} cancel`
+                    })
+                    .setHoverEvent({
+                        action: HoverAction.SHOW_TEXT,
+                        value: text("§7Нажмите, чтобы отменить ввод.")
+                    })
+            )
+                .addNewLine();
+
+            this.proxy.client.context.send(builder);
 
             await new Promise<IAnswer>((resolve) => {
                 this.questionResolver = resolve;

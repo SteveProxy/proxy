@@ -1,5 +1,5 @@
 import chunk from "chunk";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { text } from "rawjsonbuilder";
 
 import { minecraftData } from "../../../utils";
 
@@ -44,12 +44,10 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         id: minecraftData.findItemOrBlockByName("spectral_arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
-                Name: new NBT("string", new RawJSONBuilder()
-                    .setText({
-                        text: "В начало",
-                        color: "green",
-                        italic: false
-                    }))
+                Name: new NBT("string", (
+                    text("В начало", "green")
+                        .setItalic(false)
+                ))
             })
         })
     }],
@@ -57,12 +55,10 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         id: minecraftData.findItemOrBlockByName("arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
-                Name: new NBT("string", new RawJSONBuilder()
-                    .setText({
-                        text: "Назад",
-                        color: "green",
-                        italic: false
-                    }))
+                Name: new NBT("string", (
+                    text("Назад", "green")
+                        .setItalic(false)
+                ))
             })
         })
     }],
@@ -70,12 +66,10 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         id: minecraftData.findItemOrBlockByName("barrier").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
-                Name: new NBT("string", new RawJSONBuilder()
-                    .setText({
-                        text: "Выход",
-                        color: "red",
-                        italic: false
-                    }))
+                Name: new NBT("string", (
+                    text("Выход", "red")
+                        .setItalic(false)
+                ))
             })
         })
     }],
@@ -83,12 +77,10 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         id: minecraftData.findItemOrBlockByName("arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
-                Name: new NBT("string", new RawJSONBuilder()
-                    .setText({
-                        text: "Вперёд",
-                        color: "green",
-                        italic: false
-                    }))
+                Name: new NBT("string", (
+                    text("Вперёд", "green")
+                        .setItalic(false)
+                ))
             })
         })
     }],
@@ -96,12 +88,10 @@ const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = ne
         id: minecraftData.findItemOrBlockByName("spectral_arrow").id,
         nbt: new NBT("compound", {
             display: new NBT("compound", {
-                Name: new NBT("string", new RawJSONBuilder()
-                    .setText({
-                        text: "В конец",
-                        color: "green",
-                        italic: false
-                    }))
+                Name: new NBT("string", (
+                    text("В конец", "green")
+                        .setItalic(false)
+                ))
             })
         })
     }]
@@ -239,13 +229,12 @@ export class PagesBuilder {
 
         if (this.pages.length > 1) {
             const pagination = new NBT("list", new NBT("string", [
-                new RawJSONBuilder()
-                    .setText(""),
-                new RawJSONBuilder()
-                    .setText(
-                        this.paginationFormat.replace("%c", String(this.currentPage))
-                            .replace("%m", String(this.pages.length))
-                    )
+                text(""),
+                text(
+                    this.paginationFormat
+                        .replace("%c", String(this.currentPage))
+                        .replace("%m", String(this.pages.length))
+                )
             ]));
 
             page.setItems(
@@ -273,8 +262,7 @@ export class PagesBuilder {
                 position: this.inventorySlots + index,
                 nbt: new NBT("compound", {
                     display: new NBT("compound", {
-                        Name: new NBT("string", new RawJSONBuilder()
-                            .setText(""))
+                        Name: new NBT("string", text(""))
                     })
                 })
             })));
@@ -431,35 +419,38 @@ export class PagesBuilder {
                     windowId: 0,
                     slot: 1,
                     mouseButton: 0,
-                    action: 1,
                     mode: 0,
-                    item: new Item({
+                    changedSlots: [],
+                    clicked_item: new Item({
                         id: 1,
                         position: 1,
                         nbt: new NBT("compound", {
                             display: new NBT("compound", {
-                                Name: new NBT("string", new RawJSONBuilder()
-                                    .setText("Proxy Restore Inventory"))
+                                Name: new NBT("string", text("SteveProxy Restore Inventory"))
                             })
                         })
                     })
                         .toJSON()
                 });
             });
-        } else {
-            this.rerender();
+
+            return;
         }
+
+        this.rerender();
     }
 
     async rerender(): Promise<void> {
-        if (!this.stopped) {
-            const { items } = await this.getPage();
-
-            this.proxy.client.write("window_items", {
-                windowId: this.windowId,
-                items
-            });
+        if (this.stopped) {
+            return;
         }
+
+        const { items } = await this.getPage();
+
+        this.proxy.client.write("window_items", {
+            windowId: this.windowId,
+            items
+        });
     }
 }
 

@@ -1,4 +1,4 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ComponentsUnion, TextComponent } from "rawjsonbuilder";
 
 import { Item } from "./Item";
 import { PacketContext } from "../../packetManager/PacketManager";
@@ -7,7 +7,7 @@ import { IItem, IPage } from "../../../../interfaces";
 
 export class Page {
 
-    windowTitle: RawJSONBuilder = new RawJSONBuilder()
+    windowTitle: ComponentsUnion = new TextComponent()
         .setText("");
     items: IItem[] = new Array(63)
         .fill({
@@ -30,7 +30,7 @@ export class Page {
         }
     }
 
-    setWindowTitle(title: RawJSONBuilder): this {
+    setWindowTitle(title: ComponentsUnion): this {
         this.windowTitle = title;
 
         return this;

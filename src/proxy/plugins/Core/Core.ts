@@ -1,15 +1,15 @@
 import minecraftPath from "minecraft-path";
-import { ClickAction, HoverAction, RawJSONBuilder } from "rawjsonbuilder";
-import { parse } from "prismarine-nbt";
+import { ClickAction, HoverAction, parse, text, translate } from "rawjsonbuilder";
+import { parse as parseNBT } from "prismarine-nbt";
 import { promises as fs } from "fs";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
-import { PluginManager, Head, PlayerHead, separator } from "../../modules";
+import { PluginManager, Head, PlayerHead } from "../../modules";
 
 import { config } from "../../../config";
 
-import { ICommand, IRawServer, IServer, Page as ChatPage } from "../../../interfaces";
+import { ICommand, IRawServer, IServer } from "../../../interfaces";
 
 export class Core extends Plugin {
 
@@ -110,8 +110,7 @@ export class Core extends Plugin {
 
     private sendBrandTab(): void {
         this.proxy.client.context.sendTab({
-            header: new RawJSONBuilder()
-                .parse(config.bridge.title)
+            header: parse(config.bridge.title)
         });
     }
 
@@ -119,74 +118,63 @@ export class Core extends Plugin {
         const plugins = [...this.proxy.pluginManager.plugins.values()]
             .filter(({ meta: { hidden, commands } }) => !hidden && commands.length);
 
-        const builder = this.proxy.client.context.chatBuilder();
+        const builder = this.proxy.client.context.chatBuilder()
+            .setPagesHeader(`${config.bridge.title} | Список доступных команд`);
 
-        builder.setPagesHeader(`${config.bridge.title} | Список доступных команд`)
-            .setPages([
-                new RawJSONBuilder()
-                    .setExtra(
-                        plugins.map(({ meta: { name, description, prefix } }, index) => {
-                            builder.addTriggers({
-                                name,
-                                callback: () => builder.setPage(index + 2)
-                            });
+        builder.addPages(
+            text("")
+                .addExtra(
+                    plugins.map(({ meta: { name, description, prefix } }, index) => {
+                        builder.addTriggers({
+                            name,
+                            callback: () => builder.setPage(index + 2)
+                        });
 
-                            return new RawJSONBuilder()
-                                .setText({
-                                    text: `${prefix} ${description}${index + 1 < plugins.length ? "\n" : ""}`,
-                                    hoverEvent: {
-                                        action: HoverAction.SHOW_TEXT,
-                                        contents: new RawJSONBuilder()
-                                            .setText("§7Нажмите, чтобы посмотреть доступные команды плагина.")
-                                    },
-                                    clickEvent: {
-                                        action: ClickAction.RUN_COMMAND,
-                                        value: `${builder.triggerCommandPrefix} ${name}`
-                                    }
-                                });
-                        })
-                    ),
-                // eslint-disable-next-line array-callback-return
-                ...plugins.map(({ meta: { name: pluginName, description, prefix, commands, ignorePluginPrefix } }) => (
-                    new RawJSONBuilder()
-                        .setExtra([
-                            new RawJSONBuilder()
-                                .setText(`${prefix} ${description}`),
-                            separator,
-                            separator,
-                            // eslint-disable-next-line array-callback-return
-                            ...commands.map(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, hidden, args = [], description }: ICommand, index: number) => {
-                                if (!hidden) {
-                                    const command = (`${PluginManager.prefix}${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? `${pluginName} ${commandName}` : commandName}`)
-                                        .trim();
-
-                                    args = args.map((arg) => `§7<§r${arg}§7>§r`);
-
-                                    return new RawJSONBuilder()
-                                        .setExtra([
-                                            new RawJSONBuilder()
-                                                .setText({
-                                                    text: `${command}${args.length ? ` ${args.join(" ")}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`,
-                                                    hoverEvent: {
-                                                        action: HoverAction.SHOW_TEXT,
-                                                        contents: new RawJSONBuilder()
-                                                            .setText(`§7Нажмите, чтобы ${args.length ? "вставить команду в чат" : "вызвать команду"}.`)
-                                                    },
-                                                    clickEvent: {
-                                                        action: args.length ? ClickAction.SUGGEST_COMMAND : ClickAction.RUN_COMMAND,
-                                                        value: command
-                                                    }
-                                                })
-                                        ]);
-                                }
-
-                                return "";
+                        return text(`${prefix} ${description}${index + 1 < plugins.length ? "\n" : ""}`)
+                            .setHoverEvent({
+                                action: HoverAction.SHOW_TEXT,
+                                contents: text("Нажмите, чтобы посмотреть доступные команды плагина.", "gray")
                             })
-                        ])
-                ))
-                    .filter(Boolean) as ChatPage[]
-            ])
-            .build();
+                            .setClickEvent({
+                                action: ClickAction.RUN_COMMAND,
+                                value: `${builder.triggerCommandPrefix} ${name}`
+                            });
+                    })
+                )
+        );
+
+        plugins.forEach(({ meta: { name: pluginName, description, prefix, commands, ignorePluginPrefix } }) => {
+            const page = text(`${prefix} ${description}`)
+                .addNewLine()
+                .addNewLine();
+
+            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, hidden, args = [], description }: ICommand, index: number) => {
+                if (hidden) {
+                    return;
+                }
+
+                const command = (`${PluginManager.prefix}${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? `${pluginName} ${commandName}` : commandName}`)
+                    .trim();
+
+                args = args.map((arg) => `§7<§r${arg}§7>§r`);
+
+                page.addExtra(
+                    text(`${command}${args.length ? ` ${args.join(" ")}` : ""} §7-§r ${description}${index + 1 < commands.length ? "\n" : ""}`)
+                        .setHoverEvent({
+                            action: HoverAction.SHOW_TEXT,
+                            contents: text(`Нажмите, чтобы ${args.length ? "вставить команду в чат" : "вызвать команду"}.`, "gray")
+                        })
+                        .setClickEvent({
+                            action: args.length ? ClickAction.SUGGEST_COMMAND : ClickAction.RUN_COMMAND,
+                            value: command
+                        })
+                );
+            });
+
+            builder.addPages(page);
+        });
+
+        builder.build();
     }
 
     async connect(ip = ""): Promise<void> {
@@ -197,7 +185,7 @@ export class Core extends Plugin {
         const serversDatBuffer = await fs.readFile(`${minecraftPath()}/servers.dat`);
 
         // @ts-ignore
-        let { value: { servers: { value: { value: servers } } } } = (await parse(serversDatBuffer))
+        let { value: { servers: { value: { value: servers } } } } = (await parseNBT(serversDatBuffer))
             .parsed;
 
         servers = servers.map((server: IRawServer) => {
@@ -214,39 +202,27 @@ export class Core extends Plugin {
 
         if (!servers.length) {
             return this.proxy.client.context.send(
-                new RawJSONBuilder()
-                    .setTranslate({
-                        translate: `${this.meta.prefix} §cНет доступных серверов для подключения! Добавьте нужные сервера во вкладке "%s§c".`,
-                        with: [
-                            new RawJSONBuilder()
-                                .setTranslate("menu.multiplayer")
-                        ]
-                    })
+                translate(`${this.meta.prefix} §cНет доступных серверов для подключения! Добавьте нужные сервера во вкладке "%s§c".`, [
+                    translate("menu.multiplayer")
+                ])
             );
         }
 
         return this.serversBuilder
             .autoGeneratePages({
-                windowTitle: new RawJSONBuilder()
-                    .setText(`${this.meta.prefix} Выбор сервера`),
+                windowTitle: text(`${this.meta.prefix} Выбор сервера`),
                 // eslint-disable-next-line new-cap
                 items: servers.map(({ ip, name }: IServer) => PlayerHead({
-                    name: new RawJSONBuilder()
-                        .setText({
-                            text: name || "Без названия",
-                            color: "white",
-                            italic: false
-                        }),
+                    name: text(name || "Без названия", "white")
+                        .setItalic(false),
                     lore: [
-                        new RawJSONBuilder()
-                            .setText(""),
-                        new RawJSONBuilder()
-                            .setText(
-                                this.proxy.currentServer === ip ?
-                                    "§3Выбран"
-                                    :
-                                    "§7Нажмите, для того чтобы выбрать сервер."
-                            )
+                        text(""),
+                        text(
+                            this.proxy.currentServer === ip ?
+                                "§3Выбран"
+                                :
+                                "§7Нажмите, для того чтобы выбрать сервер."
+                        )
                     ],
                     value: Head.Server,
                     onClick: () => {

@@ -1,4 +1,5 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { stripIndent } from "common-tags";
+import { BaseComponent, ComponentsUnion, text } from "rawjsonbuilder";
 
 import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
 import { ChatBuilder } from "./chatManager/ChatBuilder";
@@ -20,17 +21,21 @@ export class Context {
         this.type = type;
     }
 
-    end(reason: string | RawJSONBuilder): void {
+    end(reason: string | ComponentsUnion): void {
         if (typeof reason !== "string") {
             reason = reason.toRawString();
         }
 
-        this.client.end(`${this.proxy.config.bridge.title}\n\n${reason}`);
+        this.client.end(stripIndent`
+        ${this.proxy.config.bridge.title}
+        
+        ${reason}
+        `);
     }
 
     send(options: SendOptions): void {
         if (typeof options === "object") {
-            if (options instanceof RawJSONBuilder) {
+            if (options instanceof BaseComponent) {
                 options = {
                     message: options
                 };
@@ -41,11 +46,10 @@ export class Context {
             return this.client.write("chat", {
                 message: useRawJSON ?
                     (
-                        message instanceof RawJSONBuilder ?
+                        message instanceof BaseComponent ?
                             message
                             :
-                            new RawJSONBuilder()
-                                .setText(message)
+                            text(message)
                     )
                         .toString()
                     :
@@ -59,9 +63,7 @@ export class Context {
             message: this.type === "bridge" ?
                 options
                 :
-                new RawJSONBuilder()
-                    .setText(options)
-                    .toString(),
+                text(options).toString(),
             position: 0,
             sender: "0"
         });
@@ -77,53 +79,33 @@ export class Context {
         const { title, subtitle, actionbar, fadeIn, fadeOut, stay, hide, reset } = options;
 
         if (subtitle) {
-            this.client.write("title", {
-                action: 1,
-                text: new RawJSONBuilder()
-                    .setText("")
-                    .setExtra(
-                        new RawJSONBuilder()
-                            .setText({
-                                text: subtitle
-                            })
+            this.client.write("set_title_subtitle", {
+                text: text("")
+                    .addExtra(
+                        subtitle
                     )
                     .toString()
             });
         }
 
         if (title) {
-            this.client.write("title", {
-                action: 0,
-                text: new RawJSONBuilder()
-                    .setText("")
-                    .setExtra(
-                        new RawJSONBuilder()
-                            .setText({
-                                text: title
-                            })
-                    )
+            this.client.write("set_title_text", {
+                text: text("")
+                    .addExtra(title)
                     .toString()
             });
         }
 
         if (actionbar) {
-            this.client.write("title", {
-                action: 2,
-                text: new RawJSONBuilder()
-                    .setText("")
-                    .setExtra(
-                        new RawJSONBuilder()
-                            .setText({
-                                text: actionbar
-                            })
-                    )
+            this.client.write("action_bar", {
+                text: text("")
+                    .addExtra(actionbar)
                     .toString()
             });
         }
 
         if (fadeIn !== undefined || fadeOut !== undefined || stay !== undefined) {
-            this.client.write("title", {
-                action: 3,
+            this.client.write("set_title_time", {
                 fadeIn,
                 stay,
                 fadeOut
@@ -131,26 +113,32 @@ export class Context {
         }
 
         if (hide) {
-            this.client.write("title", {
-                action: 4
+            this.client.write("clear_titles", {
+                reset: false
             });
         }
 
         if (reset) {
-            this.client.write("title", {
-                action: 5
+            this.client.write("clear_titles", {
+                reset: true
             });
         }
     }
 
-    sendTab({ header = new RawJSONBuilder().setText(""), footer = new RawJSONBuilder().setText("") }: ISendTabOptions): void {
+    sendTab({ header = text(""), footer = text("") }: ISendTabOptions): void {
         this.client.write("playerlist_header", {
-            header: header.toString(),
-            footer: footer.toString()
+            header: header instanceof BaseComponent ?
+                header.toString()
+                :
+                JSON.stringify(header),
+            footer: footer instanceof BaseComponent ?
+                footer.toString()
+                :
+                JSON.stringify(footer)
         });
     }
 
-    sendBrand(brand: string | RawJSONBuilder): void {
+    sendBrand(brand: string | ComponentsUnion): void {
         if (typeof brand !== "string") {
             brand = brand.toRawString();
         }
@@ -162,7 +150,7 @@ export class Context {
         // todo
     }
 
-    openWindow({ windowTitle = new RawJSONBuilder().setText(""), inventoryType = 2, windowId, items }: IOpenWindowOptions): void {
+    openWindow({ windowTitle = text(""), inventoryType = 2, windowId, items }: IOpenWindowOptions): void {
         this.client.write("open_window", {
             windowId,
             inventoryType,

@@ -1,5 +1,5 @@
 import moment from "moment";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { text } from "rawjsonbuilder";
 
 import { Proxy } from "../Proxy";
 
@@ -148,15 +148,11 @@ export class PluginManager {
 
                         if (Number(cooldown) > Date.now()) {
                             return this.proxy.client.context.send(
-                                new RawJSONBuilder()
-                                    .setText(`${prefix} §cВоспользоваться этой командой снова можно будет `)
-                                    .setExtra(
-                                        new RawJSONBuilder()
-                                            .setText({
-                                                text: moment(cooldown).fromNow(),
-                                                color: "red",
-                                                bold: true
-                                            })
+                                text(`${prefix} §cВоспользоваться этой командой снова можно будет`)
+                                    .addSpace()
+                                    .addExtra(
+                                        text(moment(cooldown).fromNow(), "red")
+                                            .setBold()
                                     )
                             );
                         }
@@ -171,6 +167,7 @@ export class PluginManager {
         }
 
         plugin.start();
+
         this.plugins.set(pluginName, plugin);
     }
 

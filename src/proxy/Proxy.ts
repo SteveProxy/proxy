@@ -1,11 +1,11 @@
 import minecraftPath from "minecraft-path";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ClickAction, HoverAction, parser, text } from "rawjsonbuilder";
 import { createClient, Server, states } from "minecraft-protocol";
 
 import { db } from "../DB";
 import { config } from "../config";
 
-import { Context, PacketManager, PluginManager, separator } from "./modules";
+import { Context, PacketManager, PluginManager } from "./modules";
 
 import { getCurrentTime, getVersion, isValidIP, parseIP } from "../utils";
 
@@ -13,9 +13,7 @@ import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
 
 export class Proxy {
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    bridge: IClient;
+    bridge!: IClient;
     client: IClient;
     private server: Server;
 
@@ -171,8 +169,7 @@ export class Proxy {
                 disconnected = true;
 
                 const reason = data?.reason ?
-                    new RawJSONBuilder(data?.reason)
-                        .toRawString()
+                    parser.parseJSON(data?.reason)
                     :
                     data instanceof Error ?
                         data.toString()
@@ -185,44 +182,33 @@ export class Proxy {
                     if (reason && reason !== "SocketClosed") {
                         const disconnectTime = getCurrentTime();
 
-                        this.client.context.send(
-                            new RawJSONBuilder()
-                                .setExtra([
-                                    new RawJSONBuilder()
-                                        .setText(`${config.bridge.title} | §cСоединение разорвано. ${reason}`),
-                                    separator,
-                                    separator,
-                                    ...(
-                                        this.currentServer !== this.fallbackServer ?
-                                            [
-                                                new RawJSONBuilder()
-                                                    .setText({
-                                                        text: `   §7[§f${disconnectTime}§7]   `,
-                                                        hoverEvent: {
-                                                            action: "show_text",
-                                                            value: new RawJSONBuilder()
-                                                                .setText(`§7Вы были отключеный от сервера в §f${disconnectTime}§7.`)
-                                                        }
-                                                    })
-                                            ]
-                                            :
-                                            []
-                                    ),
-                                    new RawJSONBuilder()
-                                        .setText({
-                                            text: "   §7[§fПереподключиться§7]   ",
-                                            hoverEvent: {
-                                                action: "show_text",
-                                                value: new RawJSONBuilder()
-                                                    .setText("§7Нажмите, чтобы переподключиться к серверу.")
-                                            },
-                                            clickEvent: {
-                                                action: "run_command",
-                                                value: `${PluginManager.prefix}connect ${host}:${port}`
-                                            }
-                                        })
-                                ])
+                        const builder = text(`${config.bridge.title} | §cСоединение разорвано. ${reason}`)
+                            .addNewLine()
+                            .addNewLine();
+
+                        if (this.currentServer !== this.fallbackServer) {
+                            builder.addExtra(
+                                text(`   §7[§f${disconnectTime}§7]   `)
+                                    .setHoverEvent({
+                                        action: HoverAction.SHOW_TEXT,
+                                        value: text(`Вы были отключеный от сервера в §f${disconnectTime}§7.`, "gray")
+                                    })
+                            );
+                        }
+
+                        builder.addExtra(
+                            text("   §7[§fПереподключиться§7]   ")
+                                .setHoverEvent({
+                                    action: HoverAction.SHOW_TEXT,
+                                    value: text("Нажмите, чтобы переподключиться к серверу.", "gray")
+                                })
+                                .setClickEvent({
+                                    action: ClickAction.RUN_COMMAND,
+                                    value: `${PluginManager.prefix}connect ${host}:${port}`
+                                })
                         );
+
+                        this.client.context.send(builder);
 
                         console.error(reason);
                     }

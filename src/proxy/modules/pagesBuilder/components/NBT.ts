@@ -1,4 +1,4 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { BaseComponent, ComponentsUnion } from "rawjsonbuilder";
 
 import { NBTType } from "../../../../interfaces";
 
@@ -8,7 +8,7 @@ export class NBT {
     value: any;
     name?: "";
 
-    constructor(type: NBTType, value: any | RawJSONBuilder) {
+    constructor(type: NBTType, value: any | ComponentsUnion) {
         this.type = type;
 
         switch (type) {
@@ -30,9 +30,9 @@ export class NBT {
         return this;
     }
 
-    private toString(value: any | RawJSONBuilder): string {
+    private toString(value: any | ComponentsUnion): string {
         if (typeof value === "object") {
-            if (value instanceof RawJSONBuilder) {
+            if (value instanceof BaseComponent) {
                 return value.toString();
             }
 

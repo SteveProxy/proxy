@@ -1,9 +1,7 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { Component, HoverAction, keybind, text, translate } from "rawjsonbuilder";
 
 import _dictionary from "./dictionary.json";
 import emoji from "./emoji.json";
-
-import { separator } from "../../modules";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
@@ -71,44 +69,33 @@ export class Chat extends Plugin {
                 [...categories].map(([category, description]) => {
                     const categoryEmoji = emoji[category];
 
-                    return new RawJSONBuilder()
-                        .setExtra([
-                            new RawJSONBuilder()
-                                .setText(description),
-                            separator,
-                            separator,
-                            ...categoryEmoji.map((emoji, index) => new RawJSONBuilder()
-                                .setExtra([
-                                    new RawJSONBuilder()
-                                        .setText({
-                                            text: emoji,
-                                            bold: true,
-                                            insertion: emoji,
-                                            hoverEvent: {
-                                                action: "show_text",
-                                                contents: new RawJSONBuilder()
-                                                    .setTranslate({
-                                                        translate: "§7Нажмите с использованием %s§7, чтобы вставить Emoji в чат.",
-                                                        with: [
-                                                            new RawJSONBuilder()
-                                                                .setKeybind("key.sneak")
-                                                        ]
-                                                    })
-                                            }
-                                        }),
-                                    new RawJSONBuilder()
-                                        .setText("    §7|§r    "),
-                                    ...(
-                                        (index + 1) % 2 === 0 ?
-                                            [
-                                                separator
-                                            ]
-                                            :
-                                            []
+                    const builder = text("");
 
-                                    )
-                                ]))
-                        ]);
+                    builder.addExtra(description)
+                        .addNewLine()
+                        .addNewLine();
+
+                    categoryEmoji.forEach((emoji, index) => {
+                        builder.addExtra(
+                            text(emoji)
+                                .setBold()
+                                .setInsertion(emoji)
+                                .setHoverEvent({
+                                    action: HoverAction.SHOW_TEXT,
+                                    contents: translate("§7Нажмите с использованием %s§7, чтобы вставить Emoji в чат.", [
+                                        keybind("key.sneak")
+                                    ])
+                                })
+                        );
+
+                        builder.addExtra(`    ${Component.VERTICAL_LINE}    `);
+
+                        if ((index + 1) % 2 === 0) {
+                            builder.addNewLine();
+                        }
+                    });
+
+                    return builder;
                 })
             )
             .build();

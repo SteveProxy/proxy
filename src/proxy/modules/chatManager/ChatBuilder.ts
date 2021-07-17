@@ -1,9 +1,9 @@
 import chunk from "chunk";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ClickAction, Component, ComponentsUnion, text, TextComponent, translate } from "rawjsonbuilder";
 
 import { Proxy } from "../../Proxy";
 
-import { buildersStorage, bullet, ChatManager, separator } from "./ChatManager";
+import { buildersStorage, ChatManager } from "./ChatManager";
 
 import { generateID } from "../../../utils";
 
@@ -16,8 +16,8 @@ export class ChatBuilder {
     readonly id: string = generateID(6);
 
     private pages: Page[] = [];
-    private header = new RawJSONBuilder();
-    private footer = new RawJSONBuilder();
+    private header: ComponentsUnion = new TextComponent();
+    private footer: ComponentsUnion = new TextComponent();
     private currentPage = 1;
     private infinityLoop = true;
     private autoResetTimeout = true;
@@ -60,20 +60,18 @@ export class ChatBuilder {
         const chunks = chunk(items, chunkSize);
 
         this.setPages(
-            chunks.map((chunk) => new RawJSONBuilder()
-                .setExtra(
-                    chunk.map((item, index) => new RawJSONBuilder().setExtra([
-                        item,
-                        ...(
-                            index + 1 < chunk.length ?
-                                [
-                                    new RawJSONBuilder()
-                                        .setText("\n")
-                                ]
-                                :
-                                []
-                        )
-                    ]))
+            chunks.map((chunk) => new TextComponent()
+                .addExtra(
+                    chunk.map((item, index) => {
+                        const component = text("")
+                            .addExtra(item);
+
+                        if (index + 1 < chunk.length) {
+                            component.addExtra(Component.SEPARATOR);
+                        }
+
+                        return component;
+                    })
                 ))
         );
 
@@ -118,10 +116,9 @@ export class ChatBuilder {
         return this;
     }
 
-    setPagesHeader(header: RawJSONBuilder | string): this {
+    setPagesHeader(header: ComponentsUnion | string): this {
         if (typeof header === "string") {
-            header = new RawJSONBuilder()
-                .setText(header);
+            header = text(header);
         }
 
         this.header = header;
@@ -131,10 +128,9 @@ export class ChatBuilder {
         return this;
     }
 
-    setPagesFooter(footer: RawJSONBuilder | string): this {
+    setPagesFooter(footer: ComponentsUnion | string): this {
         if (typeof footer === "string") {
-            footer = new RawJSONBuilder()
-                .setText(footer);
+            footer = text(footer);
         }
 
         this.footer = footer;
@@ -200,7 +196,7 @@ export class ChatBuilder {
         }
     }
 
-    async getPage(pageNumber: number = this.currentPage): Promise<RawJSONBuilder> {
+    async getPage(pageNumber: number = this.currentPage): Promise<TextComponent> {
         let page = this.pages[pageNumber - 1];
 
         if (typeof page === "function") {
@@ -208,33 +204,25 @@ export class ChatBuilder {
         }
 
         if (typeof page === "string") {
-            page = new RawJSONBuilder()
-                .setExtra(
-                    new RawJSONBuilder()
-                        .setText(page)
-                );
+            page = text(page);
         }
 
-        if (Object.keys(this.header["message"]).length) {
-            page = new RawJSONBuilder()
-                .setExtra([
-                    this.header,
-                    separator,
-                    separator,
-                    page
-                ]);
+        if (this.header.toRawString().length) {
+            page = new TextComponent()
+                .addExtra(this.header)
+                .addNewLine()
+                .addNewLine()
+                .addExtra(page);
         }
 
-        page = new RawJSONBuilder(page);
+        page = new TextComponent(page as TextComponent);
 
-        const footerLength = Object.keys(this.footer["message"]).length;
+        const footerLength = this.footer.toRawString().length;
         const defaultButtonsSize = this.defaultButtons.size;
 
         if (footerLength || defaultButtonsSize) {
-            page.addExtra([
-                separator,
-                separator
-            ]);
+            page.addNewLine()
+                .addNewLine();
 
             const defaultButtons = [...this.defaultButtons]
                 .filter(([, buttonAction]) => (
@@ -247,55 +235,40 @@ export class ChatBuilder {
                         true
                 ))
                 .map(([buttonLabel, buttonAction], index) => (
-                    new RawJSONBuilder()
-                        .setTranslate({
-                            translate: `%s${index + 1 < defaultButtonsSize ? " §7|§r " : " "}`,
-                            with: [
-                                new RawJSONBuilder()
-                                    .setText({
-                                        text: buttonLabel,
-                                        clickEvent: {
-                                            action: "run_command",
-                                            value: `${ChatManager.prefix} ${this.id} ${buttonAction}`
-                                        }
-                                    })
-                            ]
-                        })
+                    translate(`%s${index + 1 < defaultButtonsSize ? " §7|§r " : " "}`, [
+                        text(buttonLabel)
+                            .setClickEvent({
+                                action: ClickAction.RUN_COMMAND,
+                                value: `${ChatManager.prefix} ${this.id} ${buttonAction}`
+                            })
+                    ])
                 ));
 
-            page.addExtra([
-                ...(
-                    this.pages.length > 1 ?
-                        defaultButtons
-                        :
-                        []
-                ),
-                new RawJSONBuilder()
-                    .setText(`${
-                        this.paginationFormat.replace("%c", String(this.currentPage))
-                            .replace("%m", String(this.pages.length))
-                    }§r`),
-                ...(
-                    (defaultButtons.length && this.pages.length > 1 && footerLength) || (!defaultButtons.length && this.paginationFormat) ?
-                        [bullet]
-                        :
-                        []
-                )
-            ]);
+            if (this.pages.length > 1) {
+                page.addExtra(defaultButtons);
+            }
+
+            const pagination = this.paginationFormat
+                .replace("%c", String(this.currentPage))
+                .replace("%m", String(this.pages.length));
+
+            page.addExtra(`${pagination}§r`);
+            
+            if ((defaultButtons.length && this.pages.length > 1 && footerLength) || (!defaultButtons.length && this.paginationFormat)) {
+                page.addSpace()
+                    .addExtra(Component.BULLET)
+                    .addSpace();
+            }
 
             if (footerLength) {
                 page.addExtra(this.footer);
             }
         }
 
-        page = new RawJSONBuilder()
-            .setExtra([
-                separator,
-                page,
-                separator
-            ]);
-
-        return page;
+        return text("")
+            .addNewLine()
+            .addExtra(page)
+            .addNewLine();
     }
 
     setTriggers(triggers: ITrigger | ITrigger[]): this {
@@ -395,7 +368,7 @@ export class ChatBuilder {
 
     build(): void {
         if (!this.pages.length) {
-            throw new Error("Pages not set.");
+            throw new Error("Pages not set");
         }
 
         this.setPage(this.currentPage);

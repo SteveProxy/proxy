@@ -1,4 +1,4 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ComponentsUnion } from "rawjsonbuilder";
 
 export interface ITrigger {
     name: string;
@@ -8,7 +8,7 @@ export interface ITrigger {
 export type TriggersMap = Map<ITrigger["name"], ITrigger["callback"]>;
 
 export type StringPage = string;
-export type RawJSONPage = RawJSONBuilder;
+export type RawJSONPage = ComponentsUnion;
 export type FunctionPage = () => StringPage | RawJSONPage;
 
 export type Page = StringPage | RawJSONPage | FunctionPage;
@@ -27,7 +27,7 @@ export type ObjectButton = {
 export type DefaultTextButtonsMap = Map<StringButton, DefaultButtonLabel>;
 
 interface IAutoGeneratePagesOptions {
-    items: RawJSONBuilder[];
+    items: ComponentsUnion[];
     chunkSize?: number;
 }
 

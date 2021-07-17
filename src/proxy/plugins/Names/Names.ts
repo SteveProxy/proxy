@@ -1,4 +1,4 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { text } from "rawjsonbuilder";
 
 import { Proxy } from "../../Proxy";
 import { Plugin } from "../Plugin";
@@ -39,8 +39,9 @@ export class Names extends Plugin {
                     .autoGeneratePages(
                         username_history
                             .reverse()
-                            .map(({ username, changed_at }) => new RawJSONBuilder()
-                                .setText(`${username} §7-§r ${changed_at ? humanizeDate(changed_at) : "Первый"}`))
+                            .map(({ username, changed_at }) => (
+                                text(`${username} §7-§r ${changed_at ? humanizeDate(changed_at) : "Первый"}`)
+                            ))
                     )
                     .build();
             });

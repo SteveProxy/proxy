@@ -1,4 +1,4 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ComponentsUnion, RawComponentsUnion } from "rawjsonbuilder";
 
 import { Proxy } from "../../../proxy/Proxy";
 import { IClient } from "../Client";
@@ -10,7 +10,7 @@ export interface IContext {
 }
 
 interface ISendOptions {
-    message: RawJSONBuilder | string;
+    message: ComponentsUnion | string;
     position?: number;
     sender?: string;
     useRawJSON?: boolean;
@@ -34,14 +34,14 @@ interface ITitle {
 export type ISendTabOptions = ITab;
 
 interface ITab {
-    header?: RawJSONBuilder;
-    footer?: RawJSONBuilder;
+    header?: ComponentsUnion | RawComponentsUnion;
+    footer?: ComponentsUnion | RawComponentsUnion;
 }
 
 export interface IOpenWindowOptions {
     windowId: number;
     inventoryType: number;
-    windowTitle?: RawJSONBuilder;
+    windowTitle?: ComponentsUnion;
     items: IItem[];
 }
 

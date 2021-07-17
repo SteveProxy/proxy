@@ -1,9 +1,9 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ComponentsUnion } from "rawjsonbuilder";
 
 export type CancelHandler = ((...params: any) => unknown) | null;
 
 export type RawQuestionMessage = string;
-export type QuestionMessage = RawJSONBuilder;
+export type QuestionMessage = ComponentsUnion;
 
 export type QuestionValidator = ((answer: string) => boolean | Promise<boolean> | void) | undefined;
 

@@ -1,13 +1,13 @@
 import { APIErrorCode, CallbackService, CallbackServiceRetry, getRandomId, ICallbackServiceCaptchaPayload, ICallbackServiceTwoFactorPayload } from "vk-io";
 import { AuthErrorCode, DirectAuthorization, officialAppCredentials } from "@vk-io/authorization";
-import { ClickAction, RawJSONBuilder } from "rawjsonbuilder";
+import { ClickAction, HoverAction, text, translate } from "rawjsonbuilder";
 
 import { middlewares } from "./middlewares";
 import { API_VERSION } from "./constants";
 
 import { Plugin } from "../Plugin";
 import { Proxy } from "../../Proxy";
-import { PluginManager, separator } from "../../modules";
+import { PluginManager } from "../../modules";
 import { VK as _VK } from "./API";
 import { Markdown } from "./Markdown";
 
@@ -84,25 +84,21 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
             this.proxy.client.context.send(`${this.meta.prefix} Для работы плагина необходима авторизация.`);
 
             return this.proxy.client.context.send(
-                new RawJSONBuilder()
-                    .setText(`${this.meta.prefix} `)
-                    .setExtra([
-                        new RawJSONBuilder()
-                            .setText({
-                                text: "Авторизоваться",
-                                underlined: true,
-                                bold: true,
-                                clickEvent: {
-                                    action: "run_command",
-                                    value: `${PluginManager.prefix}${this.meta.name} auth`
-                                },
-                                hoverEvent: {
-                                    action: "show_text",
-                                    value: new RawJSONBuilder()
-                                        .setText("§7Нажмите, чтобы начать авторизацию.")
-                                }
+                text(this.meta.prefix)
+                    .addSpace()
+                    .addExtra(
+                        text("Авторизоваться")
+                            .setUnderlined()
+                            .setBold()
+                            .setClickEvent({
+                                action: ClickAction.RUN_COMMAND,
+                                value: `${PluginManager.prefix}${this.meta.name} auth`
                             })
-                    ])
+                            .setHoverEvent({
+                                action: HoverAction.SHOW_TEXT,
+                                value: text("Нажмите, чтобы начать авторизацию.", "gray")
+                            })
+                    )
             );
         }
 
@@ -166,13 +162,12 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
             .reverse()
             .forEach((notification) => {
                 this.proxy.client.context.send(
-                    new RawJSONBuilder()
-                        .setText(`${this.meta.prefix} Уведомление:`)
-                        .addExtra([
-                            separator,
-                            separator,
+                    text(`${this.meta.prefix} Уведомление:`)
+                        .addNewLine()
+                        .addNewLine()
+                        .addExtra(
                             Markdown.parseNotification(notification)
-                        ])
+                        )
                 );
             });
     }
@@ -193,7 +188,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
         if (!login && !password) {
             const [login, password] = await this.proxy.client.context.questionBuilder()
                 .setQuestions([
-                    [`${this.meta.prefix} Введите логин.`, (login) => {
+                    [`${this.meta.prefix} Введите логин.`, (login: string) => {
                         if (login.includes(" ")) {
                             return this.proxy.client.context.send(
                                 `${this.meta.prefix} §cЛогин не может содержать пробелов!`
@@ -208,7 +203,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
 
                         return true;
                     }],
-                    [`${this.meta.prefix} Введите пароль.`, (password) => {
+                    [`${this.meta.prefix} Введите пароль.`, (password: string) => {
                         if (password.includes(" ")) {
                             return this.proxy.client.context.send(
                                 `${this.meta.prefix} §cПароль не может содержать пробелов!`
@@ -301,26 +296,18 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
     private onCaptcha({ src }: ICallbackServiceCaptchaPayload, retry: CallbackServiceRetry): void {
         this.proxy.client.context.questionBuilder()
             .setQuestions(
-                new RawJSONBuilder()
-                    .setTranslate({
-                        translate: `${this.meta.prefix} Введите код с %s.`,
-                        with: [
-                            new RawJSONBuilder()
-                                .setText({
-                                    text: "изображения",
-                                    underlined: true,
-                                    clickEvent: {
-                                        action: ClickAction.OPEN_URL,
-                                        value: src
-                                    },
-                                    hoverEvent: {
-                                        action: "show_text",
-                                        value: new RawJSONBuilder()
-                                            .setText("§7Нажмите, чтобы открыть изображение.")
-                                    }
-                                })
-                        ]
-                    })
+                translate(`${this.meta.prefix} Введите код с %s.`, [
+                    text("изображения")
+                        .setUnderlined()
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: src
+                        })
+                        .setHoverEvent({
+                            action: "show_text",
+                            value: text("Нажмите, чтобы открыть изображение.", "gray")
+                        })
+                ])
             )
             .onCancel(this.onCancel(retry))
             .build()
@@ -396,6 +383,9 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
 
     stop(): void {
         this.stopNotificationsUpdates();
-        this.vk.updates.stop();
+
+        if (this.vk) {
+            this.vk.updates.stop();
+        }
     }
 }

@@ -1,6 +1,6 @@
 import axios from "axios";
 import minecraftPath from "minecraft-path";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { text } from "rawjsonbuilder";
 
 import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from "../../../utils";
 
@@ -65,27 +65,20 @@ export class Skin extends Plugin {
             .reverse();
 
         return this.builder.autoGeneratePages({
-            windowTitle: new RawJSONBuilder()
-                .setText(`${this.meta.prefix} Библиотека скинов`),
+            windowTitle: text(`${this.meta.prefix} Библиотека скинов`),
             // eslint-disable-next-line new-cap
             items: skins.map(({ url, slim, name }) => PlayerHead({
                 url,
-                name: new RawJSONBuilder()
-                    .setText({
-                        text: name || "Без названия",
-                        color: "white",
-                        italic: false
-                    }),
+                name: text(name || "Без названия", "white")
+                    .setItalic(false),
                 lore: [
-                    new RawJSONBuilder()
-                        .setText(""),
-                    new RawJSONBuilder()
-                        .setText(
-                            this.isSelected(url) ?
-                                "§5Выбран"
-                                :
-                                "§7Нажмите, для того чтобы установить скин."
-                        )
+                    text(""),
+                    text(
+                        this.isSelected(url) ?
+                            "§5Выбран"
+                            :
+                            "§7Нажмите, для того чтобы установить скин."
+                    )
                 ],
                 onClick: async () => {
                     await this.changeSkin({
@@ -126,7 +119,9 @@ export class Skin extends Plugin {
     private async changeSkin({ url, slim }: IChangeSkinOptions): Promise<void> {
         if (this.cooldown < Date.now()) {
             if (url === this.currentSkin) {
-                return this.proxy.client.context.send(`${this.meta.prefix} §cУ вас уже установлен данный скин!`);
+                return this.proxy.client.context.send(
+                    `${this.meta.prefix} §cУ вас уже установлен данный скин!`
+                );
             }
 
             this.updateCooldown();

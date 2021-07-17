@@ -1,7 +1,7 @@
-import { Item, NBT, Page } from "../../../../proxy/modules/pagesBuilder/PagesBuilder";
+import { Item, NBT, Page } from "../../../../proxy/modules";
 // import { RangeOf } from "../Utils";
-import { PacketContext } from "../../../../proxy/modules/packetManager/PacketManager";
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { PacketContext } from "../../../../proxy/modules";
+import { ComponentsUnion } from "rawjsonbuilder";
 import { IItem } from "../Context";
 
 export type RawPage = Page | (() => Page) | (() => Promise<Page>);
@@ -32,7 +32,7 @@ export type Buttons = {
 export type DefaultButtonsMap = Map<ButtonAction, Item>;
 
 export interface IPage {
-    windowTitle?: RawJSONBuilder;
+    windowTitle?: ComponentsUnion;
     items?: IItem[];
     triggers?: Map<number, (context: PacketContext) => unknown>;
 }

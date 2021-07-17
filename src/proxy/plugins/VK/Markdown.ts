@@ -1,9 +1,8 @@
 import moment from "moment";
-import { RawJSONBuilder, ClickAction, Color } from "rawjsonbuilder";
+import { ClickAction, Color, text as textComponent, TextComponent, translate, TranslateComponent } from "rawjsonbuilder";
 import { Attachment, AttachmentType, AudioAttachment, AudioMessageAttachment, DocumentAttachment, ExternalAttachment, LinkAttachment, PhotoAttachment, PollAttachment, StickerAttachment, StoryAttachment, VideoAttachment } from "vk-io";
 
 import { LINK_PREFIX } from "./constants";
-import { separator } from "../../modules";
 
 import { normalizeDuration } from "../../../utils";
 
@@ -15,7 +14,7 @@ export class Markdown {
 
     static notificationFields = ["header", "text", "footer"];
 
-    static convertTextToRawJson(text = "", params = {}): RawJSONBuilder {
+    static convertTextToRawJson(text = "", params = {}): TranslateComponent | TextComponent {
         const links: [string, string, boolean][] = [];
 
         text = text.replace(/(?:''')?\[([^[]+?)\|([^]+?)](?:''')?/g, (match, link, text) => {
@@ -30,181 +29,134 @@ export class Markdown {
             .replaceAll(/'''(.+?)'''/g, "§l$1");
 
         if (links.length) {
-            return new RawJSONBuilder()
-                .setTranslate({
-                    translate: text,
-                    with: links.map(([link, text, bold]) => new RawJSONBuilder()
-                        .setText({
-                            text,
-                            bold,
-                            color: "#3f8ae0",
-                            underlined: true,
-                            clickEvent: {
-                                action: "open_url",
-                                value: link
-                            }
-                        })),
-                    ...params
-                });
+            return translate(text, links.map(([link, text, bold]) => (
+                textComponent(text)
+                    .setBold(bold)
+                    .setColor("#3f8ae0")
+                    .setClickEvent({
+                        action: ClickAction.OPEN_URL,
+                        value: link
+                    })
+            )));
         }
 
-        return new RawJSONBuilder()
-            .setText({
-                text,
-                ...params
-            });
+        return new TextComponent({
+            text,
+            ...params
+        });
     }
 
-    static parseAttachments(attachments: (Attachment | ExternalAttachment)[]): RawJSONBuilder {
-        const parsedAttachments = (
-            // eslint-disable-next-line array-callback-return
-            attachments.map((attachment) => {
-                switch (attachment.type) {
-                    case AUDIO_MESSAGE: {
-                        const { url = "", duration = 0 } = attachment as AudioMessageAttachment;
+    static parseAttachments(attachments: (Attachment | ExternalAttachment)[]): TextComponent[] {
+        return attachments.map((attachment) => {
+            switch (attachment.type) {
+                case AUDIO_MESSAGE: {
+                    const { url = "", duration = 0 } = attachment as AudioMessageAttachment;
 
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: `⏵ Голосовое сообщение (§7${normalizeDuration(duration * 1000)}§r)`,
-                                clickEvent: {
-                                    action: "open_url",
-                                    value: url
-                                }
-                            });
-                    }
-                    case AUDIO: {
-                        const { title = "", artist = "", duration = 0 } = attachment as AudioAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: `♫ Аудиозапись: ${title} §7-§r ${artist} (§7${normalizeDuration(duration * 1000)}§r)`,
-                                clickEvent: {
-                                    action: "open_url",
-                                    value: `${LINK_PREFIX}/${String(attachment)}`
-                                }
-                            });
-                    }
-                    case DOCUMENT: {
-                        const { title = "", url = "" } = attachment as DocumentAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: `✂ Документ: ${title}`,
-                                clickEvent: {
-                                    action: "open_url",
-                                    value: url
-                                }
-                            });
-                    }
-                    case GIFT: {
-                        return new RawJSONBuilder()
-                            .setText("☆ Подарок");
-                    }
-                    case GRAFFITI: {
-                        return new RawJSONBuilder()
-                            .setText("✎ Граффити");
-                    }
-                    case LINK: {
-                        const { description, button, title, url } = attachment as LinkAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: `● ${description || button?.title || "Ссылка"}: ${title}`,
-                                clickEvent: {
-                                    action: ClickAction.OPEN_URL,
-                                    value: url
-                                }
-                            });
-                    }
-                    case PHOTO: {
-                        const { largeSizeUrl = "", text } = attachment as PhotoAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: `● Фотография${text ? `: ${text}` : ""}`,
-                                clickEvent: {
-                                    action: ClickAction.OPEN_URL,
-                                    value: largeSizeUrl as string
-                                }
-                            });
-                    }
-                    case POLL: {
-                        const { question } = attachment as PollAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText(`● Опрос: ${question}`);
-                    }
-                    case STICKER: {
-                        const { images } = attachment as StickerAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: "● Стикер",
-                                clickEvent: {
-                                    action: ClickAction.OPEN_URL,
-                                    value: images.pop()?.url as string
-                                }
-                            });
-                    }
-                    case STORY: {
-                        const { photo, video } = attachment as StoryAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: "● История",
-                                clickEvent: {
-                                    action: ClickAction.OPEN_URL,
-                                    value: (photo ? photo.largeSizeUrl : video?.player) as string
-                                }
-                            });
-                    }
-                    case VIDEO: {
-                        const { title, duration = 0, player = "" } = attachment as VideoAttachment;
-
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: `● Видео: ${title} (§7${normalizeDuration(duration * 1000)}§r)`,
-                                clickEvent: {
-                                    action: ClickAction.OPEN_URL,
-                                    value: player
-                                }
-                            });
-                    }
-                    case WALL: {
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: "● Запись",
-                                clickEvent: {
-                                    action: "open_url",
-                                    value: `${LINK_PREFIX}/${String(attachment)}`
-                                }
-                            });
-                    }
-                    case WALL_REPLY: {
-                        return new RawJSONBuilder()
-                            .setText({
-                                text: "● Комментарий",
-                                clickEvent: {
-                                    action: "open_url",
-                                    value: `${LINK_PREFIX}/${String(attachment)}`
-                                }
-                            });
-                    }
+                    return textComponent(`⏵ Голосовое сообщение (§7${normalizeDuration(duration * 1000)}§r)`)
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: url
+                        });
                 }
-            }) as unknown as RawJSONBuilder[]
-        )
-            .map((attachment) => attachment.addExtra(
-                separator
-            ));
+                case AUDIO: {
+                    const { title = "", artist = "", duration = 0 } = attachment as AudioAttachment;
 
-        return new RawJSONBuilder()
-            .setExtra(parsedAttachments);
+                    return textComponent(`♫ Аудиозапись: ${title} §7-§r ${artist} (§7${normalizeDuration(duration * 1000)}§r)`)
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: `${LINK_PREFIX}/${String(attachment)}`
+                        });
+                }
+                case DOCUMENT: {
+                    const { title = "", url = "" } = attachment as DocumentAttachment;
+
+                    return textComponent(`✂ Документ: ${title}`)
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: url
+                        });
+                }
+                case GIFT: {
+                    return textComponent("☆ Подарок");
+                }
+                case GRAFFITI: {
+                    return textComponent("✎ Граффити");
+                }
+                case LINK: {
+                    const { description, button, title, url } = attachment as LinkAttachment;
+
+                    return textComponent(`● ${description || button?.title || "Ссылка"}: ${title}`)
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: url
+                        });
+                }
+                case PHOTO: {
+                    const { largeSizeUrl = "", text } = attachment as PhotoAttachment;
+
+                    return textComponent(`● Фотография${text ? `: ${text}` : ""}`)
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: largeSizeUrl as string
+                        });
+                }
+                case POLL: {
+                    const { question } = attachment as PollAttachment;
+
+                    return textComponent(`● Опрос: ${question}`);
+                }
+                case STICKER: {
+                    const { images } = attachment as StickerAttachment;
+
+                    return textComponent("● Стикер")
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: images.pop()?.url as string
+                        });
+                }
+                case STORY: {
+                    const { photo, video } = attachment as StoryAttachment;
+
+                    return textComponent("● История")
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: (photo ? photo.largeSizeUrl : video?.player) as string
+                        });
+                }
+                case VIDEO: {
+                    const { title, duration = 0, player = "", isBroadcast } = attachment as VideoAttachment;
+
+                    return textComponent(`● ${isBroadcast ? "Трансляция" : "Видео"}: ${title} (§7${normalizeDuration(duration * 1000)}§r)`)
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: player
+                        });
+                }
+                case WALL: {
+                    return textComponent("● Запись")
+                        .setClickEvent({
+                            action: ClickAction.OPEN_URL,
+                            value: `${LINK_PREFIX}/${String(attachment)}`
+                        });
+                }
+                case WALL_REPLY: {
+                    return textComponent("● Комментарий")
+                        .setClickEvent({
+                            action: "open_url",
+                            value: `${LINK_PREFIX}/${String(attachment)}`
+                        });
+                }
+                default:
+                    return textComponent("● Неподдерживаемое вложение");
+            }
+        })
+            .map((attachment) => attachment.addNewLine());
     }
 
-    static parseNotification(notification: NotificationsNotificationItem): RawJSONBuilder {
+    static parseNotification(notification: NotificationsNotificationItem): TextComponent {
         Markdown.fillNotification(notification);
 
-        const builder = new RawJSONBuilder();
+        const builder = textComponent("");
 
         Markdown.notificationFields.forEach((key) => {
             const field = notification[key];
@@ -221,11 +173,9 @@ export class Markdown {
             };
 
             if (field) {
-                builder.addExtra([
-                    Markdown.convertTextToRawJson(field, params),
-                    separator,
-                    separator
-                ]);
+                builder.addExtra(Markdown.convertTextToRawJson(field, params))
+                    .addNewLine()
+                    .addNewLine();
             }
         });
 
