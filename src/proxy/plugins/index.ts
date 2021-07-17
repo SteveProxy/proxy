@@ -1,10 +1,10 @@
-import { Core } from "./Core/Core";
-import { Spotify } from "./Spotify/Spotify";
-import { VK } from "./VK/VK";
-import { Skin } from "./Skin/Skin";
-import { Discord } from "./Discord/Discord";
-import { Names } from "./Names/Names";
-import { Chat } from "./Chat/Chat";
+import { Core } from "./Core";
+import { Spotify } from "./Spotify";
+import { VK } from "./VK";
+import { Skin } from "./Skin";
+import { Discord } from "./Discord";
+import { Names } from "./Names";
+import { Chat } from "./Chat";
 
 export const plugins = <const>[
     Core,
