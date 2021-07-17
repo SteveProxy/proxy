@@ -34,7 +34,7 @@
     "@types/common-tags": "^1.8.1",
     "@types/discord-rpc": "^3.0.6",
     "@types/lowdb": "^1.0.11",
-    "@types/node": "^16.3.1",
+    "@types/node": "^16.3.3",
     "@types/node-fetch": "^2.5.11",
     "@types/spotify-web-api-node": "^5.0.3",
     "@types/tough-cookie": "^4.0.1",
