@@ -3,8 +3,7 @@ import { IConfig } from '../../Config';
 type ConfigPluginUnion =
     'vk'
     | 'discord'
-    | 'spotify'
-    | 'record';
+    | 'spotify';
 
 export type PluginConfigFactory<N extends ConfigPluginUnion> = IConfig['plugins'][N];
 
@@ -15,4 +14,3 @@ export * from './VK';
 export * from './Discord';
 export * from './Skin';
 export * from './Chat';
-export * from './Record';
