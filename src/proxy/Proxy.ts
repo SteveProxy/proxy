@@ -136,6 +136,10 @@ export class Proxy {
         this.connect(this.fallbackServer);
     }
 
+    get isLobby(): boolean {
+        return this.currentServer === this.fallbackServer;
+    }
+
     private async createBridge({ host, port }: IParsedIP): Promise<IClient> {
         const bridge = createClient({
             ...config.proxy,

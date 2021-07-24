@@ -6,10 +6,12 @@ import { Proxy } from '../../Proxy';
 import { PluginConfigFactory } from '../../../interfaces';
 import { version as packageVersion } from '../../../utils';
 
-// todo
+// todo Party support
 export class Discord extends Plugin<PluginConfigFactory<'discord'>> {
 
-    private client: Client = new Client({ transport: 'ipc' });
+    private client: Client = new Client({
+        transport: 'ipc'
+    });
     private activity: Presence;
     private reconnectAttempts = 3;
 
@@ -57,7 +59,7 @@ export class Discord extends Plugin<PluginConfigFactory<'discord'>> {
     private ready() {
         this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.client.user.username}.`);
 
-        const isLobby = this.proxy.currentServer === this.proxy.fallbackServer;
+        const { isLobby } = this.proxy;
 
         const state = isLobby ?
             'В лобби'
