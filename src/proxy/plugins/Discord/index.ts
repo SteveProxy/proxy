@@ -3,8 +3,9 @@ import { Client, Presence } from 'discord-rpc';
 import { Plugin } from '../Plugin';
 import { Proxy } from '../../Proxy';
 
-import { PluginConfigFactory } from '../../../interfaces';
 import { version as packageVersion } from '../../../utils';
+
+import { PluginConfigFactory } from '../../../interfaces';
 
 // todo Party support
 export class Discord extends Plugin<PluginConfigFactory<'discord'>> {

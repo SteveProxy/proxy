@@ -11,16 +11,13 @@ export class PacketManager extends EventEmitter {
 
     protected proxy: Proxy;
 
-    private currentPacketTime: number;
-    private packetDelta: number;
+    private currentPacketTime = 0;
+    private packetDelta = 0;
 
     constructor(proxy: Proxy) {
         super();
 
         this.proxy = proxy;
-
-        this.currentPacketTime = 0;
-        this.packetDelta = 0;
     }
 
     packetSwindler({ packet, meta, isFromServer, send }: IPacketSwindlerOptions): void {
@@ -29,7 +26,7 @@ export class PacketManager extends EventEmitter {
 
             this.currentPacketTime = new Date()
                 .getTime();
-            this.packetDelta = !previousPacketTime ?
+            this.packetDelta = previousPacketTime ?
                 this.currentPacketTime - previousPacketTime
                 :
                 0;
