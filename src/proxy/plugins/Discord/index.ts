@@ -51,7 +51,7 @@ export class Discord extends Plugin<PluginConfigFactory<'discord'>> {
             client.on(event, this[event].bind(this));
         });
 
-        client.subscribe('ACTIVITY_JOIN_REQUEST', (data) => console.log(data));
+        /*client.subscribe('ACTIVITY_JOIN_REQUEST', (data) => console.log(data));*/
 
         this.login();
     }
