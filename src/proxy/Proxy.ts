@@ -173,7 +173,9 @@ export class Proxy {
                 disconnected = true;
 
                 const reason = data?.reason ?
-                    parser.parseJSON(data?.reason)
+                    parser.parseJSON(
+                        JSON.parse(data.reason)
+                    )
                     :
                     data instanceof Error ?
                         data.toString()
