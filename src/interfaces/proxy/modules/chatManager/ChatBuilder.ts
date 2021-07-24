@@ -1,11 +1,11 @@
-import { ComponentsUnion } from "rawjsonbuilder";
+import { ComponentsUnion } from 'rawjsonbuilder';
 
 export interface ITrigger {
     name: string;
     callback: () => unknown;
 }
 
-export type TriggersMap = Map<ITrigger["name"], ITrigger["callback"]>;
+export type TriggersMap = Map<ITrigger['name'], ITrigger['callback']>;
 
 export type StringPage = string;
 export type RawJSONPage = ComponentsUnion;
@@ -19,8 +19,8 @@ export interface IResetListenTimeoutOptions {
 
 export type Button = StringButton | ObjectButton;
 
-export type DefaultButtonLabel = "⏪" | "◀" | "⏹" | "▶" | "⏩";
-export type StringButton = "first" | "back" | "stop" | "next" | "last";
+export type DefaultButtonLabel = '⏪' | '◀' | '⏹' | '▶' | '⏩';
+export type StringButton = 'first' | 'back' | 'stop' | 'next' | 'last';
 export type ObjectButton = {
     [key in StringButton]: string
 };
@@ -31,4 +31,4 @@ interface IAutoGeneratePagesOptions {
     chunkSize?: number;
 }
 
-export type AutoGeneratePagesOptions = IAutoGeneratePagesOptions["items"] | IAutoGeneratePagesOptions;
+export type AutoGeneratePagesOptions = IAutoGeneratePagesOptions['items'] | IAutoGeneratePagesOptions;

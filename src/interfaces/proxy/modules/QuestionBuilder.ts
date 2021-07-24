@@ -1,4 +1,4 @@
-import { ComponentsUnion } from "rawjsonbuilder";
+import { ComponentsUnion } from 'rawjsonbuilder';
 
 export type CancelHandler = ((...params: any) => unknown) | null;
 

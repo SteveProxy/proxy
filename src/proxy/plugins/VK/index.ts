@@ -1,28 +1,28 @@
-import { APIErrorCode, CallbackService, CallbackServiceRetry, getRandomId, ICallbackServiceCaptchaPayload, ICallbackServiceTwoFactorPayload } from "vk-io";
-import { AuthErrorCode, DirectAuthorization, officialAppCredentials } from "@vk-io/authorization";
-import { ClickAction, HoverAction, text, translate } from "rawjsonbuilder";
+import { APIErrorCode, CallbackService, CallbackServiceRetry, getRandomId, ICallbackServiceCaptchaPayload, ICallbackServiceTwoFactorPayload } from 'vk-io';
+import { AuthErrorCode, DirectAuthorization, officialAppCredentials } from '@vk-io/authorization';
+import { ClickAction, HoverAction, text, translate } from 'rawjsonbuilder';
 
-import { middlewares } from "./middlewares";
-import { API_VERSION } from "./constants";
+import { middlewares } from './middlewares';
+import { API_VERSION } from './constants';
 
-import { Plugin } from "../Plugin";
-import { Proxy } from "../../Proxy";
-import { PluginManager } from "../../modules";
-import { VK as _VK } from "./API";
-import { Markdown } from "./Markdown";
+import { Plugin } from '../Plugin';
+import { Proxy } from '../../Proxy';
+import { PluginManager } from '../../modules';
+import { VK as _VK } from './API';
+import { Markdown } from './Markdown';
 
-import { IVK, PluginConfigFactory } from "../../../interfaces";
-import { NotificationsNotificationItem } from "vk-io/lib/api/schemas/objects";
+import { IVK, PluginConfigFactory } from '../../../interfaces';
+import { NotificationsNotificationItem } from 'vk-io/lib/api/schemas/objects';
 
 const { AUTHORIZATION_FAILED, FAILED_PASSED_CAPTCHA, FAILED_PASSED_TWO_FACTOR, TOO_MUCH_TRIES, WRONG_OTP, USERNAME_OR_PASSWORD_IS_INCORRECT, INVALID_PHONE_NUMBER, PAGE_BLOCKED, OTP_FORMAT_IS_INCORRECT } = AuthErrorCode;
 const { AUTH, MESSAGES_USER_BLOCKED, MESSAGES_DENY_SEND, MESSAGES_PRIVACY, MESSAGES_CHAT_USER_NO_ACCESS, PARAM } = APIErrorCode;
 
-export class VK extends Plugin<PluginConfigFactory<"vk">> {
+export class VK extends Plugin<PluginConfigFactory<'vk'>> {
 
     private state: IVK = this.proxy.config.plugins.vk;
     // @ts-ignore
     vk: _VK;
-    private username = "";
+    private username = '';
 
     private authStarted = false;
     private callbackService = new CallbackService();
@@ -32,38 +32,38 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
 
     constructor(proxy: Proxy) {
         super(proxy, {
-            name: "vk",
-            description: "VK Интеграция",
-            prefix: "§9§lVK"
+            name: 'vk',
+            description: 'VK Интеграция',
+            prefix: '§9§lVK'
         }, {
-            token: "",
+            token: '',
             user: 0,
             scope: [
-                "friends",
-                "offline",
-                "notifications",
-                "messages"
+                'friends',
+                'offline',
+                'notifications',
+                'messages'
             ]
         });
 
         this.meta.commands = [
             {
-                name: "auth",
-                description: "Авторизация в плагине",
+                name: 'auth',
+                description: 'Авторизация в плагине',
                 handler: this.auth,
                 argsRequired: false,
                 args: [
-                    "Логин",
-                    "Пароль"
+                    'Логин',
+                    'Пароль'
                 ]
             },
             {
-                name: "send",
-                description: "Отправка сообщения",
+                name: 'send',
+                description: 'Отправка сообщения',
                 handler: this.send,
                 args: [
-                    "Получатель",
-                    "Сообщение"
+                    'Получатель',
+                    'Сообщение'
                 ],
                 hidden: true,
                 sliceArgs: false
@@ -87,7 +87,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
                 text(this.meta.prefix)
                     .addSpace()
                     .addExtra(
-                        text("Авторизоваться")
+                        text('Авторизоваться')
                             .setUnderlined()
                             .setBold()
                             .setClickEvent({
@@ -96,7 +96,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
                             })
                             .setHoverEvent({
                                 action: HoverAction.SHOW_TEXT,
-                                value: text("Нажмите, чтобы начать авторизацию.", "gray")
+                                value: text('Нажмите, чтобы начать авторизацию.', 'gray')
                             })
                     )
             );
@@ -178,7 +178,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
         }
     }
 
-    private async auth(login = "", password = ""): Promise<void> {
+    private async auth(login = '', password = ''): Promise<void> {
         if (this.authStarted) {
             return this.proxy.client.context.send(
                 `${this.meta.prefix} §cДождитесь окончания предыдущей попытки авторизации!`
@@ -189,7 +189,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
             const [login, password] = await this.proxy.client.context.questionBuilder()
                 .setQuestions([
                     [`${this.meta.prefix} Введите логин.`, (login: string) => {
-                        if (login.includes(" ")) {
+                        if (login.includes(' ')) {
                             return this.proxy.client.context.send(
                                 `${this.meta.prefix} §cЛогин не может содержать пробелов!`
                             );
@@ -204,7 +204,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
                         return true;
                     }],
                     [`${this.meta.prefix} Введите пароль.`, (password: string) => {
-                        if (password.includes(" ")) {
+                        if (password.includes(' ')) {
                             return this.proxy.client.context.send(
                                 `${this.meta.prefix} §cПароль не может содержать пробелов!`
                             );
@@ -297,15 +297,15 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
         this.proxy.client.context.questionBuilder()
             .setQuestions(
                 translate(`${this.meta.prefix} Введите код с %s.`, [
-                    text("изображения")
+                    text('изображения')
                         .setUnderlined()
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: src
                         })
                         .setHoverEvent({
-                            action: "show_text",
-                            value: text("Нажмите, чтобы открыть изображение.", "gray")
+                            action: 'show_text',
+                            value: text('Нажмите, чтобы открыть изображение.', 'gray')
                         })
                 ])
             )
@@ -319,10 +319,10 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
             .onCancel(this.onCancel(retry));
 
         switch (type) {
-            case "app":
+            case 'app':
                 builder.setQuestions(`${this.meta.prefix} Введите код из личного сообщения от Администрации или из приложения для генерации кодов, чтобы подтвердить, что Вы владелец страницы.`);
                 break;
-            case "sms":
+            case 'sms':
                 builder.setQuestions(`${this.meta.prefix} Чтобы подтвердить, что Вы являетесь владельцем страницы, введите последние 4 цифры номера, с которого поступил звонок-сброс на Ваш телефон ${phoneMask}.`);
                 break;
         }
@@ -334,7 +334,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
     private onCancel(retry: CallbackServiceRetry): VoidFunction {
         return () => {
             retry(
-                new Error("Authorization canceled by user.")
+                new Error('Authorization canceled by user.')
             );
         };
     }
@@ -376,7 +376,7 @@ export class VK extends Plugin<PluginConfigFactory<"vk">> {
 
     private clearCredentials() {
         this.updateConfig({
-            token: "",
+            token: '',
             user: 0
         });
     }

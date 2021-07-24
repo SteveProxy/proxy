@@ -1,4 +1,4 @@
-export * from "./proxy";
+export * from './proxy';
 
-export * from "./Config";
-export * from "./Utils";
+export * from './Config';
+export * from './Utils';

@@ -1,9 +1,9 @@
-import { db } from "../../DB";
+import { db } from '../../DB';
 
-import { IConfig, IPlugin, IPluginMeta } from "../../interfaces";
-import { Proxy } from "../Proxy";
+import { IConfig, IPlugin, IPluginMeta } from '../../interfaces';
+import { Proxy } from '../Proxy';
 
-export class Plugin<C extends IConfig["plugins"][keyof IConfig["plugins"]] | undefined = undefined> {
+export class Plugin<C extends IConfig['plugins'][keyof IConfig['plugins']] | undefined = undefined> {
 
     meta: IPlugin;
     proxy: Proxy;

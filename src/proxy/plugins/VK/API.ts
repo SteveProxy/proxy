@@ -1,7 +1,7 @@
-import { VK as _VK, MessageContext } from "vk-io";
+import { VK as _VK, MessageContext } from 'vk-io';
 
-import { IProfile, MultipleResource } from "../../../interfaces";
-import { GroupsGroupFull, MessagesConversation } from "vk-io/lib/api/schemas/objects";
+import { IProfile, MultipleResource } from '../../../interfaces';
+import { GroupsGroupFull, MessagesConversation } from 'vk-io/lib/api/schemas/objects';
 
 export class VK extends _VK {
 
@@ -9,7 +9,7 @@ export class VK extends _VK {
     private conservationsCache: Map<number, MessagesConversation> = new Map();
 
     async getByMultipleId(context: MessageContext | number): Promise<MultipleResource> {
-        if (typeof context === "number") {
+        if (typeof context === 'number') {
             context = {
                 senderId: context,
                 peerId: context,

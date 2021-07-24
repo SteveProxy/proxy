@@ -1,18 +1,18 @@
-import { Server } from "minecraft-protocol";
+import { Server } from 'minecraft-protocol';
 
-import { Event } from "./Event";
-import { Proxy } from "../proxy/Proxy";
+import { Event } from './Event';
+import { Proxy } from '../proxy/Proxy';
 
-import { IClient, IConfig } from "../interfaces";
+import { IClient, IConfig } from '../interfaces';
 
-import config from "../../config.json";
+import config from '../../config.json';
 
 const { bridge: { whitelist } }: IConfig = config;
 
-export class Login extends Event<"login"> {
+export class Login extends Event<'login'> {
 
     constructor() {
-        super("login");
+        super('login');
     }
 
     handler(client: IClient, server: Server): void {
@@ -22,10 +22,10 @@ export class Login extends Event<"login"> {
 
         if (whitelist.length && !(
             whitelist.includes(uuid) ||
-            whitelist.includes(uuid.replace("-", "")) ||
+            whitelist.includes(uuid.replace('-', '')) ||
             whitelist.includes(username))
         ) {
-            return proxy.client.context.end("Вас нет в белом списке сервера!"); // kick_disconnect doesnt work on 1.16.5
+            return proxy.client.context.end('Вас нет в белом списке сервера!'); // kick_disconnect doesnt work on 1.16.5
         }
         
         this.registerCustomChannels(client);
@@ -35,7 +35,7 @@ export class Login extends Event<"login"> {
 
     registerCustomChannels(client: IClient): void {
         const CUSTOM_CHANNELS: Map<string, any> = new Map([
-            [client.protocolVersion >= 385 ? "brand" : "MC|Brand", ["string", []]] // 385 = 1.13-pre3
+            [client.protocolVersion >= 385 ? 'brand' : 'MC|Brand', ['string', []]] // 385 = 1.13-pre3
         ]);
         
         CUSTOM_CHANNELS.forEach((typeDefinition, channel) => client

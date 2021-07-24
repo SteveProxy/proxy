@@ -1,12 +1,12 @@
-import { RawJSONBuilder } from "rawjsonbuilder";
+import { ComponentsUnion } from 'rawjsonbuilder';
 
-import { Item } from "../../../../../proxy/modules/pagesBuilder/components/Item";
+import { Item } from '../../../../../proxy/modules';
 
 export interface IPlayerHeadOptions {
-    name?: RawJSONBuilder;
-    lore?: RawJSONBuilder[];
-    onClick?: Item["onClick"];
-    position?: Item["position"];
+    name?: ComponentsUnion;
+    lore?: ComponentsUnion[];
+    onClick?: Item['onClick'];
+    position?: Item['position'];
     value?: string;
     url?: string;
 }

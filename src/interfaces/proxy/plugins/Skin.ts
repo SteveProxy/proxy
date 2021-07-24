@@ -11,6 +11,6 @@ export interface ISkin {
 }
 
 export interface IChangeSkinOptions {
-    url: ISkin["url"];
-    slim: ISkin["slim"];
+    url: ISkin['url'];
+    slim: ISkin['slim'];
 }

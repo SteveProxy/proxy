@@ -1,26 +1,26 @@
-import axios, { AxiosInstance } from "axios";
-import SpotifyAPI from "spotify-web-api-node";
-import { ClickAction, HoverAction, text } from "rawjsonbuilder";
+import axios, { AxiosInstance } from 'axios';
+import SpotifyAPI from 'spotify-web-api-node';
+import { ClickAction, HoverAction, text } from 'rawjsonbuilder';
 
-import { Proxy } from "../../Proxy";
-import { Plugin } from "../Plugin";
-import { Item, NBT, Page, Slider } from "../../modules";
+import { Proxy } from '../../Proxy';
+import { Plugin } from '../Plugin';
+import { Item, NBT, Page, Slider } from '../../modules';
 
-import { generateID, minecraftData, normalizeDuration } from "../../../utils";
+import { generateID, minecraftData, normalizeDuration } from '../../../utils';
 
-import { ISpotify, PluginConfigFactory } from "../../../interfaces";
+import { ISpotify, PluginConfigFactory } from '../../../interfaces';
 
-const NEXT_SONG_ITEM = minecraftData.findItemOrBlockByName("green_stained_glass").id;
-const PREVIOUS_SONG_ITEM = minecraftData.findItemOrBlockByName("red_stained_glass").id;
-const SONG_ITEM = minecraftData.findItemOrBlockByName("name_tag").id;
+const NEXT_SONG_ITEM = minecraftData.findItemOrBlockByName('green_stained_glass').id;
+const PREVIOUS_SONG_ITEM = minecraftData.findItemOrBlockByName('red_stained_glass').id;
+const SONG_ITEM = minecraftData.findItemOrBlockByName('name_tag').id;
 
-export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
+export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
 
     private spotify: SpotifyAPI;
     private client: AxiosInstance;
     private state: ISpotify = this.proxy.config.plugins.spotify;
 
-    private username = "";
+    private username = '';
     private currentPlaying?: any;
     private getCurrentPlayingInterval?: NodeJS.Timeout;
     private actionbarUpdateInterval?: NodeJS.Timeout;
@@ -29,41 +29,41 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
 
     constructor(proxy: Proxy) {
         super(proxy, {
-            name: "spotify",
-            description: "Spotify интеграция",
-            prefix: "§2§lSpotify"
+            name: 'spotify',
+            description: 'Spotify интеграция',
+            prefix: '§2§lSpotify'
         }, {
-            code: "",
-            accessToken: "",
+            code: '',
+            accessToken: '',
             expiresIn: 0,
-            refreshToken: "",
+            refreshToken: '',
             scope: [
-                "user-modify-playback-state",
-                "user-read-currently-playing",
-                "user-read-playback-state",
-                "user-read-private"
+                'user-modify-playback-state',
+                'user-read-currently-playing',
+                'user-read-playback-state',
+                'user-read-private'
             ],
-            market: "RU",
-            clientId: "43801ea120f44b81854f55dfc4e4c711",
-            redirectUrl: "https://steveproxy.herokuapp.com/spotify/",
+            market: 'RU',
+            clientId: '43801ea120f44b81854f55dfc4e4c711',
+            redirectUrl: 'https://steveproxy.herokuapp.com/spotify/',
             template: {
-                explicit: "[§cE§r]",
-                output: "%e %n - §2%a§r (§7%p§r / §7%d§r)"
+                explicit: '[§cE§r]',
+                output: '%e %n - §2%a§r (§7%p§r / §7%d§r)'
             }
         });
 
         this.meta.commands = [
             {
-                name: "",
-                description: "Графический интерфейс",
+                name: '',
+                description: 'Графический интерфейс',
                 handler: this.gui
             },
             {
-                name: "auth",
-                description: "Авторизация в плагине",
+                name: 'auth',
+                description: 'Авторизация в плагине',
                 handler: this.auth,
                 args: [
-                    "Код авторизации"
+                    'Код авторизации'
                 ],
                 argsRequired: false
             }
@@ -125,7 +125,7 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
         }
 
         this.proxy.client.context.pagesBuilder()
-            .setInventoryType("generic_9x6")
+            .setInventoryType('generic_9x6')
             .addPages(() => {
                 const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
@@ -138,16 +138,16 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                     new Item({
                         id: PREVIOUS_SONG_ITEM,
                         position: 2,
-                        nbt: new NBT("compound", {
-                            display: new NBT("compound", {
-                                Name: new NBT("string", (
-                                    text("§cНазад")
+                        nbt: new NBT('compound', {
+                            display: new NBT('compound', {
+                                Name: new NBT('string', (
+                                    text('§cНазад')
                                         .setItalic(false)
                                 ))
                             })
                         }),
                         onClick: () => {
-                            this.skipTo("previous");
+                            this.skipTo('previous');
                         }
                     })
                 );
@@ -156,15 +156,15 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                     new Item({
                         id: SONG_ITEM,
                         position: 4,
-                        nbt: new NBT("compound", {
-                            display: new NBT("compound", {
-                                Name: new NBT("string", (
-                                    text(`${is_playing ? "⏵" : "⏸"} ${explicit ? "[§cE§r] " : ""}${name}`)
+                        nbt: new NBT('compound', {
+                            display: new NBT('compound', {
+                                Name: new NBT('string', (
+                                    text(`${is_playing ? '⏵' : '⏸'} ${explicit ? '[§cE§r] ' : ''}${name}`)
                                         .setItalic(false)
                                 )),
-                                Lore: new NBT("list", new NBT("string", [
-                                    text(`§2${artists.join("§f, §2")}`),
-                                    text(""),
+                                Lore: new NBT('list', new NBT('string', [
+                                    text(`§2${artists.join('§f, §2')}`),
+                                    text(''),
                                     text(`§7${normalizeDuration(progress_ms)} §f/ §7${normalizeDuration(duration_ms)}`)
                                 ]))
                             })
@@ -177,10 +177,10 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                     new Item({
                         id: NEXT_SONG_ITEM,
                         position: 6,
-                        nbt: new NBT("compound", {
-                            display: new NBT("compound", {
-                                Name: new NBT("string", (
-                                    text("§2Далее")
+                        nbt: new NBT('compound', {
+                            display: new NBT('compound', {
+                                Name: new NBT('string', (
+                                    text('§2Далее')
                                         .setItalic(false)
                                 ))
                             })
@@ -200,13 +200,13 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                         max: 100,
                         onClick: (value) => this.setVolume(value),
                         nbt: (value) => (
-                            new NBT("compound", {
-                                display: new NBT("compound", {
-                                    Name: new NBT("string", (
+                            new NBT('compound', {
+                                display: new NBT('compound', {
+                                    Name: new NBT('string', (
                                         text(`Текущая громкость §2${volume_percent}§f%`)
                                             .setItalic(false)
                                     )),
-                                    Lore: new NBT("list", new NBT("string", [
+                                    Lore: new NBT('list', new NBT('string', [
                                         text(`§7Нажмите, для того чтобы установить громкость на §2${value}§f%`)
                                     ]))
                                 })
@@ -224,13 +224,13 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                         max: duration_ms,
                         onClick: (value) => this.seekTo(value),
                         nbt: (value) => (
-                            new NBT("compound", {
-                                display: new NBT("compound", {
-                                    Name: new NBT("string", (
+                            new NBT('compound', {
+                                display: new NBT('compound', {
+                                    Name: new NBT('string', (
                                         text(`Текущая позиция §2${normalizeDuration(progress_ms)}`)
                                             .setItalic(false)
                                     )),
-                                    Lore: new NBT("list", new NBT("string", [
+                                    Lore: new NBT('list', new NBT('string', [
                                         text(`§7Нажмите, для того чтобы установить позицию на §2${normalizeDuration(value)}`)
                                     ]))
                                 })
@@ -254,11 +254,11 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
             if (this.currentPlaying.is_playing && progress_ms < duration_ms + 1000) {
                 this.currentPlaying.progress_ms += 1000;
 
-                output = output.replace("%e", explicit ? templateExplicit : "")
-                    .replace("%n", name)
-                    .replace("%a", artists.join(", "))
-                    .replace("%p", normalizeDuration(progress_ms))
-                    .replace("%d", normalizeDuration(duration_ms));
+                output = output.replace('%e', explicit ? templateExplicit : '')
+                    .replace('%n', name)
+                    .replace('%a', artists.join(', '))
+                    .replace('%p', normalizeDuration(progress_ms))
+                    .replace('%d', normalizeDuration(duration_ms));
 
                 this.proxy.client.context.sendTitle({
                     actionbar: output
@@ -273,7 +273,7 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
         })
             .then(({ body: data }) => {
                 if (data.item) {
-                    if ("artists" in data.item) {
+                    if ('artists' in data.item) {
                         data.item.artists = data.item.artists.map(({ name }: any) => name);
                     }
 
@@ -284,7 +284,7 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                 }
             })
             .catch(({ statusCode, syscall, code }) => {
-                if (syscall === "connect" || code === "ENOTFOUND") {
+                if (syscall === 'connect' || code === 'ENOTFOUND') {
                     return;
                 }
 
@@ -305,7 +305,7 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
         this.proxy.client.context.send(`${this.meta.prefix} Загрузка данных пользователя...`);
 
         return this.spotify.getMe()
-            .then(({ body: { display_name = "" } }) => {
+            .then(({ body: { display_name = '' } }) => {
                 this.username = display_name;
             })
             .catch(({ body: { error: { status, message } } }) => {
@@ -322,16 +322,16 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
             });
     }
 
-    private skipTo(switchType: "next" | "previous" = "next"): void {
+    private skipTo(switchType: 'next' | 'previous' = 'next'): void {
         if (this.cooldown < Date.now()) {
             this.updateCooldown();
 
-            if (switchType === "previous" && (this.currentPlaying.progress_ms > 10 * 1000 || this.currentPlaying.actions.disallows.skipping_prev)) {
+            if (switchType === 'previous' && (this.currentPlaying.progress_ms > 10 * 1000 || this.currentPlaying.actions.disallows.skipping_prev)) {
                 return this.seekTo(0);
             }
 
             (
-                switchType === "next" ?
+                switchType === 'next' ?
                     this.spotify.skipToNext()
                     :
                     this.spotify.skipToPrevious()
@@ -411,7 +411,7 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
     private refreshToken(): void {
         this.stop();
 
-        this.client.post("", `token=${this.state.refreshToken}`)
+        this.client.post('', `token=${this.state.refreshToken}`)
             .then(({ data }) => data)
             .then(({ access_token: accessToken, expires_in: expiresIn }: any) => {
                 this.spotify.setAccessToken(accessToken);
@@ -438,13 +438,13 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
             });
     }
 
-    private async auth(state = ""): Promise<void> {
+    private async auth(state = ''): Promise<void> {
         if (!state) {
             return this.proxy.client.context.send(
                 text(this.meta.prefix)
                     .addSpace()
                     .addExtra(
-                        text("Авторизоваться")
+                        text('Авторизоваться')
                             .setUnderlined()
                             .setBold()
                             .setClickEvent({
@@ -453,7 +453,7 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
                             })
                             .setHoverEvent({
                                 action: HoverAction.SHOW_TEXT,
-                                value: text("§7Нажмите, чтобы открыть страницу с авторизацией.")
+                                value: text('§7Нажмите, чтобы открыть страницу с авторизацией.')
                             })
                     )
             );
@@ -469,7 +469,7 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
 
         this.proxy.client.context.send(`${this.meta.prefix} Авторизация...`);
 
-        await this.client.post("", `state=${state}`)
+        await this.client.post('', `state=${state}`)
             .then(({ data }) => data)
             .then(({ code, access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, scope: scopes }) => {
                 if (this.state.code === code) {
@@ -514,10 +514,10 @@ export class Spotify extends Plugin<PluginConfigFactory<"spotify">> {
 
     private clearCredentials(): void {
         this.updateConfig({
-            accessToken: "",
-            refreshToken: "",
+            accessToken: '',
+            refreshToken: '',
             expiresIn: 0,
-            code: ""
+            code: ''
         });
     }
 

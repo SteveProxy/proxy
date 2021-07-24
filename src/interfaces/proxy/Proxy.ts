@@ -1,7 +1,7 @@
-import { Server, PacketMeta } from "minecraft-protocol";
+import { Server, PacketMeta } from 'minecraft-protocol';
 
-import { IClient } from "./Client";
-import { Proxy } from "../../proxy/Proxy";
+import { IClient } from './Client';
+import { Proxy } from '../../proxy/Proxy';
 
 export interface IProxyOptions {
     server: Server;

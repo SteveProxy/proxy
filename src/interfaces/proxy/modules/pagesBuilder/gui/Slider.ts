@@ -1,4 +1,4 @@
-import { NBT } from "../../../../../proxy/modules/pagesBuilder/components/NBT";
+import { NBT } from '../../../../../proxy/modules';
 
 export interface ISliderOptions {
     cellsCount: number;

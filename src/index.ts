@@ -1,17 +1,17 @@
-import { createServer } from "minecraft-protocol";
+import { createServer } from 'minecraft-protocol';
 
-import { events } from "./events";
-import { config } from "./config";
-import { version, escapeFormatting, formatBytes } from "./utils";
+import { events } from './events';
+import { config } from './config';
+import { version, escapeFormatting, formatBytes } from './utils';
 
-import { IClient } from "./interfaces";
+import { IClient } from './interfaces';
 
-import "./lobby";
+import './lobby';
 
 const { proxy } = config;
 const { description } = proxy;
 
-console.log("[Steve] Starting...");
+console.log('[Steve] Starting...');
 
 const server = createServer({
     ...proxy,
@@ -20,9 +20,9 @@ const server = createServer({
             const { heapUsed, heapTotal } = process.memoryUsage();
 
             const varibles = new Map([
-                ["version", version],
-                ["heapUsed", formatBytes(heapUsed)],
-                ["heapTotal", formatBytes(heapTotal)]
+                ['version', version],
+                ['heapUsed', formatBytes(heapUsed)],
+                ['heapTotal', formatBytes(heapTotal)]
             ]);
 
             let playerList = description.map((row) => {
@@ -44,15 +44,15 @@ const server = createServer({
             playerList = playerList.map((row) => {
                 const margin = maxRowLength - escapeFormatting(row).length;
 
-                const spacing = (" ").repeat(margin);
+                const spacing = (' ').repeat(margin);
 
-                return row.replace("{spacing}", spacing);
+                return row.replace('{spacing}', spacing);
             });
 
             response.players.sample = playerList
                 .map((row) => ({
                     name: row,
-                    id: "00000000-0000-0000-0000-000000000000"
+                    id: '00000000-0000-0000-0000-000000000000'
                 }));
         }
 

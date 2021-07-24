@@ -1,16 +1,16 @@
-import moment from "moment";
-import { text } from "rawjsonbuilder";
+import moment from 'moment';
+import { text } from 'rawjsonbuilder';
 
-import { Proxy } from "../Proxy";
+import { Proxy } from '../Proxy';
 
-import { PacketContext } from "./packetManager/PacketManager";
-import { ChatManager } from "./chatManager/ChatManager";
-import { QuestionBuilder } from "./QuestionBuilder";
+import { PacketContext } from './packetManager/PacketManager';
+import { ChatManager } from './chatManager/ChatManager';
+import { QuestionBuilder } from './QuestionBuilder';
 
-import { plugins } from "../plugins";
-import { config } from "../../config";
+import { plugins } from '../plugins';
+import { config } from '../../config';
 
-import { CommandsMap, CooldownsMap, PluginsMap, ValuesOf, ICooldownOptions } from "../../interfaces";
+import { CommandsMap, CooldownsMap, PluginsMap, ValuesOf, ICooldownOptions } from '../../interfaces';
 
 const { bridge: { prefix } } = config;
 
@@ -64,7 +64,7 @@ export class PluginManager {
     }
 
     private listenChat(): void {
-        this.proxy.packetManager.on("chat", (context: PacketContext) => {
+        this.proxy.packetManager.on('chat', (context: PacketContext) => {
             if (!context.isFromServer) {
                 this.chatManager.middleware(context);
                 QuestionBuilder.middleware(context);
@@ -74,18 +74,18 @@ export class PluginManager {
                     const argsLength = args.length;
 
                     if (argsLength) {
-                        if (context.packet.message.startsWith(`${commandPrefix}${!argsRequired ? "" : " "}`)) {
+                        if (context.packet.message.startsWith(`${commandPrefix}${!argsRequired ? '' : ' '}`)) {
                             context.setCanceled();
 
-                            const trimmedMessage = context.packet.message.replace(commandPrefix, "")
+                            const trimmedMessage = context.packet.message.replace(commandPrefix, '')
                                 .trim();
 
                             let handlerArgs = [];
 
-                            if (trimmedMessage !== "") {
+                            if (trimmedMessage !== '') {
                                 if (argsLength > 1) {
                                     const args = trimmedMessage
-                                        .split(" ");
+                                        .split(' ');
 
                                     if (sliceArgs) {
                                         handlerArgs = args.slice(0, argsLength);
@@ -93,7 +93,7 @@ export class PluginManager {
                                         handlerArgs = [
                                             args[0],
                                             args.slice(1)
-                                                .reduce((acc: string, arg: string) => `${acc} ${arg}`, "")
+                                                .reduce((acc: string, arg: string) => `${acc} ${arg}`, '')
                                                 .trim()
                                         ];
                                     }
@@ -131,7 +131,7 @@ export class PluginManager {
 
         if (commands) {
             commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, handler, args = [], cooldown, argsRequired = true, sliceArgs = true }) => {
-                const commandPrefix = (`${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? pluginName : ""} ${commandName}`)
+                const commandPrefix = (`${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? pluginName : ''} ${commandName}`)
                     .trim();
 
                 if (cooldown) {
@@ -151,7 +151,7 @@ export class PluginManager {
                                 text(`${prefix} §cВоспользоваться этой командой снова можно будет`)
                                     .addSpace()
                                     .addExtra(
-                                        text(moment(cooldown).fromNow(), "red")
+                                        text(moment(cooldown).fromNow(), 'red')
                                             .setBold()
                                     )
                             );

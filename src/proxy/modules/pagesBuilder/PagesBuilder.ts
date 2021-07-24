@@ -1,95 +1,95 @@
-import chunk from "chunk";
-import { text } from "rawjsonbuilder";
+import chunk from 'chunk';
+import { text } from 'rawjsonbuilder';
 
-import { minecraftData } from "../../../utils";
+import { minecraftData } from '../../../utils';
 
-import { Proxy } from "../../Proxy";
-import { PacketContext } from "../packetManager/PacketManager";
+import { Proxy } from '../../Proxy';
+import { PacketContext } from '../packetManager/PacketManager';
 
-import { Page } from "./components/Page";
-import { Item } from "./components/Item";
-import { NBT } from "./components/NBT";
+import { Page } from './components/Page';
+import { Item } from './components/Item';
+import { NBT } from './components/NBT';
 
-import { Inventory, Buttons, DefaultButtonsMap, IItemConstructor, IAutoGeneratePagesOptions, ButtonAction, RawPage /*RangeOf*/ } from "../../../interfaces";
+import { Inventory, Buttons, DefaultButtonsMap, IItemConstructor, IAutoGeneratePagesOptions, ButtonAction, RawPage /*RangeOf*/ } from '../../../interfaces';
 
 // https://wiki.vg/Inventory
 const inventoryTypes: Map<Inventory, number> = new Map([
-    ["generic_9x1", 9],
-    ["generic_9x2", 18],
-    ["generic_9x3", 27],
-    ["generic_9x4", 36],
-    ["generic_9x5", 45],
-    ["generic_9x6", 54],
-    ["generic_3x3", 63],
-    ["anvil", 3],
-    ["beacon", 1],
-    ["blast_furnace", 3],
-    ["brewing_stand", 5],
-    ["crafting", 10],
-    ["enchantment", 2],
-    ["furnace", 3],
-    ["grindstone", 3],
-    ["hopper", 5],
-    ["lectern", 1],
-    ["loom", 4],
-    ["merchant", 3],
-    ["shulker_box", 27],
-    ["smoker", 3],
-    ["cartography", 3],
-    ["stonecutter", 2]
+    ['generic_9x1', 9],
+    ['generic_9x2', 18],
+    ['generic_9x3', 27],
+    ['generic_9x4', 36],
+    ['generic_9x5', 45],
+    ['generic_9x6', 54],
+    ['generic_3x3', 63],
+    ['anvil', 3],
+    ['beacon', 1],
+    ['blast_furnace', 3],
+    ['brewing_stand', 5],
+    ['crafting', 10],
+    ['enchantment', 2],
+    ['furnace', 3],
+    ['grindstone', 3],
+    ['hopper', 5],
+    ['lectern', 1],
+    ['loom', 4],
+    ['merchant', 3],
+    ['shulker_box', 27],
+    ['smoker', 3],
+    ['cartography', 3],
+    ['stonecutter', 2]
 ]);
 
-const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, "position">> = new Map([
-    ["first", {
-        id: minecraftData.findItemOrBlockByName("spectral_arrow").id,
-        nbt: new NBT("compound", {
-            display: new NBT("compound", {
-                Name: new NBT("string", (
-                    text("В начало", "green")
+const defaultButtons: Map<ButtonAction, Omit<IItemConstructor, 'position'>> = new Map([
+    ['first', {
+        id: minecraftData.findItemOrBlockByName('spectral_arrow').id,
+        nbt: new NBT('compound', {
+            display: new NBT('compound', {
+                Name: new NBT('string', (
+                    text('В начало', 'green')
                         .setItalic(false)
                 ))
             })
         })
     }],
-    ["back", {
-        id: minecraftData.findItemOrBlockByName("arrow").id,
-        nbt: new NBT("compound", {
-            display: new NBT("compound", {
-                Name: new NBT("string", (
-                    text("Назад", "green")
+    ['back', {
+        id: minecraftData.findItemOrBlockByName('arrow').id,
+        nbt: new NBT('compound', {
+            display: new NBT('compound', {
+                Name: new NBT('string', (
+                    text('Назад', 'green')
                         .setItalic(false)
                 ))
             })
         })
     }],
-    ["stop", {
-        id: minecraftData.findItemOrBlockByName("barrier").id,
-        nbt: new NBT("compound", {
-            display: new NBT("compound", {
-                Name: new NBT("string", (
-                    text("Выход", "red")
+    ['stop', {
+        id: minecraftData.findItemOrBlockByName('barrier').id,
+        nbt: new NBT('compound', {
+            display: new NBT('compound', {
+                Name: new NBT('string', (
+                    text('Выход', 'red')
                         .setItalic(false)
                 ))
             })
         })
     }],
-    ["next", {
-        id: minecraftData.findItemOrBlockByName("arrow").id,
-        nbt: new NBT("compound", {
-            display: new NBT("compound", {
-                Name: new NBT("string", (
-                    text("Вперёд", "green")
+    ['next', {
+        id: minecraftData.findItemOrBlockByName('arrow').id,
+        nbt: new NBT('compound', {
+            display: new NBT('compound', {
+                Name: new NBT('string', (
+                    text('Вперёд', 'green')
                         .setItalic(false)
                 ))
             })
         })
     }],
-    ["last", {
-        id: minecraftData.findItemOrBlockByName("spectral_arrow").id,
-        nbt: new NBT("compound", {
-            display: new NBT("compound", {
-                Name: new NBT("string", (
-                    text("В конец", "green")
+    ['last', {
+        id: minecraftData.findItemOrBlockByName('spectral_arrow').id,
+        nbt: new NBT('compound', {
+            display: new NBT('compound', {
+                Name: new NBT('string', (
+                    text('В конец', 'green')
                         .setItalic(false)
                 ))
             })
@@ -103,12 +103,12 @@ export class PagesBuilder {
 
     private windowId = 100;
     private inventoryType = 0; // RangeOf<0, 22>
-    private inventoryTypeTag: Inventory = "generic_9x1";
+    private inventoryTypeTag: Inventory = 'generic_9x1';
     private inventorySlots = 9; // RangeOf<1, 63>
 
     private pages: RawPage[] = [];
     private currentPage = 1;
-    private paginationFormat = "§7%c / %m";
+    private paginationFormat = '§7%c / %m';
     private infinityLoop = true;
     private autoRerenderInterval = 0;
     private defaultButtons: DefaultButtonsMap = new Map();
@@ -164,7 +164,7 @@ export class PagesBuilder {
                     ))
             );
         } else {
-            throw new Error("Unsupported inventory type for this method!");
+            throw new Error('Unsupported inventory type for this method!');
         }
 
         return this;
@@ -220,7 +220,7 @@ export class PagesBuilder {
         const rawPage = this.pages[pageNumber - 1];
 
         const page = (
-            typeof rawPage === "function" ?
+            typeof rawPage === 'function' ?
                 await rawPage()
                 :
                 rawPage
@@ -228,20 +228,20 @@ export class PagesBuilder {
             .clone();
 
         if (this.pages.length > 1) {
-            const pagination = new NBT("list", new NBT("string", [
-                text(""),
+            const pagination = new NBT('list', new NBT('string', [
+                text(''),
                 text(
                     this.paginationFormat
-                        .replace("%c", String(this.currentPage))
-                        .replace("%m", String(this.pages.length))
+                        .replace('%c', String(this.currentPage))
+                        .replace('%m', String(this.pages.length))
                 )
             ]));
 
             page.setItems(
                 [...this.defaultButtons].filter(([action]) => !this.infinityLoop ?
                     !(
-                        (this.currentPage === 1 && (action === "first" || action === "back")) ||
-                        (this.currentPage === this.pages.length && (action === "last" || action === "next"))
+                        (this.currentPage === 1 && (action === 'first' || action === 'back')) ||
+                        (this.currentPage === this.pages.length && (action === 'last' || action === 'next'))
                     )
                     :
                     true)
@@ -258,11 +258,11 @@ export class PagesBuilder {
         page.setItems(new Array(36) // 36 = player inventory slots without armor & etc.
             .fill(null)
             .map((_, index) => new Item({
-                id: minecraftData.findItemOrBlockByName("black_stained_glass_pane").id,
+                id: minecraftData.findItemOrBlockByName('black_stained_glass_pane').id,
                 position: this.inventorySlots + index,
-                nbt: new NBT("compound", {
-                    display: new NBT("compound", {
-                        Name: new NBT("string", text(""))
+                nbt: new NBT('compound', {
+                    display: new NBT('compound', {
+                        Name: new NBT('string', text(''))
                     })
                 })
             })));
@@ -272,7 +272,7 @@ export class PagesBuilder {
 
     executeAction(action: ButtonAction): void {
         switch (action) {
-            case "first":
+            case 'first':
                 if (this.currentPage === 1) {
                     if (this.infinityLoop) {
                         this.setPage(this.pages.length);
@@ -284,7 +284,7 @@ export class PagesBuilder {
                 this.setPage(1);
 
                 break;
-            case "back":
+            case 'back':
                 if (this.currentPage === 1) {
                     if (this.infinityLoop) {
                         this.setPage(this.pages.length);
@@ -296,10 +296,10 @@ export class PagesBuilder {
                 this.setPage(this.currentPage - 1);
 
                 break;
-            case "stop":
+            case 'stop':
                 this.stop();
                 break;
-            case "next":
+            case 'next':
                 if (this.currentPage === this.pages.length) {
                     if (this.infinityLoop) {
                         this.setPage(1);
@@ -311,7 +311,7 @@ export class PagesBuilder {
                 this.setPage(this.currentPage + 1);
 
                 break;
-            case "last":
+            case 'last':
                 if (this.currentPage === this.pages.length) {
                     if (this.infinityLoop) {
                         this.setPage(1);
@@ -330,13 +330,13 @@ export class PagesBuilder {
         this.stopped = true;
         this.built = false;
 
-        this.proxy.client.write("close_window", {
+        this.proxy.client.write('close_window', {
             windowId: this.windowId
         });
 
         this.proxy.packetManager.packetSwindler({
             meta: {
-                name: "close_window",
+                name: 'close_window',
                 state: this.proxy.client.state
             },
             packet: {
@@ -349,7 +349,7 @@ export class PagesBuilder {
 
     async build(): Promise<void> {
         if (!this.pages.length) {
-            throw new Error("Pages not set.");
+            throw new Error('Pages not set.');
         }
 
         if (!this.built) {
@@ -388,8 +388,8 @@ export class PagesBuilder {
                 }
             };
 
-            this.proxy.packetManager.on("window_click", windowClickListener);
-            this.proxy.packetManager.on("set_slot", setSlotListener);
+            this.proxy.packetManager.on('window_click', windowClickListener);
+            this.proxy.packetManager.on('set_slot', setSlotListener);
 
             const autoRerenderInterval = this.autoRerenderInterval ?
                 setInterval(() => {
@@ -402,20 +402,20 @@ export class PagesBuilder {
                 :
                 null;
 
-            this.proxy.packetManager.once(["close_window", "respawn"], (context) => {
+            this.proxy.packetManager.once(['close_window', 'respawn'], (context) => {
                 context.setCanceled(true);
 
                 this.stopped = true;
                 this.built = false;
 
-                this.proxy.packetManager.removeListener("window_click", windowClickListener);
-                this.proxy.packetManager.removeListener("set_slot", setSlotListener);
+                this.proxy.packetManager.removeListener('window_click', windowClickListener);
+                this.proxy.packetManager.removeListener('set_slot', setSlotListener);
 
                 if (autoRerenderInterval) {
                     clearInterval(autoRerenderInterval);
                 }
 
-                this.proxy.bridge.write("window_click", {
+                this.proxy.bridge.write('window_click', {
                     windowId: 0,
                     slot: 1,
                     mouseButton: 0,
@@ -424,9 +424,9 @@ export class PagesBuilder {
                     clicked_item: new Item({
                         id: 1,
                         position: 1,
-                        nbt: new NBT("compound", {
-                            display: new NBT("compound", {
-                                Name: new NBT("string", text("SteveProxy Restore Inventory"))
+                        nbt: new NBT('compound', {
+                            display: new NBT('compound', {
+                                Name: new NBT('string', text('SteveProxy Restore Inventory'))
                             })
                         })
                     })
@@ -447,14 +447,14 @@ export class PagesBuilder {
 
         const { items } = await this.getPage();
 
-        this.proxy.client.write("window_items", {
+        this.proxy.client.write('window_items', {
             windowId: this.windowId,
             items
         });
     }
 }
 
-export * from "./gui";
+export * from './gui';
 
 export {
     Page,

@@ -1,13 +1,13 @@
-import chunk from "chunk";
-import { ClickAction, Component, ComponentsUnion, text, TextComponent, translate } from "rawjsonbuilder";
+import chunk from 'chunk';
+import { ClickAction, Component, ComponentsUnion, text, TextComponent, translate } from 'rawjsonbuilder';
 
-import { Proxy } from "../../Proxy";
+import { Proxy } from '../../Proxy';
 
-import { buildersStorage, ChatManager } from "./ChatManager";
+import { buildersStorage, ChatManager } from './ChatManager';
 
-import { generateID } from "../../../utils";
+import { generateID } from '../../../utils';
 
-import { AutoGeneratePagesOptions, Button, DefaultButtonLabel, DefaultTextButtonsMap, IResetListenTimeoutOptions, ITrigger, Page, StringButton, TriggersMap } from "../../../interfaces";
+import { AutoGeneratePagesOptions, Button, DefaultButtonLabel, DefaultTextButtonsMap, IResetListenTimeoutOptions, ITrigger, Page, StringButton, TriggersMap } from '../../../interfaces';
 
 export class ChatBuilder {
 
@@ -21,7 +21,7 @@ export class ChatBuilder {
     private currentPage = 1;
     private infinityLoop = true;
     private autoResetTimeout = true;
-    private paginationFormat = "%c §7/§r %m";
+    private paginationFormat = '%c §7/§r %m';
     private defaultButtons: Map<DefaultButtonLabel, string> = new Map();
 
     private listenTime = 5 * 60 * 1000;
@@ -63,7 +63,7 @@ export class ChatBuilder {
             chunks.map((chunk) => new TextComponent()
                 .addExtra(
                     chunk.map((item, index) => {
-                        const component = text("")
+                        const component = text('')
                             .addExtra(item);
 
                         if (index + 1 < chunk.length) {
@@ -117,7 +117,7 @@ export class ChatBuilder {
     }
 
     setPagesHeader(header: ComponentsUnion | string): this {
-        if (typeof header === "string") {
+        if (typeof header === 'string') {
             header = text(header);
         }
 
@@ -129,7 +129,7 @@ export class ChatBuilder {
     }
 
     setPagesFooter(footer: ComponentsUnion | string): this {
-        if (typeof footer === "string") {
+        if (typeof footer === 'string') {
             footer = text(footer);
         }
 
@@ -140,20 +140,20 @@ export class ChatBuilder {
         return this;
     }
 
-    setDefaultButtons(buttons: Button[] = ["first", "back", "next", "last"]): this {
+    setDefaultButtons(buttons: Button[] = ['first', 'back', 'next', 'last']): this {
         const defaultButtons: DefaultTextButtonsMap = new Map([
-            ["first", "⏪"],
-            ["back", "◀"],
-            ["stop", "⏹"],
-            ["next", "▶"],
-            ["last", "⏩"]
+            ['first', '⏪'],
+            ['back', '◀'],
+            ['stop', '⏹'],
+            ['next', '▶'],
+            ['last', '⏩']
         ]);
 
         this.defaultButtons = new Map(
             // eslint-disable-next-line array-callback-return
             buttons.map((button) => {
                 switch (typeof button) {
-                    case "string": {
+                    case 'string': {
                         const buttonLabel = defaultButtons.get(button);
 
                         if (buttonLabel) {
@@ -161,7 +161,7 @@ export class ChatBuilder {
                         }
                         break;
                     }
-                    case "object": {
+                    case 'object': {
                         const [[buttonAction, buttonLabel]] = Object.entries(button);
 
                         if (defaultButtons.get(buttonAction as StringButton)) {
@@ -199,11 +199,11 @@ export class ChatBuilder {
     async getPage(pageNumber: number = this.currentPage): Promise<TextComponent> {
         let page = this.pages[pageNumber - 1];
 
-        if (typeof page === "function") {
+        if (typeof page === 'function') {
             page = await page();
         }
 
-        if (typeof page === "string") {
+        if (typeof page === 'string') {
             page = text(page);
         }
 
@@ -228,14 +228,14 @@ export class ChatBuilder {
                 .filter(([, buttonAction]) => (
                     !this.infinityLoop ?
                         !(
-                            (this.currentPage === 1 && (buttonAction === "first" || buttonAction === "back")) ||
-                            (this.currentPage === this.pages.length && (buttonAction === "last" || buttonAction === "next"))
+                            (this.currentPage === 1 && (buttonAction === 'first' || buttonAction === 'back')) ||
+                            (this.currentPage === this.pages.length && (buttonAction === 'last' || buttonAction === 'next'))
                         )
                         :
                         true
                 ))
                 .map(([buttonLabel, buttonAction], index) => (
-                    translate(`%s${index + 1 < defaultButtonsSize ? " §7|§r " : " "}`, [
+                    translate(`%s${index + 1 < defaultButtonsSize ? ' §7|§r ' : ' '}`, [
                         text(buttonLabel)
                             .setClickEvent({
                                 action: ClickAction.RUN_COMMAND,
@@ -249,8 +249,8 @@ export class ChatBuilder {
             }
 
             const pagination = this.paginationFormat
-                .replace("%c", String(this.currentPage))
-                .replace("%m", String(this.pages.length));
+                .replace('%c', String(this.currentPage))
+                .replace('%m', String(this.pages.length));
 
             page.addExtra(`${pagination}§r`);
             
@@ -265,7 +265,7 @@ export class ChatBuilder {
             }
         }
 
-        return text("")
+        return text('')
             .addNewLine()
             .addExtra(page)
             .addNewLine();
@@ -297,9 +297,9 @@ export class ChatBuilder {
         return this;
     }
 
-    executeAction(action: StringButton | ITrigger["name"]): void {
+    executeAction(action: StringButton | ITrigger['name']): void {
         switch (action) {
-            case "first":
+            case 'first':
                 if (this.currentPage === 1) {
                     if (this.infinityLoop) {
                         this.setPage(this.pages.length);
@@ -311,7 +311,7 @@ export class ChatBuilder {
                 this.setPage(1);
 
                 break;
-            case "back":
+            case 'back':
                 if (this.currentPage === 1) {
                     if (this.infinityLoop) {
                         this.setPage(this.pages.length);
@@ -323,10 +323,10 @@ export class ChatBuilder {
                 this.setPage(this.currentPage - 1);
 
                 break;
-            case "stop":
+            case 'stop':
                 this.stopListen();
                 break;
-            case "next":
+            case 'next':
                 if (this.currentPage === this.pages.length) {
                     if (this.infinityLoop) {
                         this.setPage(1);
@@ -338,7 +338,7 @@ export class ChatBuilder {
                 this.setPage(this.currentPage + 1);
 
                 break;
-            case "last":
+            case 'last':
                 if (this.currentPage === this.pages.length) {
                     if (this.infinityLoop) {
                         this.setPage(1);
@@ -368,7 +368,7 @@ export class ChatBuilder {
 
     build(): void {
         if (!this.pages.length) {
-            throw new Error("Pages not set");
+            throw new Error('Pages not set');
         }
 
         this.setPage(this.currentPage);

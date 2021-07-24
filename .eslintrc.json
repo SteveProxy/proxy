@@ -30,7 +30,7 @@
     ],
     "quotes": [
       "error",
-      "double"
+      "single"
     ],
     "semi": [
       "error",

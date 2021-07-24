@@ -1,15 +1,15 @@
-import minecraftPath from "minecraft-path";
-import { ClickAction, HoverAction, parser, text } from "rawjsonbuilder";
-import { createClient, Server, states } from "minecraft-protocol";
+import minecraftPath from 'minecraft-path';
+import { ClickAction, HoverAction, parser, text } from 'rawjsonbuilder';
+import { createClient, Server, states } from 'minecraft-protocol';
 
-import { db } from "../DB";
-import { config } from "../config";
+import { db } from '../DB';
+import { config } from '../config';
 
-import { Context, PacketManager, PluginManager } from "./modules";
+import { Context, PacketManager, PluginManager } from './modules';
 
-import { getCurrentTime, getVersion, isValidIP, parseIP } from "../utils";
+import { getCurrentTime, getVersion, isValidIP, parseIP } from '../utils';
 
-import { IClient, IConfig, IParsedIP, IProxyOptions } from "../interfaces";
+import { IClient, IConfig, IParsedIP, IProxyOptions } from '../interfaces';
 
 export class Proxy {
 
@@ -18,7 +18,7 @@ export class Proxy {
     private server: Server;
 
     private connectionStarted = false;
-    currentServer = "";
+    currentServer = '';
     fallbackServer = Proxy.parseIP(
         this.config.lobby
     );
@@ -30,7 +30,7 @@ export class Proxy {
         client.context = new Context({
             client,
             proxy: this,
-            type: "client"
+            type: 'client'
         });
 
         this.client = client;
@@ -47,9 +47,9 @@ export class Proxy {
     start(): void {
         this.connect(this.fallbackServer);
 
-        this.client.once("end", () => {
+        this.client.once('end', () => {
             if (this.bridge) {
-                this.bridge.end("");
+                this.bridge.end('');
             }
 
             this.pluginManager.stop();
@@ -86,12 +86,12 @@ export class Proxy {
 
         const isFallbackServer = ip === this.fallbackServer;
 
-        bridge.once("login", (packet) => {
+        bridge.once('login', (packet) => {
             this.connectionStarted = false;
             this.currentServer = ip;
 
             if (this.bridge) {
-                this.bridge.end("");
+                this.bridge.end('');
             }
 
             this.bridge = bridge;
@@ -100,12 +100,12 @@ export class Proxy {
 
             const playerDimension = packet.dimension;
 
-            if (getVersion(this.config.proxy.version) <= getVersion("1.8.9")) {
+            if (getVersion(this.config.proxy.version) <= getVersion('1.8.9')) {
                 packet.dimension = packet.dimension >= 0 ? -1 : 0;
             }
 
-            this.client.write("login", packet);
-            this.client.write("respawn", {
+            this.client.write('login', packet);
+            this.client.write('respawn', {
                 dimension: playerDimension,
                 worldName: packet.worldName,
                 hashedSeed: packet.hashedSeed,
@@ -119,7 +119,7 @@ export class Proxy {
             this.pluginManager.restart();
 
             if (isFallbackServer) {
-                const connectCommand = this.pluginManager.commands.get("connect");
+                const connectCommand = this.pluginManager.commands.get('connect');
 
                 if (connectCommand) {
                     connectCommand.handler();
@@ -147,14 +147,14 @@ export class Proxy {
         bridge.context = new Context({
             client: bridge,
             proxy: this,
-            type: "bridge"
+            type: 'bridge'
         });
 
         const bridgeDisconnectEvents = [
-            "disconnect",
-            "kick_disconnect",
-            "error",
-            "end"
+            'disconnect',
+            'kick_disconnect',
+            'error',
+            'end'
         ];
 
         let disconnected = false;
@@ -174,12 +174,12 @@ export class Proxy {
                     data instanceof Error ?
                         data.toString()
                         :
-                        "";
+                        '';
 
                 if (this.bridge) {
-                    bridge.removeAllListeners("packet");
+                    bridge.removeAllListeners('packet');
 
-                    if (reason && reason !== "SocketClosed") {
+                    if (reason && reason !== 'SocketClosed') {
                         const disconnectTime = getCurrentTime();
 
                         const builder = text(`${config.bridge.title} | §cСоединение разорвано. ${reason}`)
@@ -191,16 +191,16 @@ export class Proxy {
                                 text(`   §7[§f${disconnectTime}§7]   `)
                                     .setHoverEvent({
                                         action: HoverAction.SHOW_TEXT,
-                                        value: text(`Вы были отключеный от сервера в §f${disconnectTime}§7.`, "gray")
+                                        value: text(`Вы были отключеный от сервера в §f${disconnectTime}§7.`, 'gray')
                                     })
                             );
                         }
 
                         builder.addExtra(
-                            text("   §7[§fПереподключиться§7]   ")
+                            text('   §7[§fПереподключиться§7]   ')
                                 .setHoverEvent({
                                     action: HoverAction.SHOW_TEXT,
-                                    value: text("Нажмите, чтобы переподключиться к серверу.", "gray")
+                                    value: text('Нажмите, чтобы переподключиться к серверу.', 'gray')
                                 })
                                 .setClickEvent({
                                     action: ClickAction.RUN_COMMAND,
@@ -228,7 +228,7 @@ export class Proxy {
     }
 
     private startRedirect(): void {
-        this.client.removeAllListeners("packet");
+        this.client.removeAllListeners('packet');
 
         this.redirect(this.bridge, this.client);
         this.redirect(this.client, this.bridge);
@@ -237,10 +237,10 @@ export class Proxy {
     private redirect(from: IClient, to: IClient) {
         const isFromServer = from === this.bridge;
 
-        from.on("packet", (packet, meta) => {
+        from.on('packet', (packet, meta) => {
             if (meta?.state === states.PLAY && from?.state === states.PLAY) {
                 switch (meta.name) {
-                    case "compress":
+                    case 'compress':
                         from.compressionThreshold = packet.threshold;
                         to.compressionThreshold = packet.threshold;
 
@@ -275,7 +275,7 @@ export class Proxy {
                 username: selectedProfile.name
             };
         } catch (error) {
-            this.client.context.end("Произошла ошибка при чтении файла с сессией.");
+            this.client.context.end('Произошла ошибка при чтении файла с сессией.');
 
             console.log(error);
         }
@@ -283,12 +283,12 @@ export class Proxy {
 
     static parseIP(ip: string | IParsedIP): string {
         return Object.values(
-            typeof ip === "string" ?
+            typeof ip === 'string' ?
                 parseIP(ip)
                 :
                 ip
         )
-            .join(":");
+            .join(':');
     }
 }
 

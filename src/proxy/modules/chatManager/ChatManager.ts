@@ -1,8 +1,8 @@
-import { ChatBuilder } from "./ChatBuilder";
-import { PluginManager } from "../PluginManager";
+import { ChatBuilder } from './ChatBuilder';
+import { PluginManager } from '../PluginManager';
 
-import { BuildersStorage, FallbackHandler, ITrigger, Middleware, StringButton } from "../../../interfaces";
-import { PacketContext } from "../packetManager/PacketContext";
+import { BuildersStorage, FallbackHandler, ITrigger, Middleware, StringButton } from '../../../interfaces';
+import { PacketContext } from '../packetManager/PacketContext';
 
 const buildersStorage: BuildersStorage = new Map();
 
@@ -10,7 +10,7 @@ class ChatManager {
 
     fallbackHandler: FallbackHandler;
     static prefix = `${PluginManager.prefix}chatmanager`;
-    static label = "§3§lChatManager§r §f|"
+    static label = '§3§lChatManager§r §f|'
 
     get middleware(): Middleware {
         return (context: PacketContext) => {
@@ -19,12 +19,12 @@ class ChatManager {
             if (message.startsWith(ChatManager.prefix)) {
                 context.setCanceled(true);
 
-                const messageArguments = message.replace(ChatManager.prefix, "")
+                const messageArguments = message.replace(ChatManager.prefix, '')
                     .trim()
-                    .split(" ");
+                    .split(' ');
 
                 if (messageArguments.length === 2) {
-                    const [builderId, action] = messageArguments as [ChatBuilder["id"], StringButton | ITrigger["name"]];
+                    const [builderId, action] = messageArguments as [ChatBuilder['id'], StringButton | ITrigger['name']];
 
                     if (builderId && action) {
                         const builderInstance = buildersStorage.get(builderId);

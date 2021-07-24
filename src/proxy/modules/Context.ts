@@ -1,19 +1,19 @@
-import { stripIndent } from "common-tags";
-import { BaseComponent, ComponentsUnion, text } from "rawjsonbuilder";
+import { stripIndent } from 'common-tags';
+import { BaseComponent, ComponentsUnion, text } from 'rawjsonbuilder';
 
-import { PagesBuilder } from "./pagesBuilder/PagesBuilder";
-import { ChatBuilder } from "./chatManager/ChatBuilder";
+import { PagesBuilder } from './pagesBuilder/PagesBuilder';
+import { ChatBuilder } from './chatManager/ChatBuilder';
 
-import { getVersion } from "../../utils";
+import { getVersion } from '../../utils';
 
-import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, ISetCooldownOptions, SetCooldownOptions, IContext, SendOptions } from "../../interfaces";
-import { QuestionBuilder } from "./QuestionBuilder";
+import { SendTitleOptions, ISendTabOptions, IOpenWindowOptions, ISetCooldownOptions, SetCooldownOptions, IContext, SendOptions } from '../../interfaces';
+import { QuestionBuilder } from './QuestionBuilder';
 
 export class Context {
 
-    client: IContext["client"];
-    proxy: IContext["proxy"];
-    type: IContext["type"];
+    client: IContext['client'];
+    proxy: IContext['proxy'];
+    type: IContext['type'];
 
     constructor({ client, proxy, type }: IContext) {
         this.client = client;
@@ -22,7 +22,7 @@ export class Context {
     }
 
     end(reason: string | ComponentsUnion): void {
-        if (typeof reason !== "string") {
+        if (typeof reason !== 'string') {
             reason = reason.toRawString();
         }
 
@@ -34,16 +34,16 @@ export class Context {
     }
 
     send(options: SendOptions): void {
-        if (typeof options === "object") {
+        if (typeof options === 'object') {
             if (options instanceof BaseComponent) {
                 options = {
                     message: options
                 };
             }
 
-            const { message, useRawJSON = true, position = 0, sender = "0" } = options;
+            const { message, useRawJSON = true, position = 0, sender = '0' } = options;
 
-            return this.client.write("chat", {
+            return this.client.write('chat', {
                 message: useRawJSON ?
                     (
                         message instanceof BaseComponent ?
@@ -59,18 +59,18 @@ export class Context {
             });
         }
 
-        this.client.write("chat", {
-            message: this.type === "bridge" ?
+        this.client.write('chat', {
+            message: this.type === 'bridge' ?
                 options
                 :
                 text(options).toString(),
             position: 0,
-            sender: "0"
+            sender: '0'
         });
     }
 
     sendTitle(options: SendTitleOptions): void {
-        if (typeof options === "string") {
+        if (typeof options === 'string') {
             options = {
                 title: options
             };
@@ -79,8 +79,8 @@ export class Context {
         const { title, subtitle, actionbar, fadeIn, fadeOut, stay, hide, reset } = options;
 
         if (subtitle) {
-            this.client.write("set_title_subtitle", {
-                text: text("")
+            this.client.write('set_title_subtitle', {
+                text: text('')
                     .addExtra(
                         subtitle
                     )
@@ -89,23 +89,23 @@ export class Context {
         }
 
         if (title) {
-            this.client.write("set_title_text", {
-                text: text("")
+            this.client.write('set_title_text', {
+                text: text('')
                     .addExtra(title)
                     .toString()
             });
         }
 
         if (actionbar) {
-            this.client.write("action_bar", {
-                text: text("")
+            this.client.write('action_bar', {
+                text: text('')
                     .addExtra(actionbar)
                     .toString()
             });
         }
 
         if (fadeIn !== undefined || fadeOut !== undefined || stay !== undefined) {
-            this.client.write("set_title_time", {
+            this.client.write('set_title_time', {
                 fadeIn,
                 stay,
                 fadeOut
@@ -113,20 +113,20 @@ export class Context {
         }
 
         if (hide) {
-            this.client.write("clear_titles", {
+            this.client.write('clear_titles', {
                 reset: false
             });
         }
 
         if (reset) {
-            this.client.write("clear_titles", {
+            this.client.write('clear_titles', {
                 reset: true
             });
         }
     }
 
-    sendTab({ header = text(""), footer = text("") }: ISendTabOptions): void {
-        this.client.write("playerlist_header", {
+    sendTab({ header = text(''), footer = text('') }: ISendTabOptions): void {
+        this.client.write('playerlist_header', {
             header: header instanceof BaseComponent ?
                 header.toString()
                 :
@@ -139,26 +139,26 @@ export class Context {
     }
 
     sendBrand(brand: string | ComponentsUnion): void {
-        if (typeof brand !== "string") {
+        if (typeof brand !== 'string') {
             brand = brand.toRawString();
         }
 
-        this.client.writeChannel(this.client.protocolVersion >= getVersion("1.13-pre3") ? "brand" : "MC|Brand", brand);
+        this.client.writeChannel(this.client.protocolVersion >= getVersion('1.13-pre3') ? 'brand' : 'MC|Brand', brand);
     }
 
     sendBossBar(): void {
         // todo
     }
 
-    openWindow({ windowTitle = text(""), inventoryType = 2, windowId, items }: IOpenWindowOptions): void {
-        this.client.write("open_window", {
+    openWindow({ windowTitle = text(''), inventoryType = 2, windowId, items }: IOpenWindowOptions): void {
+        this.client.write('open_window', {
             windowId,
             inventoryType,
             windowTitle: windowTitle.toString()
         });
 
         if (items) {
-            this.client.write("window_items", {
+            this.client.write('window_items', {
                 windowId,
                 items
             });
@@ -166,7 +166,7 @@ export class Context {
     }
 
     dropItem(): void {
-        this.client.write("set_slot", {
+        this.client.write('set_slot', {
             windowId: -1,
             slot: -1,
             item: {
@@ -176,7 +176,7 @@ export class Context {
     }
 
     setCooldown(options: SetCooldownOptions): void {
-        if (typeof options !== "object") {
+        if (typeof options !== 'object') {
             options = {
                 id: options
             };
@@ -189,7 +189,7 @@ export class Context {
         }
 
         id.forEach((id) => {
-            this.client.write("set_cooldown", {
+            this.client.write('set_cooldown', {
                 itemID: id,
                 cooldownTicks: cooldown * 20
             });

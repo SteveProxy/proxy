@@ -1,18 +1,18 @@
-import { MessageContext } from "vk-io";
-import { ClickAction, Component, HoverAction, keybind, text, translate } from "rawjsonbuilder";
+import { MessageContext } from 'vk-io';
+import { ClickAction, Component, HoverAction, keybind, text, translate } from 'rawjsonbuilder';
 
-import { PluginManager } from "../../../modules";
-import { Middleware } from "./Middleware";
-import { Markdown } from "../Markdown";
+import { PluginManager } from '../../../modules';
+import { Middleware } from './Middleware';
+import { Markdown } from '../Markdown';
 
-import { IMiddlewareOptions } from "../../../../interfaces";
-import { LINK_PREFIX } from "../constants";
+import { IMiddlewareOptions } from '../../../../interfaces';
+import { LINK_PREFIX } from '../constants';
 
 export class Message extends Middleware {
 
-    constructor(plugin: Pick<IMiddlewareOptions, "proxy" | "meta" | "vk">) {
+    constructor(plugin: Pick<IMiddlewareOptions, 'proxy' | 'meta' | 'vk'>) {
         super({
-            name: "message_new",
+            name: 'message_new',
             ...plugin
         });
     }
@@ -22,7 +22,7 @@ export class Message extends Middleware {
             return;
         }
 
-        const { name, chat_settings: { title = "" } = {}, push_settings, unread_count = 0 } = await this.vk.getByMultipleId(context);
+        const { name, chat_settings: { title = '' } = {}, push_settings, unread_count = 0 } = await this.vk.getByMultipleId(context);
 
         if (push_settings?.disabled_forever || push_settings?.no_sound) {
             return next();
@@ -36,15 +36,15 @@ export class Message extends Middleware {
 
         if (title) {
             builder.addExtra(
-                translate("[%s]", [
-                    text(title, "gray")
+                translate('[%s]', [
+                    text(title, 'gray')
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: `${LINK_PREFIX}im?sel=${context.peerId}`
                         })
                         .setHoverEvent({
                             action: HoverAction.SHOW_TEXT,
-                            value: text("Нажмите, чтобы открыть беседу.", "gray")
+                            value: text('Нажмите, чтобы открыть беседу.', 'gray')
                         })
                 ])
             )
@@ -56,38 +56,38 @@ export class Message extends Middleware {
                 .setInsertion(`${PluginManager.prefix}${this.meta.name} send ${context.peerId}`)
                 .setClickEvent({
                     action: ClickAction.OPEN_URL,
-                    value: `${LINK_PREFIX}${context.isUser ? "id" : "club"}${Math.abs(context.senderId)}`
+                    value: `${LINK_PREFIX}${context.isUser ? 'id' : 'club'}${Math.abs(context.senderId)}`
                 })
                 .setHoverEvent({
                     action: HoverAction.SHOW_TEXT,
-                    value: text("")
+                    value: text('')
                         .addExtra(
-                            translate("§7Нажмите, чтобы открыть %s§7.", [
+                            translate('§7Нажмите, чтобы открыть %s§7.', [
                                 context.isUser ?
-                                    "профиль"
+                                    'профиль'
                                     :
-                                    "сообщество"
+                                    'сообщество'
                             ])
                         )
                         .addNewLine()
                         .addNewLine()
                         .addExtra(
-                            translate("§7Непрочитанных сообщений: %s§7.", [
+                            translate('§7Непрочитанных сообщений: %s§7.', [
                                 String(unread_count)
                             ])
                         )
                         .addNewLine()
                         .addNewLine()
                         .addExtra(
-                            translate("§7Нажмите с использованием %s§7, чтобы отправить сообщение.", [
-                                keybind("key.sneak")
+                            translate('§7Нажмите с использованием %s§7, чтобы отправить сообщение.', [
+                                keybind('key.sneak')
                             ])
                         )
                 })
         );
 
         builder.addExtra(
-            text(":")
+            text(':')
         )
             .addNewLine()
             .addNewLine();
@@ -99,7 +99,7 @@ export class Message extends Middleware {
         if (context.hasForwards) {
             builder.addNewLine()
                 .addExtra(
-                    text("§7§oПересланное сообщение§r")
+                    text('§7§oПересланное сообщение§r')
                 );
         }
 
@@ -107,7 +107,7 @@ export class Message extends Middleware {
             builder
                 .addNewLine()
                 .addExtra(
-                    text("§l§nВложения§r:")
+                    text('§l§nВложения§r:')
                 )
                 .addNewLine()
                 .addNewLine()

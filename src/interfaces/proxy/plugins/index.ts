@@ -1,12 +1,18 @@
-import { IConfig } from "../../Config";
+import { IConfig } from '../../Config';
 
-// @ts-ignore
-export type PluginConfigFactory<N extends string> = IConfig["plugins"][N];
+type ConfigPluginUnion =
+    'vk'
+    | 'discord'
+    | 'spotify'
+    | 'record';
 
-export * from "./Plugin";
-export * from "./Core";
-export * from "./Spotify";
-export * from "./VK";
-export * from "./Discord";
-export * from "./Skin";
-export * from "./Chat";
+export type PluginConfigFactory<N extends ConfigPluginUnion> = IConfig['plugins'][N];
+
+export * from './Plugin';
+export * from './Core';
+export * from './Spotify';
+export * from './VK';
+export * from './Discord';
+export * from './Skin';
+export * from './Chat';
+export * from './Record';

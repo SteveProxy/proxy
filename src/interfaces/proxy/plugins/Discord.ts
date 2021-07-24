@@ -1,3 +1,3 @@
-import { RPCLoginOptions } from "discord-rpc";
+import { RPCLoginOptions } from 'discord-rpc';
 
 export type IDiscord = RPCLoginOptions;

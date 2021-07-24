@@ -1,11 +1,11 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from 'events';
 
-import { PacketContext } from "./PacketContext";
-import { Proxy } from "../../Proxy";
+import { PacketContext } from './PacketContext';
+import { Proxy } from '../../Proxy';
 
-import { config } from "../../../config";
+import { config } from '../../../config';
 
-import { IPacketSwindlerOptions } from "../../../interfaces";
+import { IPacketSwindlerOptions } from '../../../interfaces';
 
 export class PacketManager extends EventEmitter {
 
@@ -43,7 +43,7 @@ export class PacketManager extends EventEmitter {
                 proxy: this.proxy
             });
 
-            this.emit("packet", context);
+            this.emit('packet', context);
             this.emit(meta.name, context);
 
             if (!context.isCanceled()) {

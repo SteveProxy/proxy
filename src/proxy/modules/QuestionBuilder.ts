@@ -1,21 +1,21 @@
-import { ClickAction, Component, HoverAction, text } from "rawjsonbuilder";
+import { ClickAction, Component, HoverAction, text } from 'rawjsonbuilder';
 
-import { PluginManager } from "./PluginManager";
+import { PluginManager } from './PluginManager';
 
-import { Proxy } from "../Proxy";
-import { CancelHandler, IAnswer, Middleware, Question, QuestionItem, QuestionMessage, QuestionSet, QuestionValidator } from "../../interfaces";
-import { PacketContext } from "./packetManager/PacketContext";
+import { Proxy } from '../Proxy';
+import { CancelHandler, IAnswer, Middleware, Question, QuestionItem, QuestionMessage, QuestionSet, QuestionValidator } from '../../interfaces';
+import { PacketContext } from './packetManager/PacketContext';
 
 let currentBuilder: QuestionBuilder | undefined;
 
 export class QuestionBuilder {
 
     readonly proxy: Proxy;
-    static prefix = "questionbuilder";
+    static prefix = 'questionbuilder';
 
     private questions: QuestionSet = new Set();
     private answers: string[] = [];
-    private paginationFormat = "%c §7/§r %m";
+    private paginationFormat = '%c §7/§r %m';
     private cancelHandler: CancelHandler = null;
     private currentQuestion = 1;
     private validationStarted = false;
@@ -60,7 +60,7 @@ export class QuestionBuilder {
             let question = questionItem[0];
             const validator = questionItem[1];
 
-            if (typeof question === "string") {
+            if (typeof question === 'string') {
                 question = text(question);
             }
 
@@ -91,7 +91,7 @@ export class QuestionBuilder {
             const message = question[0];
             const validator = question[1];
 
-            const builder = text("")
+            const builder = text('')
                 .addNewLine()
                 .addExtra(message)
                 .addNewLine()
@@ -99,14 +99,14 @@ export class QuestionBuilder {
 
             if (this.currentQuestion > 1) {
                 builder.addExtra(
-                    text("◀")
+                    text('◀')
                         .setClickEvent({
                             action: ClickAction.RUN_COMMAND,
                             value: `${PluginManager.prefix}${QuestionBuilder.prefix} back`
                         })
                         .setHoverEvent({
                             action: HoverAction.SHOW_TEXT,
-                            value: text("Нажмите, чтобы вернуться к предыдущему вопросу.", "gray")
+                            value: text('Нажмите, чтобы вернуться к предыдущему вопросу.', 'gray')
                         })
                         .addExtra(` ${Component.BULLET} `)
                 );
@@ -114,15 +114,15 @@ export class QuestionBuilder {
 
             if (this.paginationFormat) {
                 const pagination = this.paginationFormat
-                    .replace("%c", String(this.currentQuestion))
-                    .replace("%m", String(this.questions.size));
+                    .replace('%c', String(this.currentQuestion))
+                    .replace('%m', String(this.questions.size));
 
                 builder.addExtra(`${pagination}§r`)
                     .addExtra(` ${Component.BULLET} `);
             }
 
             builder.addExtra(
-                text("Отмена", "red")
+                text('Отмена', 'red')
                     .setBold()
                     .setUnderlined()
                     .setClickEvent({
@@ -131,7 +131,7 @@ export class QuestionBuilder {
                     })
                     .setHoverEvent({
                         action: HoverAction.SHOW_TEXT,
-                        value: text("§7Нажмите, чтобы отменить ввод.")
+                        value: text('§7Нажмите, чтобы отменить ввод.')
                     })
             )
                 .addNewLine();
@@ -173,7 +173,7 @@ export class QuestionBuilder {
 
     async build(): Promise<string[]> {
         if (!this.questions.size) {
-            throw new Error("Questions not set.");
+            throw new Error('Questions not set.');
         }
 
         await this.sendQuestion();
@@ -203,12 +203,12 @@ export class QuestionBuilder {
             }
 
             if (currentBuilder) {
-                const [command] = message.replace(prefix, "")
+                const [command] = message.replace(prefix, '')
                     .trim()
-                    .split(" ");
+                    .split(' ');
 
                 switch (command) {
-                    case "back": {
+                    case 'back': {
                         if (currentBuilder.validationStarted) {
                             return currentBuilder.proxy.client.context.send(
                                 `${currentBuilder.proxy.config.bridge.title} | §cДождитесь окончания проверки, перед возвратом к предыдущему вопросу!`
@@ -225,7 +225,7 @@ export class QuestionBuilder {
 
                         break;
                     }
-                    case "cancel":
+                    case 'cancel':
                         if (currentBuilder.cancelHandler) {
                             currentBuilder.cancelHandler();
                         }

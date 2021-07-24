@@ -1,53 +1,80 @@
-import { Client, Presence } from "discord-rpc";
+import { Client, Presence } from 'discord-rpc';
 
-import { Plugin } from "../Plugin";
-import { Proxy } from "../../Proxy";
+import { Plugin } from '../Plugin';
+import { Proxy } from '../../Proxy';
 
-import { PluginConfigFactory } from "../../../interfaces";
+import { PluginConfigFactory } from '../../../interfaces';
+import { version as packageVersion } from '../../../utils';
 
-export class Discord extends Plugin<PluginConfigFactory<"discord">> {
+// todo
+export class Discord extends Plugin<PluginConfigFactory<'discord'>> {
 
-    private client: Client = new Client({ transport: "ipc" });
+    private client: Client = new Client({ transport: 'ipc' });
     private activity: Presence;
     private reconnectAttempts = 3;
 
     constructor(proxy: Proxy) {
         super(proxy, {
-            name: "discord",
-            description: "Discord интеграция",
-            prefix: "§9§lDiscord"
+            name: 'discord',
+            description: 'Discord интеграция',
+            prefix: '§9§lDiscord'
         }, {
-            clientId: "818385655691214868"
+            clientId: '818385655691214868'
         });
 
         const { proxy: { version } } = this.proxy.config;
 
         this.activity = {
-            largeImageKey: "minecraft",
-            largeImageText: `Minecraft ${version}`,
-            smallImageKey: "steve",
-            smallImageText: `SteveProxy | ${this.proxy.client.username}`,
-            startTimestamp: Date.now()
+            details: this.proxy.client.username,
+            largeImageKey: 'steve',
+            largeImageText: `SteveProxy | ${packageVersion}`,
+            smallImageKey: 'minecraft',
+            smallImageText: `Minecraft ${version}`,
+            startTimestamp: Date.now(),
+            buttons: [{
+                label: 'Установить',
+                url: 'https://github.com/SteveProxy/proxy'
+            }]
         };
     }
 
     start(): void {
         const client = this.client;
 
-        client.on("ready", () => {
-            this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${client.user.username}.`);
+        const events = <const>[
+            'ready'
+        ];
 
-            const details = this.proxy.currentServer === this.proxy.fallbackServer ?
-                "В лобби"
-                :
-                this.proxy.currentServer;
-
-            this.setActivity({
-                details
-            });
+        events.forEach((event) => {
+            client.on(event, this[event].bind(this));
         });
 
+        client.subscribe('ACTIVITY_JOIN_REQUEST', (data) => console.log(data));
+
         this.login();
+    }
+
+    private ready() {
+        this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.client.user.username}.`);
+
+        const isLobby = this.proxy.currentServer === this.proxy.fallbackServer;
+
+        const state = isLobby ?
+            'В лобби'
+            :
+            `На сервере ${this.proxy.currentServer}`;
+
+        this.setActivity({
+            state,
+            ...(
+                !isLobby &&
+                {
+                    partyId: this.proxy.currentServer,
+                    joinSecret: 'SteveProxy',
+                    buttons: undefined
+                }
+            )
+        });
     }
 
     private login(): void {

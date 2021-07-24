@@ -1,13 +1,13 @@
-import { Server } from "minecraft-protocol";
+import { Server } from 'minecraft-protocol';
 
-import { Event } from "./Event";
+import { Event } from './Event';
 
-import { IClient } from "../interfaces";
+import { IClient } from '../interfaces';
 
-export class Listening extends Event<"listening"> {
+export class Listening extends Event<'listening'> {
 
     constructor() {
-        super("listening");
+        super('listening');
     }
 
     handler(client: IClient, server: Server): void {

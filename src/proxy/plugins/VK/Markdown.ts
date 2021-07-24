@@ -1,20 +1,20 @@
-import moment from "moment";
-import { ClickAction, Color, text as textComponent, TextComponent, translate, TranslateComponent } from "rawjsonbuilder";
-import { Attachment, AttachmentType, AudioAttachment, AudioMessageAttachment, DocumentAttachment, ExternalAttachment, LinkAttachment, PhotoAttachment, PollAttachment, StickerAttachment, StoryAttachment, VideoAttachment } from "vk-io";
+import moment from 'moment';
+import { ClickAction, Color, text as textComponent, TextComponent, translate, TranslateComponent } from 'rawjsonbuilder';
+import { Attachment, AttachmentType, AudioAttachment, AudioMessageAttachment, DocumentAttachment, ExternalAttachment, LinkAttachment, PhotoAttachment, PollAttachment, StickerAttachment, StoryAttachment, VideoAttachment } from 'vk-io';
 
-import { LINK_PREFIX } from "./constants";
+import { LINK_PREFIX } from './constants';
 
-import { normalizeDuration } from "../../../utils";
+import { normalizeDuration } from '../../../utils';
 
-import { NotificationsNotificationItem } from "vk-io/lib/api/schemas/objects";
+import { NotificationsNotificationItem } from 'vk-io/lib/api/schemas/objects';
 
 const { AUDIO, AUDIO_MESSAGE, DOCUMENT, GIFT, GRAFFITI, LINK, PHOTO, POLL, STICKER, STORY, VIDEO, WALL, WALL_REPLY } = AttachmentType;
 
 export class Markdown {
 
-    static notificationFields = ["header", "text", "footer"];
+    static notificationFields = ['header', 'text', 'footer'];
 
-    static convertTextToRawJson(text = "", params = {}): TranslateComponent | TextComponent {
+    static convertTextToRawJson(text = '', params = {}): TranslateComponent | TextComponent {
         const links: [string, string, boolean][] = [];
 
         text = text.replace(/(?:''')?\[([^[]+?)\|([^]+?)](?:''')?/g, (match, link, text) => {
@@ -22,17 +22,17 @@ export class Markdown {
                 link = `${LINK_PREFIX}${link}`;
             }
 
-            links.push([link, text, match.startsWith("'")]);
+            links.push([link, text, match.startsWith('\'')]);
 
-            return "%s";
+            return '%s';
         })
-            .replaceAll(/'''(.+?)'''/g, "§l$1");
+            .replaceAll(/'''(.+?)'''/g, '§l$1');
 
         if (links.length) {
             return translate(text, links.map(([link, text, bold]) => (
                 textComponent(text)
                     .setBold(bold)
-                    .setColor("#3f8ae0")
+                    .setColor('#3f8ae0')
                     .setClickEvent({
                         action: ClickAction.OPEN_URL,
                         value: link
@@ -50,7 +50,7 @@ export class Markdown {
         return attachments.map((attachment) => {
             switch (attachment.type) {
                 case AUDIO_MESSAGE: {
-                    const { url = "", duration = 0 } = attachment as AudioMessageAttachment;
+                    const { url = '', duration = 0 } = attachment as AudioMessageAttachment;
 
                     return textComponent(`⏵ Голосовое сообщение (§7${normalizeDuration(duration * 1000)}§r)`)
                         .setClickEvent({
@@ -59,7 +59,7 @@ export class Markdown {
                         });
                 }
                 case AUDIO: {
-                    const { title = "", artist = "", duration = 0 } = attachment as AudioAttachment;
+                    const { title = '', artist = '', duration = 0 } = attachment as AudioAttachment;
 
                     return textComponent(`♫ Аудиозапись: ${title} §7-§r ${artist} (§7${normalizeDuration(duration * 1000)}§r)`)
                         .setClickEvent({
@@ -68,7 +68,7 @@ export class Markdown {
                         });
                 }
                 case DOCUMENT: {
-                    const { title = "", url = "" } = attachment as DocumentAttachment;
+                    const { title = '', url = '' } = attachment as DocumentAttachment;
 
                     return textComponent(`✂ Документ: ${title}`)
                         .setClickEvent({
@@ -77,24 +77,24 @@ export class Markdown {
                         });
                 }
                 case GIFT: {
-                    return textComponent("☆ Подарок");
+                    return textComponent('☆ Подарок');
                 }
                 case GRAFFITI: {
-                    return textComponent("✎ Граффити");
+                    return textComponent('✎ Граффити');
                 }
                 case LINK: {
                     const { description, button, title, url } = attachment as LinkAttachment;
 
-                    return textComponent(`● ${description || button?.title || "Ссылка"}: ${title}`)
+                    return textComponent(`● ${description || button?.title || 'Ссылка'}: ${title}`)
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: url
                         });
                 }
                 case PHOTO: {
-                    const { largeSizeUrl = "", text } = attachment as PhotoAttachment;
+                    const { largeSizeUrl = '', text } = attachment as PhotoAttachment;
 
-                    return textComponent(`● Фотография${text ? `: ${text}` : ""}`)
+                    return textComponent(`● Фотография${text ? `: ${text}` : ''}`)
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: largeSizeUrl as string
@@ -108,7 +108,7 @@ export class Markdown {
                 case STICKER: {
                     const { images } = attachment as StickerAttachment;
 
-                    return textComponent("● Стикер")
+                    return textComponent('● Стикер')
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: images.pop()?.url as string
@@ -117,37 +117,37 @@ export class Markdown {
                 case STORY: {
                     const { photo, video } = attachment as StoryAttachment;
 
-                    return textComponent("● История")
+                    return textComponent('● История')
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: (photo ? photo.largeSizeUrl : video?.player) as string
                         });
                 }
                 case VIDEO: {
-                    const { title, duration = 0, player = "", isBroadcast } = attachment as VideoAttachment;
+                    const { title, duration = 0, player = '', isBroadcast } = attachment as VideoAttachment;
 
-                    return textComponent(`● ${isBroadcast ? "Трансляция" : "Видео"}: ${title} (§7${normalizeDuration(duration * 1000)}§r)`)
+                    return textComponent(`● ${isBroadcast ? 'Трансляция' : 'Видео'}: ${title} (§7${normalizeDuration(duration * 1000)}§r)`)
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: player
                         });
                 }
                 case WALL: {
-                    return textComponent("● Запись")
+                    return textComponent('● Запись')
                         .setClickEvent({
                             action: ClickAction.OPEN_URL,
                             value: `${LINK_PREFIX}/${String(attachment)}`
                         });
                 }
                 case WALL_REPLY: {
-                    return textComponent("● Комментарий")
+                    return textComponent('● Комментарий')
                         .setClickEvent({
-                            action: "open_url",
+                            action: 'open_url',
                             value: `${LINK_PREFIX}/${String(attachment)}`
                         });
                 }
                 default:
-                    return textComponent("● Неподдерживаемое вложение");
+                    return textComponent('● Неподдерживаемое вложение');
             }
         })
             .map((attachment) => attachment.addNewLine());
@@ -156,14 +156,14 @@ export class Markdown {
     static parseNotification(notification: NotificationsNotificationItem): TextComponent {
         Markdown.fillNotification(notification);
 
-        const builder = textComponent("");
+        const builder = textComponent('');
 
         Markdown.notificationFields.forEach((key) => {
             const field = notification[key];
 
             const params = {
                 ...(
-                    key === "footer" ?
+                    key === 'footer' ?
                         {
                             color: Color.GRAY
                         }
@@ -187,7 +187,7 @@ export class Markdown {
 
         Markdown.notificationFields.forEach((key) => {
             if (notification[key]) {
-                notification[key] = notification[key].replace("{date}", moment(date as number * 1000).fromNow());
+                notification[key] = notification[key].replace('{date}', moment(date as number * 1000).fromNow());
             }
         });
     }

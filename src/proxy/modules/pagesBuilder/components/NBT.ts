@@ -1,18 +1,18 @@
-import { BaseComponent, ComponentsUnion } from "rawjsonbuilder";
+import { BaseComponent, ComponentsUnion } from 'rawjsonbuilder';
 
-import { NBTType } from "../../../../interfaces";
+import { NBTType } from '../../../../interfaces';
 
 export class NBT {
 
     type: NBTType;
     value: any;
-    name?: "";
+    name?: '';
 
     constructor(type: NBTType, value: any | ComponentsUnion) {
         this.type = type;
 
         switch (type) {
-            case "string":
+            case 'string':
                 if (Array.isArray(value)) {
                     value = value.map(this.toString);
                 } else {
@@ -25,13 +25,13 @@ export class NBT {
     }
 
     build(): this {
-        this.name = "";
+        this.name = '';
 
         return this;
     }
 
     private toString(value: any | ComponentsUnion): string {
-        if (typeof value === "object") {
+        if (typeof value === 'object') {
             if (value instanceof BaseComponent) {
                 return value.toString();
             }

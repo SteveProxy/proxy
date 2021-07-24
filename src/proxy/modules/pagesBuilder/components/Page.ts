@@ -1,14 +1,14 @@
-import { ComponentsUnion, TextComponent } from "rawjsonbuilder";
+import { ComponentsUnion, TextComponent } from 'rawjsonbuilder';
 
-import { Item } from "./Item";
-import { PacketContext } from "../../packetManager/PacketManager";
+import { Item } from './Item';
+import { PacketContext } from '../../packetManager/PacketManager';
 
-import { IItem, IPage } from "../../../../interfaces";
+import { IItem, IPage } from '../../../../interfaces';
 
 export class Page {
 
     windowTitle: ComponentsUnion = new TextComponent()
-        .setText("");
+        .setText('');
     items: IItem[] = new Array(63)
         .fill({
             present: false

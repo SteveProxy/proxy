@@ -1,10 +1,10 @@
-import axios from "axios";
+import axios from 'axios';
 
-import { ASHCON_API_ENDPOINT, isValidNickname } from "../../utils";
+import { ASHCON_API_ENDPOINT, isValidNickname } from '../../utils';
 
-import { Plugin } from "../plugins/Plugin";
+import { Plugin } from '../plugins/Plugin';
 
-import { IPlayer } from "../../interfaces";
+import { IPlayer } from '../../interfaces';
 
 export class API {
 

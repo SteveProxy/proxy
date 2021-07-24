@@ -1,12 +1,12 @@
-import { ComponentsUnion, RawComponentsUnion } from "rawjsonbuilder";
+import { ComponentsUnion, RawComponentsUnion } from 'rawjsonbuilder';
 
-import { Proxy } from "../../../proxy/Proxy";
-import { IClient } from "../Client";
+import { Proxy } from '../../../proxy/Proxy';
+import { IClient } from '../Client';
 
 export interface IContext {
     proxy: Proxy;
     client: IClient;
-    type: "client" | "bridge";
+    type: 'client' | 'bridge';
 }
 
 interface ISendOptions {
@@ -16,7 +16,7 @@ interface ISendOptions {
     useRawJSON?: boolean;
 }
 
-export type SendOptions = ISendOptions | ISendOptions["message"];
+export type SendOptions = ISendOptions | ISendOptions['message'];
 
 export type SendTitleOptions = ITitle | string;
 
@@ -53,7 +53,7 @@ export interface IItem {
     nbtData?: any;
 }
 
-export type SetCooldownOptions = ISetCooldownOptions["id"] | ISetCooldownOptions;
+export type SetCooldownOptions = ISetCooldownOptions['id'] | ISetCooldownOptions;
 
 export interface ISetCooldownOptions {
     id: number | number[];

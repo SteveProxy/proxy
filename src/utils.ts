@@ -1,26 +1,26 @@
-import _packageMeta from "../package.json";
-import moment from "moment";
-import _minecraftData, { versions } from "minecraft-data";
+import _packageMeta from '../package.json';
+import moment from 'moment';
+import _minecraftData, { versions } from 'minecraft-data';
 
-import { config } from "./config";
+import { config } from './config';
 
-import { IParsedIP } from "./interfaces";
+import { IParsedIP } from './interfaces';
 
-import "moment/locale/ru";
+import 'moment/locale/ru';
 
-moment.locale("ru");
+moment.locale('ru');
 
-moment.relativeTimeThreshold("s", 60);
-moment.relativeTimeThreshold("ss", 0);
-moment.relativeTimeThreshold("m", 60);
-moment.relativeTimeThreshold("h", 24);
-moment.relativeTimeThreshold("d", 31);
-moment.relativeTimeThreshold("M", 12);
-moment.relativeTimeThreshold("y", 365);
+moment.relativeTimeThreshold('s', 60);
+moment.relativeTimeThreshold('ss', 0);
+moment.relativeTimeThreshold('m', 60);
+moment.relativeTimeThreshold('h', 24);
+moment.relativeTimeThreshold('d', 31);
+moment.relativeTimeThreshold('M', 12);
+moment.relativeTimeThreshold('y', 365);
 
-export const TEXTURES_ENDPOINT = "http://textures.minecraft.net/texture/";
-export const MINECRAFT_API_ENDPOINT = "https://api.minecraftservices.com/minecraft/profile/skins";
-export const ASHCON_API_ENDPOINT = "https://api.ashcon.app/mojang/v2";
+export const TEXTURES_ENDPOINT = 'http://textures.minecraft.net/texture/';
+export const MINECRAFT_API_ENDPOINT = 'https://api.minecraftservices.com/minecraft/profile/skins';
+export const ASHCON_API_ENDPOINT = 'https://api.ashcon.app/mojang/v2';
 
 export const minecraftData = _minecraftData(config.proxy.version as string);
 
@@ -32,17 +32,17 @@ const pad = (number: number) => String(number > 9 ? number : `0${number}`);
 
 export function getVersion(version: string | number): number | string {
     const versionObject = versions.pc.filter((versionObject) => versionObject[
-        typeof version === "string" ?
-            "minecraftVersion"
+        typeof version === 'string' ?
+            'minecraftVersion'
             :
-            "version"
+            'version'
     ] === version)[0];
 
     return versionObject[
-        typeof version === "string" ?
-            "version"
+        typeof version === 'string' ?
+            'version'
             :
-            "minecraftVersion"
+            'minecraftVersion'
     ] as number | string;
 }
 
@@ -54,13 +54,13 @@ export function isValidNickname(nickname: string): boolean {
 }
 
 export function parseIP(ip: string): IParsedIP {
-    const LOCALHOST = "127.0.0.1";
+    const LOCALHOST = '127.0.0.1';
 
     const parsedIP = ip.match(/([^]+):([\d]+)/);
 
     if (parsedIP) {
         return {
-            host: parsedIP[1] !== "0.0.0.0" ?
+            host: parsedIP[1] !== '0.0.0.0' ?
                 parsedIP[1]
                 :
                 LOCALHOST,
@@ -68,10 +68,10 @@ export function parseIP(ip: string): IParsedIP {
         };
     }
 
-    const isPort = ip.startsWith(":");
+    const isPort = ip.startsWith(':');
 
     return {
-        host: ip && !isPort && ip !== "0.0.0.0" ?
+        host: ip && !isPort && ip !== '0.0.0.0' ?
             ip
             :
             LOCALHOST,
@@ -89,9 +89,9 @@ export function isValidIP(ip: string): boolean {
 }
 
 export function generateID(length: number): string {
-    const characters = "abcdefghijklmnopqrstuvwxyz1234567890";
+    const characters = 'abcdefghijklmnopqrstuvwxyz1234567890';
 
-    let id = "";
+    let id = '';
 
     for (let i = 0; i < length; i++) {
         id += characters.charAt(Math.floor(Math.random() * characters.length));
@@ -135,11 +135,11 @@ export function declOfNum(n: number, titles: string[]): string {
 
 export function formatBytes(bytes: number, decimals = 0): string {
     if (bytes === 0) {
-        return "0 Bytes";
+        return '0 Bytes';
     }
 
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -147,5 +147,5 @@ export function formatBytes(bytes: number, decimals = 0): string {
 }
 
 export function escapeFormatting(string: string): string {
-    return string.replace(/§[\w]/g, "");
+    return string.replace(/§[\w]/g, '');
 }

@@ -1,7 +1,7 @@
-import { MessageContext, ContextSubTypes, ContextTypes } from "vk-io";
-import { IMiddlewareOptions, IPluginMeta } from "../../../../interfaces";
-import { Proxy } from "../../../Proxy";
-import { VK } from "../API";
+import { MessageContext, ContextSubTypes, ContextTypes } from 'vk-io';
+import { IMiddlewareOptions, IPluginMeta } from '../../../../interfaces';
+import { Proxy } from '../../../Proxy';
+import { VK } from '../API';
 
 export abstract class Middleware {
 

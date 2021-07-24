@@ -1,8 +1,8 @@
-import { PacketMeta } from "minecraft-protocol";
+import { PacketMeta } from 'minecraft-protocol';
 
-import { Proxy } from "../../Proxy";
+import { Proxy } from '../../Proxy';
 
-import { IPacketContextOptions } from "../../../interfaces";
+import { IPacketContextOptions } from '../../../interfaces';
 
 export class PacketContext {
 
@@ -12,7 +12,7 @@ export class PacketContext {
     proxy: Proxy;
 
     canceled: boolean;
-    from: "server" | "client";
+    from: 'server' | 'client';
     packetDate: number;
     packetDelta: number;
 
@@ -23,7 +23,7 @@ export class PacketContext {
         this.isFromServer = isFromServer;
 
         this.canceled = false;
-        this.from = isFromServer ? "server" : "client";
+        this.from = isFromServer ? 'server' : 'client';
         this.packetDate = packetDate;
         this.packetDelta = packetDelta;
     }

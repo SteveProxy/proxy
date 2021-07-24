@@ -1,2 +1,2 @@
-export * from "./Slider";
-export * from "./PlayerHead";
+export * from './Slider';
+export * from './PlayerHead';

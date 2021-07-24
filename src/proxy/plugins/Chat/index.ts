@@ -1,44 +1,44 @@
-import { Component, HoverAction, keybind, text, translate } from "rawjsonbuilder";
+import { Component, HoverAction, keybind, text, translate } from 'rawjsonbuilder';
 
-import _dictionary from "./dictionary.json";
-import emoji from "./emoji.json";
+import _dictionary from './dictionary.json';
+import emoji from './emoji.json';
 
-import { Proxy } from "../../Proxy";
-import { Plugin } from "../Plugin";
+import { Proxy } from '../../Proxy';
+import { Plugin } from '../Plugin';
 
-import { randomInteger } from "../../../utils";
+import { randomInteger } from '../../../utils';
 
-import { EmojiCategoriesMap, IDictionary } from "../../../interfaces";
+import { EmojiCategoriesMap, IDictionary } from '../../../interfaces';
 
 const dictionary: IDictionary = _dictionary;
 
 const categories: EmojiCategoriesMap = new Map([
-    ["emotions", "Эмоции"],
-    ["actions", "Действия"],
-    ["animals", "Животные"]
+    ['emotions', 'Эмоции'],
+    ['actions', 'Действия'],
+    ['animals', 'Животные']
 ]);
 
 export class Chat extends Plugin {
 
     constructor(proxy: Proxy) {
         super(proxy, {
-            name: "chat",
-            description: "Помощник чата",
-            prefix: "§b§lChat"
+            name: 'chat',
+            description: 'Помощник чата',
+            prefix: '§b§lChat'
         });
 
         this.meta.commands = [
             {
-                name: "",
-                description: "Ретрансляция переданного сообщения",
+                name: '',
+                description: 'Ретрансляция переданного сообщения',
                 handler: this.retranslateMessage,
                 args: [
-                    "Сообщение"
+                    'Сообщение'
                 ]
             },
             {
-                name: "emoji",
-                description: "Список доступных Emoji",
+                name: 'emoji',
+                description: 'Список доступных Emoji',
                 ignorePluginPrefix: true,
                 handler: this.emojiList
             }
@@ -47,7 +47,7 @@ export class Chat extends Plugin {
 
     retranslateMessage(message: string): void {
         const chars = message.toLowerCase()
-            .split("");
+            .split('');
 
         this.proxy.bridge.context.send(
             chars.map((char) => {
@@ -58,7 +58,7 @@ export class Chat extends Plugin {
                     :
                     char;
             })
-                .join("")
+                .join('')
         );
     }
 
@@ -69,7 +69,7 @@ export class Chat extends Plugin {
                 [...categories].map(([category, description]) => {
                     const categoryEmoji = emoji[category];
 
-                    const builder = text("");
+                    const builder = text('');
 
                     builder.addExtra(description)
                         .addNewLine()
@@ -82,8 +82,8 @@ export class Chat extends Plugin {
                                 .setInsertion(emoji)
                                 .setHoverEvent({
                                     action: HoverAction.SHOW_TEXT,
-                                    contents: translate("§7Нажмите с использованием %s§7, чтобы вставить Emoji в чат.", [
-                                        keybind("key.sneak")
+                                    contents: translate('§7Нажмите с использованием %s§7, чтобы вставить Emoji в чат.', [
+                                        keybind('key.sneak')
                                     ])
                                 })
                         );
