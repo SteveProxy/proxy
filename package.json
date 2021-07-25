@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node --experimental-modules --experimental-json-modules --experimental-specifier-resolution=node --unhandled-rejections=warn --loader ts-node/esm ./src/index.ts",
     "prebuild": "node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/buildInit.js",
-    "build": "tsc && node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/cleanUpBuild.js",
+    "build": "tsc",
+    "postbuild": "node --experimental-modules --experimental-json-modules --es-module-specifier-resolution=node ./scripts/cleanUpBuild.js",
     "eslint:check": "eslint ./src/**/*",
     "eslint:fix": "eslint ./src/**/* --fix"
   },
