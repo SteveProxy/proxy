@@ -20,9 +20,7 @@
     "port": 25566
   },
   "bridge": {
-    "whitelist": [
-      "MrZillaGold"
-    ],
+    "whitelist": [],
     "prefix": ".",
     "title": "§6§lSteveProxy§r",
     "ignoredPackets": [
