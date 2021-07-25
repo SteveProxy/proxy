@@ -7,6 +7,7 @@ import { IClient, IConfig } from '../interfaces';
 
 import config from '../../config.json';
 
+// @ts-ignore
 const { bridge: { whitelist } }: IConfig = config;
 
 export class Login extends Event<'login'> {
