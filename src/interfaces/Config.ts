@@ -1,6 +1,6 @@
 import { ServerOptions } from 'minecraft-protocol';
 
-import { ISpotify, IDiscord, IVK, IRecord } from './proxy';
+import { ISpotify, IDiscord, IVK } from './proxy';
 
 import { IParsedIP } from './Utils';
 
@@ -21,6 +21,5 @@ export interface IConfig {
         spotify: ISpotify;
         discord: IDiscord;
         vk: IVK;
-        record: IRecord;
     };
 }
