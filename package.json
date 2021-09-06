@@ -16,7 +16,7 @@
   "license": "CC-BY-NC-4.0",
   "dependencies": {
     "@vk-io/authorization": "^1.2.1",
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "chunk": "0.0.3",
     "common-tags": "^1.8.0",
     "discord-rpc": "^4.0.1",
