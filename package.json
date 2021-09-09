@@ -15,7 +15,7 @@
   "author": "MrZillaGold <Pronin Egor | mrzillagold@gmail.com>",
   "license": "CC-BY-NC-4.0",
   "dependencies": {
-    "@vk-io/authorization": "^1.2.1",
+    "@vk-io/authorization": "^1.3.0",
     "axios": "^0.21.4",
     "chunk": "0.0.3",
     "common-tags": "^1.8.0",
