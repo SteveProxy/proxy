@@ -204,12 +204,6 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
                         return true;
                     }],
                     [`${this.meta.prefix} Введите пароль.`, (password: string) => {
-                        if (password.includes(' ')) {
-                            return this.proxy.client.context.send(
-                                `${this.meta.prefix} §cПароль не может содержать пробелов!`
-                            );
-                        }
-
                         if (password.length < 8) {
                             return this.proxy.client.context.send(
                                 `${this.meta.prefix} §cДлинна пароля не может быть меньше 8 символов!`
