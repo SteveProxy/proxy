@@ -21,7 +21,7 @@
     "common-tags": "^1.8.0",
     "discord-rpc": "^4.0.1",
     "lowdb": "^3.0.0",
-    "minecraft-data": "^2.95.0",
+    "minecraft-data": "^2.96.0",
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.26.5",
     "moment": "^2.29.1",
