@@ -5,7 +5,7 @@ import { Proxy } from '../../Proxy';
 
 import { buildersStorage, ChatManager } from './ChatManager';
 
-import { generateID } from '../../../utils';
+import { generateRandomString } from '../../../utils';
 
 import { AutoGeneratePagesOptions, Button, DefaultButtonLabel, DefaultTextButtonsMap, IResetListenTimeoutOptions, ITrigger, Page, StringButton, TriggersMap } from '../../../interfaces';
 
@@ -13,7 +13,7 @@ export class ChatBuilder {
 
     readonly proxy: Proxy;
 
-    readonly id: string = generateID(6);
+    readonly id: string = generateRandomString(6);
 
     private pages: Page[] = [];
     private header: ComponentsUnion = new TextComponent();
@@ -253,7 +253,7 @@ export class ChatBuilder {
                 .replace('%m', String(this.pages.length));
 
             page.addExtra(`${pagination}§r`);
-            
+
             if ((defaultButtons.length && this.pages.length > 1 && footerLength) || (!defaultButtons.length && this.paginationFormat)) {
                 page.addSpace()
                     .addExtra(Component.BULLET)

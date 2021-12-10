@@ -6,7 +6,7 @@ import { Proxy } from '../../Proxy';
 import { Plugin } from '../Plugin';
 import { Item, NBT, Page, Slider } from '../../modules';
 
-import { generateID, minecraftData, normalizeDuration } from '../../../utils';
+import { generateRandomString, minecraftData, normalizeDuration } from '../../../utils';
 
 import { ISpotify, PluginConfigFactory } from '../../../interfaces';
 
@@ -449,7 +449,7 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                             .setBold()
                             .setClickEvent({
                                 action: ClickAction.OPEN_URL,
-                                value: this.spotify.createAuthorizeURL(this.state.scope, generateID(6))
+                                value: this.spotify.createAuthorizeURL(this.state.scope, generateRandomString(6))
                             })
                             .setHoverEvent({
                                 action: HoverAction.SHOW_TEXT,
