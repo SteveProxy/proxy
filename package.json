@@ -25,7 +25,7 @@
     "minecraft-path": "^1.0.0",
     "minecraft-protocol": "^1.29.0",
     "moment": "^2.29.1",
-    "prismarine-nbt": "^1.6.0",
+    "prismarine-nbt": "^2.0.0",
     "rawjsonbuilder": "^2.1.1",
     "spotify-web-api-node": "^5.0.2",
     "vk-io": "^4.4.0"
