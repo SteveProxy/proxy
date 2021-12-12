@@ -3,21 +3,33 @@ import { ClickAction, HoverAction, parse, text, translate } from 'rawjsonbuilder
 import { parse as parseNBT } from 'prismarine-nbt';
 import { promises as fs } from 'fs';
 
-import { Proxy } from '../../Proxy';
-import { Plugin } from '../Plugin';
-import { PluginManager, Head, PlayerHead } from '../../modules';
+import { Proxy } from '../../';
+import { Plugin } from '../plugin';
+import { PluginManager, Inventory, Head, NBT, PlayerHead } from '../../modules';
 
 import { config } from '../../../config';
 
-import { ICommand, IRawServer, IServer } from '../../../interfaces';
+import { serializeIP } from '../../../utils';
+
+export interface IRawServer {
+    name: NBT;
+    ip: NBT;
+    icon: NBT;
+}
+
+export interface IServer {
+    name: string;
+    ip: string;
+    icon: string;
+}
 
 export class Core extends Plugin {
 
-    private tab: Set<string> = new Set();
-    private bossBar: Set<string> = new Set();
+    #tab: Set<string> = new Set();
+    #bossBar: Set<string> = new Set();
 
-    private serversBuilder = this.proxy.client.context.pagesBuilder()
-        .setInventoryType('generic_9x6');
+    #serversBuilder = this.proxy.client.context.pagesBuilder()
+        .setInventoryType(Inventory.GENERIC_9X6);
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -66,22 +78,22 @@ export class Core extends Plugin {
         this.proxy.packetManager.on('boss_bar', ({ packet: { action, entityUUID } }) => {
             switch (action) {
                 case 0:
-                    return this.bossBar.add(entityUUID);
+                    return this.#bossBar.add(entityUUID);
                 case 1:
-                    return this.bossBar.delete(entityUUID);
+                    return this.#bossBar.delete(entityUUID);
             }
         });
     }
 
     clearBossBar(): void {
-        this.bossBar.forEach((entityUUID) => {
+        this.#bossBar.forEach((entityUUID) => {
             this.proxy.client.write('boss_bar', {
                 action: 1,
                 entityUUID
             });
         });
 
-        this.bossBar.clear();
+        this.#bossBar.clear();
     }
 
     listenTabChanges(): void {
@@ -89,9 +101,9 @@ export class Core extends Plugin {
             data.forEach(({ UUID }: { UUID: string }) => {
                 switch (action) {
                     case 0:
-                        return this.tab.add(UUID);
+                        return this.#tab.add(UUID);
                     case 4:
-                        return this.tab.delete(UUID);
+                        return this.#tab.delete(UUID);
                 }
             });
         });
@@ -100,12 +112,13 @@ export class Core extends Plugin {
     clearTab(): void {
         this.proxy.client.write('player_info', {
             action: 4,
-            data: [...this.tab].map((UUID) => ({
-                UUID
-            }))
+            data: [...this.#tab]
+                .map((UUID) => ({
+                    UUID
+                }))
         });
 
-        this.tab.clear();
+        this.#tab.clear();
     }
 
     private sendBrandTab(): void {
@@ -116,7 +129,9 @@ export class Core extends Plugin {
 
     private help(): void {
         const plugins = [...this.proxy.pluginManager.plugins.values()]
-            .filter(({ meta: { hidden, commands } }) => !hidden && commands.length);
+            .filter(({ meta: { hidden, commands } }) => (
+                !hidden && commands!.length
+            ));
 
         const builder = this.proxy.client.context.chatBuilder()
             .setPagesHeader(`${config.bridge.title} | Список доступных команд`);
@@ -143,12 +158,12 @@ export class Core extends Plugin {
                 )
         );
 
-        plugins.forEach(({ meta: { name: pluginName, description, prefix, commands, ignorePluginPrefix } }) => {
+        plugins.forEach(({ meta: { name: pluginName, description, prefix, commands = [], ignorePluginPrefix } }) => {
             const page = text(`${prefix} ${description}`)
                 .addNewLine()
                 .addNewLine();
 
-            commands.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, hidden, args = [], description }: ICommand, index: number) => {
+            commands!.forEach(({ name: commandName, ignorePluginPrefix: commandIgnorePluginPrefix, hidden, args = [], description }, index) => {
                 if (hidden) {
                     return;
                 }
@@ -156,13 +171,15 @@ export class Core extends Plugin {
                 const command = (`${PluginManager.prefix}${!(ignorePluginPrefix || commandIgnorePluginPrefix) ? `${pluginName} ${commandName}` : commandName}`)
                     .trim();
 
-                args = args.map((arg) => `§7<§r${arg}§7>§r`);
+                args = args?.map((arg: string) => (
+                    `§7<§r${arg}§7>§r`
+                ));
 
                 page.addExtra(
-                    text(`${command}${args.length ? ` ${args.join(' ')}` : ''} §7-§r ${description}${index + 1 < commands.length ? '\n' : ''}`)
+                    text(`${command}${args?.length ? ` ${args.join(' ')}` : ''} §7-§r ${description}${index + 1 < commands?.length ? '\n' : ''}`)
                         .setHoverEvent({
                             action: HoverAction.SHOW_TEXT,
-                            contents: text(`Нажмите, чтобы ${args.length ? 'вставить команду в чат' : 'вызвать команду'}.`, 'gray')
+                            contents: text(`Нажмите, чтобы ${args?.length ? 'вставить команду в чат' : 'вызвать команду'}.`, 'gray')
                         })
                         .setClickEvent({
                             action: args.length ? ClickAction.SUGGEST_COMMAND : ClickAction.RUN_COMMAND,
@@ -184,21 +201,22 @@ export class Core extends Plugin {
 
         const serversDatBuffer = await fs.readFile(`${minecraftPath()}/servers.dat`);
 
-        // @ts-ignore
-        let { value: { servers: { value: { value: servers } } } } = (await parseNBT(serversDatBuffer))
+        // @ts-ignore invalid lib types
+        const { value: { servers: { value: { value: rawServers } } } } = (await parseNBT(serversDatBuffer))
             .parsed;
 
-        servers = servers.map((server: IRawServer) => {
-            Object.keys(server)
-                .forEach((key) => {
-                    server[key as keyof IRawServer] = server[key as keyof IRawServer].value;
-                });
-
-            (server as unknown as IServer).ip = Proxy.parseIP(server.ip as unknown as string);
-
-            return server;
-        })
-            .filter(({ ip }: IServer) => ip && ip !== Proxy.parseIP(`${config.proxy.host}:${config.proxy.port}`));
+        const servers: IServer[] = rawServers.map((server: IRawServer) => ({
+            ...Object.fromEntries(
+                Object.entries(server)
+                    .map(([key, { value }]) => (
+                        [key, value]
+                    ))
+            ),
+            ip: serializeIP(server.ip.value)
+        }))
+            .filter(({ ip }: IServer) => (
+                ip !== serializeIP(`${config.proxy.host}:${config.proxy.port}`)
+            ));
 
         if (!servers.length) {
             return this.proxy.client.context.send(
@@ -208,28 +226,29 @@ export class Core extends Plugin {
             );
         }
 
-        return this.serversBuilder
+        return this.#serversBuilder
             .autoGeneratePages({
                 windowTitle: text(`${this.meta.prefix} Выбор сервера`),
-                // eslint-disable-next-line new-cap
-                items: servers.map(({ ip, name }: IServer) => PlayerHead({
-                    name: text(name || 'Без названия', 'white')
-                        .setItalic(false),
-                    lore: [
-                        text(''),
-                        text(
-                            this.proxy.currentServer === ip ?
-                                '§3Выбран'
-                                :
-                                '§7Нажмите, для того чтобы выбрать сервер.'
-                        )
-                    ],
-                    value: Head.Server,
-                    onClick: () => {
-                        this.proxy.connect(ip);
-                        this.connect();
-                    }
-                }))
+                items: servers.map(({ ip, name }: IServer) => (
+                    PlayerHead({
+                        name: text(name || 'Без названия', 'white')
+                            .setItalic(false),
+                        lore: [
+                            text(''),
+                            text(
+                                this.proxy.currentServer === ip ?
+                                    '§3Выбран'
+                                    :
+                                    '§7Нажмите, для того чтобы выбрать сервер.'
+                            )
+                        ],
+                        value: Head.SERVER,
+                        onClick: () => {
+                            this.proxy.connect(ip);
+                            this.connect();
+                        }
+                    })
+                ))
             })
             .build();
     }

@@ -1,7 +1,7 @@
 import { text } from 'rawjsonbuilder';
 
-import { Proxy } from '../../Proxy';
-import { Plugin } from '../Plugin';
+import { Proxy } from '../../index';
+import { Plugin } from '../plugin';
 import { API } from '../../modules';
 
 import { humanizeDate } from '../../../utils';

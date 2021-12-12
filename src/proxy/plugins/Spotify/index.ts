@@ -2,13 +2,27 @@ import axios, { AxiosInstance } from 'axios';
 import SpotifyAPI from 'spotify-web-api-node';
 import { ClickAction, HoverAction, text } from 'rawjsonbuilder';
 
-import { Proxy } from '../../Proxy';
-import { Plugin } from '../Plugin';
-import { Item, NBT, Page, Slider } from '../../modules';
+import { Proxy } from '../../index';
+import { Plugin, PluginConfigFactory } from '../plugin';
+import { Inventory, Item, NBT, Page, Slider } from '../../modules';
 
 import { generateRandomString, minecraftData, normalizeDuration } from '../../../utils';
 
-import { ISpotify, PluginConfigFactory } from '../../../interfaces';
+export interface ISpotify {
+    code: string;
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: number;
+    scope: string[];
+    market: string;
+    clientId: string;
+    redirectUrl: string;
+    template: {
+        explicit: string;
+        // %e - explicit, %n - name, %a - artists, %p - progress, %d - duration
+        output: string;
+    };
+}
 
 const NEXT_SONG_ITEM = minecraftData.findItemOrBlockByName('green_stained_glass').id;
 const PREVIOUS_SONG_ITEM = minecraftData.findItemOrBlockByName('red_stained_glass').id;
@@ -117,7 +131,9 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
         const { code, accessToken } = this.state;
 
         if (!code || !accessToken) {
-            return this.proxy.client.context.send(`${this.meta.prefix} §cПеред использованием этой команды необходимо авторизоваться!`);
+            return this.proxy.client.context.send(
+                `${this.meta.prefix} §cПеред использованием этой команды необходимо авторизоваться!`
+            );
         }
 
         if (!this.currentPlaying) {
@@ -125,7 +141,7 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
         }
 
         this.proxy.client.context.pagesBuilder()
-            .setInventoryType('generic_9x6')
+            .setInventoryType(Inventory.GENERIC_9X6)
             .addPages(() => {
                 const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
@@ -192,7 +208,6 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                 );
 
                 page.setItems(
-                    // eslint-disable-next-line new-cap
                     Slider({
                         cellsCount: 7,
                         initialPosition: 19,
@@ -216,7 +231,6 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                 );
 
                 page.setItems(
-                    // eslint-disable-next-line new-cap
                     Slider({
                         cellsCount: 7,
                         initialPosition: 37,
@@ -241,7 +255,7 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
 
                 return page;
             })
-            .setAutoRerenderInterval(1000)
+            .setAutoRerenderInterval(1_000)
             .build();
     }
 
@@ -295,7 +309,9 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                     default:
                         console.log(statusCode);
 
-                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`);
+                        this.proxy.client.context.send(
+                            `${this.meta.prefix} §cПроизошла ошибка при загрузке текущего трека!`
+                        );
                         break;
                 }
             });
@@ -314,7 +330,9 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                         this.refreshToken();
                         break;
                     default:
-                        this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при загрузке информации о пользователе.`);
+                        this.proxy.client.context.send(
+                            `${this.meta.prefix} §cПроизошла ошибка при загрузке информации о пользователе.`
+                        );
 
                         console.error(message);
                         break;
@@ -342,7 +360,9 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                             this.seekTo(0);
                             break;
                         default:
-                            this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при переключении трека!`);
+                            this.proxy.client.context.send(
+                                `${this.meta.prefix} §cПроизошла ошибка при переключении трека!`
+                            );
                             break;
                     }
                 });
@@ -355,7 +375,9 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
 
             this.spotify.seek(position)
                 .catch((error) => {
-                    this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при изменении позиции воиспроизведения!`);
+                    this.proxy.client.context.send(
+                        `${this.meta.prefix} §cПроизошла ошибка при изменении позиции воиспроизведения!`
+                    );
 
                     console.log(error);
                 });
@@ -379,14 +401,11 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
         if (this.cooldown < Date.now()) {
             this.updateCooldown();
 
-            (
-                this.currentPlaying.is_playing ?
-                    this.spotify.pause()
-                    :
-                    this.spotify.play()
-            )
+            this.spotify[this.currentPlaying.is_playing ? 'pause' : 'play']()
                 .catch((error) => {
-                    this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при изменение состояния воиспроизведения!`);
+                    this.proxy.client.context.send(
+                        `${this.meta.prefix} §cПроизошла ошибка при изменение состояния воиспроизведения!`
+                    );
 
                     this.currentPlaying.is_playing = !this.currentPlaying.is_playing;
 
@@ -477,7 +496,9 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                 }
 
                 if (this.state.scope.toString() !== this.state.scope.filter((scope) => scopes.includes(scope)).toString()) {
-                    this.proxy.client.context.send(`${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`);
+                    this.proxy.client.context.send(
+                        `${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`
+                    );
 
                     return this.auth();
                 }
@@ -491,7 +512,6 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
 
                 this.restart();
             })
-
             .catch(({ response: { data: { statusCode, body } } }) => {
                 switch (statusCode) {
                     case 400:

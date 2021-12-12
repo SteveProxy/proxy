@@ -1,10 +1,19 @@
-import { NBT } from '../components/NBT';
+import { ComponentsUnion } from 'rawjsonbuilder';
 
-import { Item } from '../components/Item';
+import { NBT, Item } from '../components';
 
 import { minecraftData } from '../../../../utils';
 
-import { IItemConstructor, IPlayerHeadOptions } from '../../../../interfaces';
+import { IItemConstructor } from '../types';
+
+export interface IPlayerHeadOptions {
+    name?: ComponentsUnion;
+    lore?: ComponentsUnion[];
+    onClick?: Item['onClick'];
+    position?: Item['position'];
+    value?: string;
+    url?: string;
+}
 
 export function PlayerHead(options: IPlayerHeadOptions): Omit<IItemConstructor, 'position'>;
 export function PlayerHead(options: IPlayerHeadOptions & { position: IItemConstructor['position'] }): Item;
@@ -54,5 +63,5 @@ export function PlayerHead({ name, lore, onClick, position, value, url }: IPlaye
 }
 
 export enum Head {
-    Server = 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NhNDVlZjU4MjFhOGIxMDdjYmZiYTdkNjZlOTk3ZmI2YWJlNTUyMWMxNTVjZWUyZjI0YjM0YjNkOTFhNSJ9fX0='
+    SERVER = 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NhNDVlZjU4MjFhOGIxMDdjYmZiYTdkNjZlOTk3ZmI2YWJlNTUyMWMxNTVjZWUyZjI0YjM0YjNkOTFhNSJ9fX0='
 }

@@ -15,3 +15,13 @@ export const plugins = <const>[
     Names,
     Chat
 ];
+
+export * from './plugin';
+
+export * from './VK';
+export * from './Chat';
+export * from './Skin';
+export * from './Core';
+export * from './Names';
+export * from './Discord';
+export * from './Spotify';

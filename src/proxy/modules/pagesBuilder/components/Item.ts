@@ -1,14 +1,16 @@
-import { IItem, IItemConstructor /*, RangeOf*/ } from '../../../../interfaces';
-import { PacketContext } from '../../packetManager/PacketManager';
+import { PacketContext } from '../../packetManager';
+
+import { IItem } from '../../context';
+import { IItemConstructor } from '../types';
 
 export class Item {
 
     itemId: number;
     itemDamage?: number;
-    itemCount: number; // RangeOf<1, 64>
+    itemCount: IItemConstructor['count'];
     nbtData?: any;
 
-    position: number; // RangeOf<0, 63>
+    position: IItemConstructor['position'];
     onClick?: (context: PacketContext) => void;
 
     constructor(params: IItemConstructor) {

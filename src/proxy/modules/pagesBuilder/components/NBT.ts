@@ -1,6 +1,6 @@
 import { BaseComponent, ComponentsUnion } from 'rawjsonbuilder';
 
-import { NBTType } from '../../../../interfaces';
+import { NBTType } from '../types';
 
 export class NBT {
 

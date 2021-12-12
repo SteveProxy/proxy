@@ -1,18 +1,22 @@
 import { APIErrorCode, CallbackService, CallbackServiceRetry, getRandomId, ICallbackServiceCaptchaPayload, ICallbackServiceTwoFactorPayload } from 'vk-io';
+import { NotificationsNotificationItem } from 'vk-io/lib/api/schemas/objects';
 import { AuthErrorCode, DirectAuthorization, officialAppCredentials } from '@vk-io/authorization';
 import { ClickAction, HoverAction, text, translate } from 'rawjsonbuilder';
 
 import { middlewares } from './middlewares';
 import { API_VERSION } from './constants';
 
-import { Plugin } from '../Plugin';
-import { Proxy } from '../../Proxy';
+import { Plugin, PluginConfigFactory } from '../plugin';
+import { Proxy } from '../../index';
 import { PluginManager } from '../../modules';
-import { VK as _VK } from './API';
-import { Markdown } from './Markdown';
+import { VK as _VK } from './vk';
+import { Markdown } from './markdown';
 
-import { IVK, PluginConfigFactory } from '../../../interfaces';
-import { NotificationsNotificationItem } from 'vk-io/lib/api/schemas/objects';
+export interface IVK {
+    token: string;
+    user: number;
+    scope: string[];
+}
 
 const { AUTHORIZATION_FAILED, FAILED_PASSED_CAPTCHA, FAILED_PASSED_TWO_FACTOR, TOO_MUCH_TRIES, WRONG_OTP, USERNAME_OR_PASSWORD_IS_INCORRECT, INVALID_PHONE_NUMBER, PAGE_BLOCKED, OTP_FORMAT_IS_INCORRECT } = AuthErrorCode;
 const { AUTH, MESSAGES_USER_BLOCKED, MESSAGES_DENY_SEND, MESSAGES_PRIVACY, MESSAGES_CHAT_USER_NO_ACCESS, PARAM } = APIErrorCode;

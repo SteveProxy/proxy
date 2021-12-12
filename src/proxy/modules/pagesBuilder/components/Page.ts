@@ -1,9 +1,10 @@
 import { ComponentsUnion, TextComponent } from 'rawjsonbuilder';
 
+import { PacketContext } from '../../packetManager';
 import { Item } from './Item';
-import { PacketContext } from '../../packetManager/PacketManager';
 
-import { IItem, IPage } from '../../../../interfaces';
+import { IItem } from '../../context';
+import { IPage } from '../types';
 
 export class Page {
 
@@ -13,8 +14,7 @@ export class Page {
         .fill({
             present: false
         });
-
-    triggers: Map<number, (context: PacketContext) => unknown> = new Map();
+    triggers = new Map<number, (context: PacketContext) => unknown>();
 
     constructor({ triggers, items, windowTitle }: IPage = {}) {
         if (triggers) {
@@ -54,6 +54,8 @@ export class Page {
     }
 
     clone(): Page {
-        return new Page({ ...this });
+        return new Page({
+            ...this
+        });
     }
 }

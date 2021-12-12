@@ -1,4 +1,7 @@
-import { IParsedIP } from '../interfaces';
+export interface IParsedIP {
+    host: string;
+    port: number;
+}
 
 export function parseIP(ip: string): IParsedIP {
     const LOCALHOST = '127.0.0.1';

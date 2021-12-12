@@ -1,6 +1,7 @@
 import { createServer } from 'minecraft-protocol';
 
 import { config } from './config';
+
 import { getVersion, minecraftData } from './utils';
 
 const { proxy, lobby: _lobby, bridge: { title } } = config;
@@ -14,7 +15,6 @@ const lobby = createServer({
 const loginPacket = minecraftData.loginPacket;
 
 lobby.on('login', (client) => {
-    // @ts-ignore Invalid lib types
     loginPacket.entityId = client.id;
     loginPacket.isHardcore = true;
     loginPacket.gameMode = 0;
@@ -23,7 +23,10 @@ lobby.on('login', (client) => {
 
     client.write('login', loginPacket);
 
-    const channel = client.protocolVersion >= getVersion('1.13-pre3') ? 'brand' : 'MC|Brand';
+    const channel = client.protocolVersion >= getVersion('1.13-pre3') ?
+        'brand'
+        :
+        'MC|Brand';
 
     client.registerChannel(channel, ['string', []]);
     client.writeChannel(channel, title);

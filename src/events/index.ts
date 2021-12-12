@@ -1,5 +1,5 @@
-import { Login } from './Login';
-import { Listening } from './Listening';
+import { Login } from './login';
+import { Listening } from './listening';
 
 export const events = <const>[
     Login,

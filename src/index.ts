@@ -4,7 +4,7 @@ import { events } from './events';
 import { config } from './config';
 import { version, escapeFormatting, formatBytes } from './utils';
 
-import { IClient } from './interfaces';
+import { IClient } from './proxy';
 
 import './lobby';
 
@@ -19,14 +19,16 @@ const server = createServer({
         if (description.length) {
             const { heapUsed, heapTotal } = process.memoryUsage();
 
-            const varibles = new Map([
+            const variables = new Map([
                 ['version', version],
                 ['heapUsed', formatBytes(heapUsed)],
                 ['heapTotal', formatBytes(heapTotal)]
             ]);
 
             let playerList = description.map((row) => {
-                varibles.forEach((value, name) => row = row.replace(`{${name}}`, value));
+                variables.forEach((value, name) => (
+                    row = row.replaceAll(`{${name}}`, value)
+                ));
 
                 return row;
             });
@@ -56,8 +58,8 @@ const server = createServer({
                 }));
         }
 
-        // @ts-ignore Invalid lib type
-        send(null, response);
+        // @ts-ignore
+        send!(null, response);
     }
 });
 

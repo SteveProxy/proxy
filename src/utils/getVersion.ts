@@ -1,17 +1,13 @@
 import { versions } from 'minecraft-data';
 
-export function getVersion(version: string | number): number | string {
-    const versionObject = versions.pc.filter((versionObject) => versionObject[
-        typeof version === 'string' ?
-            'minecraftVersion'
-            :
-            'version'
-    ] === version)[0];
+type VersionOrProtocol<V extends string | number> = V extends string ? number : string;
 
-    return versionObject[
-        typeof version === 'string' ?
-            'version'
-            :
-            'minecraftVersion'
-    ] as number | string;
+export function getVersion<V extends string | number>(version: V): VersionOrProtocol<V> {
+    const isString = typeof version === 'string';
+
+    const [versionObject] = versions.pc.filter((versionObject) => (
+        versionObject[isString ? 'minecraftVersion' : 'version'] === version
+    ));
+
+    return versionObject[isString ? 'version' : 'minecraftVersion'] as VersionOrProtocol<V>;
 }

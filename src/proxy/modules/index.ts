@@ -1,8 +1,9 @@
-export * from './chatManager/ChatManager';
-export * from './packetManager/PacketManager';
-export * from './pagesBuilder/PagesBuilder';
+export * from './api';
+export * from './context';
 
-export * from './QuestionBuilder';
-export * from './PluginManager';
-export * from './Context';
-export * from './API';
+export * from './chatManager';
+export * from './packetManager';
+export * from './pluginManager';
+
+export * from './pagesBuilder';
+export * from './questionBuilder';

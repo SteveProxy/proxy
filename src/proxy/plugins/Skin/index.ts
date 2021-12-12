@@ -4,20 +4,34 @@ import { text } from 'rawjsonbuilder';
 
 import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from '../../../utils';
 
-import { Plugin } from '../Plugin';
-import { Proxy } from '../../Proxy';
-import { API, PacketContext, PlayerHead } from '../../modules';
+import { Plugin } from '../plugin';
+import { Proxy } from '../../index';
+import { API, Inventory, PacketContext, PlayerHead } from '../../modules';
 
-import { ISkin, IChangeSkinOptions } from '../../../interfaces';
+export interface ISkin {
+    textureId: string;
+    url: string;
+    slim: boolean;
+    id: string;
+    name: string;
+    skinImage: string;
+    modelImage: string;
+    created: string;
+    updated: string;
+}
+export interface IChangeSkinOptions {
+    url: ISkin['url'];
+    slim: ISkin['slim'];
+}
 
 const PLAYER_HEAD = minecraftData.findItemOrBlockByName('player_head').id;
 
 export class Skin extends Plugin {
 
-    private cooldown = 0;
-    private currentSkin = '';
-    private builder = this.proxy.client.context.pagesBuilder()
-        .setInventoryType('generic_9x6');
+    #builder = this.proxy.client.context.pagesBuilder()
+        .setInventoryType(Inventory.GENERIC_9X6);
+    #currentSkin = '';
+    #cooldown = 0;
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -47,7 +61,7 @@ export class Skin extends Plugin {
         const playerInfoHandler = ({ packet: { action, data: [player] } }: PacketContext) => {
             if (action === 0 && player.UUID === this.proxy.bridge.uuid) {
                 if (player.properties[0]?.value) {
-                    this.currentSkin = JSON.parse(Buffer.from(player.properties[0].value, 'base64').toString())
+                    this.#currentSkin = JSON.parse(Buffer.from(player.properties[0].value, 'base64').toString())
                         .textures
                         .SKIN
                         .url;
@@ -64,7 +78,7 @@ export class Skin extends Plugin {
         const skins = (await this.readSkins())
             .reverse();
 
-        return this.builder.autoGeneratePages({
+        return this.#builder.autoGeneratePages({
             windowTitle: text(`${this.meta.prefix} Библиотека скинов`),
             // eslint-disable-next-line new-cap
             items: skins.map(({ url, slim, name }) => PlayerHead({
@@ -113,12 +127,12 @@ export class Skin extends Plugin {
     }
 
     private isSelected(url: string) {
-        return url === this.currentSkin;
+        return url === this.#currentSkin;
     }
 
     private async changeSkin({ url, slim }: IChangeSkinOptions): Promise<void> {
-        if (this.cooldown < Date.now()) {
-            if (url === this.currentSkin) {
+        if (this.#cooldown < Date.now()) {
+            if (url === this.#currentSkin) {
                 return this.proxy.client.context.send(
                     `${this.meta.prefix} §cУ вас уже установлен данный скин!`
                 );
@@ -137,7 +151,7 @@ export class Skin extends Plugin {
                 }
             })
                 .then(() => {
-                    this.currentSkin = url;
+                    this.#currentSkin = url;
 
                     this.proxy.client.context.send(`${this.meta.prefix} Скин успешно установлен! Перезайдите на сервер, чтобы обновить текущий скин.`);
                 })
@@ -152,7 +166,7 @@ export class Skin extends Plugin {
     private updateCooldown(): void {
         const COOLDOWN = 10;
 
-        this.cooldown = Date.now() + COOLDOWN * 1000;
+        this.#cooldown = Date.now() + COOLDOWN * 1000;
 
         this.proxy.client.context.setCooldown({
             id: PLAYER_HEAD,

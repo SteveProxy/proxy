@@ -1,18 +1,14 @@
 import { Component, HoverAction, keybind, text, translate } from 'rawjsonbuilder';
 
-import _dictionary from './dictionary.json';
+import dictionary from './dictionary.json';
 import emoji from './emoji.json';
 
-import { Proxy } from '../../Proxy';
-import { Plugin } from '../Plugin';
+import { Proxy } from '../../index';
+import { Plugin } from '../plugin';
 
 import { randomInteger } from '../../../utils';
 
-import { EmojiCategoriesMap, IDictionary } from '../../../interfaces';
-
-const dictionary: IDictionary = _dictionary;
-
-const categories: EmojiCategoriesMap = new Map([
+const categories = new Map<keyof typeof emoji, string>([
     ['emotions', 'Эмоции'],
     ['actions', 'Действия'],
     ['animals', 'Животные']
@@ -51,7 +47,7 @@ export class Chat extends Plugin {
 
         this.proxy.bridge.context.send(
             chars.map((char) => {
-                const charsFromDictionary = dictionary[char];
+                const charsFromDictionary = (dictionary as Record<string, string[]>)[char];
 
                 return charsFromDictionary ?
                     charsFromDictionary[randomInteger(0, charsFromDictionary.length - 1)]
@@ -66,37 +62,38 @@ export class Chat extends Plugin {
         this.proxy.client.context.chatBuilder()
             .setPagesHeader(`${this.meta.prefix} Список доступных Emoji`)
             .setPages(
-                [...categories].map(([category, description]) => {
-                    const categoryEmoji = emoji[category];
+                [...categories]
+                    .map(([category, description]) => {
+                        const categoryEmoji = emoji[category];
 
-                    const builder = text('');
+                        const builder = text('');
 
-                    builder.addExtra(description)
-                        .addNewLine()
-                        .addNewLine();
+                        builder.addExtra(description)
+                            .addNewLine()
+                            .addNewLine();
 
-                    categoryEmoji.forEach((emoji, index) => {
-                        builder.addExtra(
-                            text(emoji)
-                                .setBold()
-                                .setInsertion(emoji)
-                                .setHoverEvent({
-                                    action: HoverAction.SHOW_TEXT,
-                                    contents: translate('§7Нажмите с использованием %s§7, чтобы вставить Emoji в чат.', [
-                                        keybind('key.sneak')
-                                    ])
-                                })
-                        );
+                        categoryEmoji.forEach((emoji, index) => {
+                            builder.addExtra(
+                                text(emoji)
+                                    .setBold()
+                                    .setInsertion(emoji)
+                                    .setHoverEvent({
+                                        action: HoverAction.SHOW_TEXT,
+                                        contents: translate('§7Нажмите с использованием %s§7, чтобы вставить Emoji в чат.', [
+                                            keybind('key.sneak')
+                                        ])
+                                    })
+                            );
 
-                        builder.addExtra(`    ${Component.VERTICAL_LINE}    `);
+                            builder.addExtra(`    ${Component.VERTICAL_LINE}    `);
 
-                        if ((index + 1) % 2 === 0) {
-                            builder.addNewLine();
-                        }
-                    });
+                            if ((index + 1) % 2 === 0) {
+                                builder.addNewLine();
+                            }
+                        });
 
-                    return builder;
-                })
+                        return builder;
+                    })
             )
             .build();
     }
