@@ -49,56 +49,56 @@ const inventoryTypes = new Map<Inventory, IItemConstructor['count']>([
 const defaultButtons = new Map<ButtonAction, Omit<IItemConstructor, 'position'>>([
     [ButtonAction.FIRST, {
         id: minecraftData.findItemOrBlockByName('spectral_arrow').id,
-        nbt: new NBT('compound', {
-            display: new NBT('compound', {
-                Name: new NBT('string', (
+        nbt: NBT.compound({
+            display: NBT.compound({
+                Name: NBT.string(
                     text('В начало', 'green')
                         .setItalic(false)
-                ))
+                )
             })
         })
     }],
     [ButtonAction.BACK, {
         id: minecraftData.findItemOrBlockByName('arrow').id,
-        nbt: new NBT('compound', {
-            display: new NBT('compound', {
-                Name: new NBT('string', (
+        nbt: NBT.compound({
+            display: NBT.compound({
+                Name: NBT.string(
                     text('Назад', 'green')
                         .setItalic(false)
-                ))
+                )
             })
         })
     }],
     [ButtonAction.STOP, {
         id: minecraftData.findItemOrBlockByName('barrier').id,
-        nbt: new NBT('compound', {
-            display: new NBT('compound', {
-                Name: new NBT('string', (
+        nbt: NBT.compound({
+            display: NBT.compound({
+                Name: NBT.string(
                     text('Выход', 'red')
                         .setItalic(false)
-                ))
+                )
             })
         })
     }],
     [ButtonAction.NEXT, {
         id: minecraftData.findItemOrBlockByName('arrow').id,
-        nbt: new NBT('compound', {
-            display: new NBT('compound', {
-                Name: new NBT('string', (
+        nbt: NBT.compound({
+            display: NBT.compound({
+                Name: NBT.string(
                     text('Вперёд', 'green')
                         .setItalic(false)
-                ))
+                )
             })
         })
     }],
     [ButtonAction.LAST, {
         id: minecraftData.findItemOrBlockByName('spectral_arrow').id,
-        nbt: new NBT('compound', {
-            display: new NBT('compound', {
-                Name: new NBT('string', (
+        nbt: NBT.compound({
+            display: NBT.compound({
+                Name: NBT.string(
                     text('В конец', 'green')
                         .setItalic(false)
-                ))
+                )
             })
         })
     }]
@@ -241,14 +241,16 @@ export class PagesBuilder {
             .clone();
 
         if (this.#pages.length > 1) {
-            const pagination = new NBT('list', new NBT('string', [
-                text(''),
-                text(
-                    this.#paginationFormat
-                        .replace('%c', String(this.#currentPage))
-                        .replace('%m', String(this.#pages.length))
-                )
-            ]));
+            const pagination = NBT.list(
+                NBT.string([
+                    text(''),
+                    text(
+                        this.#paginationFormat
+                            .replace('%c', String(this.#currentPage))
+                            .replace('%m', String(this.#pages.length))
+                    )
+                ])
+            );
 
             page.setItems(
                 [...this.#defaultButtons]
@@ -276,9 +278,11 @@ export class PagesBuilder {
             .map((_, index) => new Item({
                 id: minecraftData.findItemOrBlockByName('black_stained_glass_pane').id,
                 position: this.#inventorySlots + index as IItemConstructor['position'],
-                nbt: new NBT('compound', {
-                    display: new NBT('compound', {
-                        Name: new NBT('string', text(''))
+                nbt: NBT.compound({
+                    display: NBT.compound({
+                        Name: NBT.string(
+                            text('')
+                        )
                     })
                 })
             })));
@@ -440,9 +444,11 @@ export class PagesBuilder {
                     cursorItem: new Item({
                         id: 1,
                         position: 1,
-                        nbt: new NBT('compound', {
-                            display: new NBT('compound', {
-                                Name: new NBT('string', text('SteveProxy Restore Inventory'))
+                        nbt: NBT.compound({
+                            display: NBT.compound({
+                                Name: NBT.string(
+                                    text('SteveProxy Restore Inventory')
+                                )
                             })
                         })
                     })

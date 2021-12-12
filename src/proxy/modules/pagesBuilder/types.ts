@@ -44,7 +44,20 @@ export interface IItemConstructor {
     onClick?: (context: PacketContext) => void;
 }
 
-export type NBTType = 'byte' | 'short' | 'int' | 'long' | 'float' | 'double' | 'byteArray' | 'string' | 'list' | 'compound' | 'intArray' | 'longArray';
+export enum NBTType {
+    BYTE = 'byte',
+    SHORT = 'short',
+    INT = 'int',
+    LONG = 'long',
+    FLOAT = 'float',
+    DOUBLE = 'double',
+    BYTE_ARRAY = 'byteArray',
+    STRING = 'string',
+    LIST = 'list',
+    COMPOUND = 'compound',
+    INT_ARRAY = 'intArray',
+    LONG_ARRAY = 'longArray'
+}
 
 export enum ButtonAction {
     FIRST = 'first',

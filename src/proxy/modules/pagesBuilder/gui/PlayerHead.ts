@@ -20,32 +20,38 @@ export function PlayerHead(options: IPlayerHeadOptions & { position: IItemConstr
 export function PlayerHead({ name, lore, onClick, position, value, url }: IPlayerHeadOptions): Item | Omit<IItemConstructor, 'position'> {
     const itemOptions = {
         id: minecraftData.findItemOrBlockByName('player_head').id,
-        nbt: new NBT('compound', {
-            display: new NBT('compound', {
+        nbt: NBT.compound({
+            display: NBT.compound({
                 Name: name ?
-                    new NBT('string', name)
+                    NBT.string(name)
                     :
                     undefined,
                 Lore: lore ?
-                    new NBT('list', new NBT('string', lore))
+                    NBT.list(
+                        NBT.string(lore)
+                    )
                     :
                     undefined
             }),
-            SkullOwner: new NBT('compound', {
-                Name: new NBT('string', 'head'),
-                Properties: new NBT('compound', {
-                    textures: new NBT('list', new NBT('compound', [{
-                        Value: new NBT('string', value || Buffer.from(
-                            JSON.stringify({
-                                textures: {
-                                    SKIN: {
-                                        url
-                                    }
-                                }
-                            })
-                        )
-                            .toString('base64'))
-                    }]))
+            SkullOwner: NBT.compound({
+                Name: NBT.string('head'),
+                Properties: NBT.compound({
+                    textures: NBT.list(
+                        NBT.compound([{
+                            Value: NBT.string(
+                                value || Buffer.from(
+                                    JSON.stringify({
+                                        textures: {
+                                            SKIN: {
+                                                url
+                                            }
+                                        }
+                                    })
+                                )
+                                    .toString('base64')
+                            )
+                        }])
+                    )
                 })
             })
         }),

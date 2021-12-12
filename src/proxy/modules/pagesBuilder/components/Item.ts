@@ -19,11 +19,7 @@ export class Item {
         this.itemId = id;
         this.itemDamage = damage;
         this.itemCount = count;
-
-        if (nbt) {
-            this.nbtData = nbt.build();
-        }
-
+        this.nbtData = nbt;
         this.position = position;
         this.onClick = onClick;
     }

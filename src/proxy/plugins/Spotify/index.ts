@@ -154,12 +154,12 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                     new Item({
                         id: PREVIOUS_SONG_ITEM,
                         position: 2,
-                        nbt: new NBT('compound', {
-                            display: new NBT('compound', {
-                                Name: new NBT('string', (
+                        nbt: NBT.compound({
+                            display: NBT.compound({
+                                Name: NBT.string(
                                     text('§cНазад')
                                         .setItalic(false)
-                                ))
+                                )
                             })
                         }),
                         onClick: () => {
@@ -172,17 +172,19 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                     new Item({
                         id: SONG_ITEM,
                         position: 4,
-                        nbt: new NBT('compound', {
-                            display: new NBT('compound', {
-                                Name: new NBT('string', (
+                        nbt: NBT.compound({
+                            display: NBT.compound({
+                                Name: NBT.string(
                                     text(`${is_playing ? '⏵' : '⏸'} ${explicit ? '[§cE§r] ' : ''}${name}`)
                                         .setItalic(false)
-                                )),
-                                Lore: new NBT('list', new NBT('string', [
-                                    text(`§2${artists.join('§f, §2')}`),
-                                    text(''),
-                                    text(`§7${normalizeDuration(progress_ms)} §f/ §7${normalizeDuration(duration_ms)}`)
-                                ]))
+                                ),
+                                Lore: NBT.list(
+                                    NBT.string([
+                                        text(`§2${artists.join('§f, §2')}`),
+                                        text(''),
+                                        text(`§7${normalizeDuration(progress_ms)} §f/ §7${normalizeDuration(duration_ms)}`)
+                                    ])
+                                )
                             })
                         }),
                         onClick: () => this.changePlaybackState()
@@ -193,12 +195,12 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                     new Item({
                         id: NEXT_SONG_ITEM,
                         position: 6,
-                        nbt: new NBT('compound', {
-                            display: new NBT('compound', {
-                                Name: new NBT('string', (
+                        nbt: NBT.compound({
+                            display: NBT.compound({
+                                Name: NBT.string(
                                     text('§2Далее')
                                         .setItalic(false)
-                                ))
+                                )
                             })
                         }),
                         onClick: () => {
@@ -215,15 +217,17 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                         max: 100,
                         onClick: (value) => this.setVolume(value),
                         nbt: (value) => (
-                            new NBT('compound', {
-                                display: new NBT('compound', {
-                                    Name: new NBT('string', (
+                            NBT.compound({
+                                display: NBT.compound({
+                                    Name: NBT.string(
                                         text(`Текущая громкость §2${volume_percent}§f%`)
                                             .setItalic(false)
-                                    )),
-                                    Lore: new NBT('list', new NBT('string', [
-                                        text(`§7Нажмите, для того чтобы установить громкость на §2${value}§f%`)
-                                    ]))
+                                    ),
+                                    Lore: NBT.list(
+                                        NBT.string([
+                                            text(`§7Нажмите, для того чтобы установить громкость на §2${value}§f%`)
+                                        ])
+                                    )
                                 })
                             })
                         )
@@ -238,15 +242,17 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                         max: duration_ms,
                         onClick: (value) => this.seekTo(value),
                         nbt: (value) => (
-                            new NBT('compound', {
-                                display: new NBT('compound', {
-                                    Name: new NBT('string', (
+                            NBT.compound({
+                                display: NBT.compound({
+                                    Name: NBT.string(
                                         text(`Текущая позиция §2${normalizeDuration(progress_ms)}`)
                                             .setItalic(false)
-                                    )),
-                                    Lore: new NBT('list', new NBT('string', [
-                                        text(`§7Нажмите, для того чтобы установить позицию на §2${normalizeDuration(value)}`)
-                                    ]))
+                                    ),
+                                    Lore: NBT.list(
+                                        NBT.string([
+                                            text(`§7Нажмите, для того чтобы установить позицию на §2${normalizeDuration(value)}`)
+                                        ])
+                                    )
                                 })
                             })
                         )
@@ -265,8 +271,8 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
         if (this.currentPlaying) {
             const { progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
 
-            if (this.currentPlaying.is_playing && progress_ms < duration_ms + 1000) {
-                this.currentPlaying.progress_ms += 1000;
+            if (this.currentPlaying.is_playing && progress_ms < duration_ms + 1_000) {
+                this.currentPlaying.progress_ms += 1_000;
 
                 output = output.replace('%e', explicit ? templateExplicit : '')
                     .replace('%n', name)
