@@ -3,14 +3,15 @@ export interface IParsedIP {
     port: number;
 }
 
-export function parseIP(ip: string): IParsedIP {
-    const LOCALHOST = '127.0.0.1';
+const LOCALHOST = '127.0.0.1';
+const PLACEHOLDER = '0.0.0.0';
 
+export function parseIP(ip: string): IParsedIP {
     const parsedIP = ip.match(/([^]+):([\d]+)/);
 
     if (parsedIP) {
         return {
-            host: parsedIP[1] !== '0.0.0.0' ?
+            host: parsedIP[1] !== PLACEHOLDER ?
                 parsedIP[1]
                 :
                 LOCALHOST,
@@ -21,7 +22,7 @@ export function parseIP(ip: string): IParsedIP {
     const isPort = ip.startsWith(':');
 
     return {
-        host: ip && !isPort && ip !== '0.0.0.0' ?
+        host: ip && !isPort && ip !== PLACEHOLDER ?
             ip
             :
             LOCALHOST,
