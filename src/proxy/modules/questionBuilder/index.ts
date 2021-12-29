@@ -4,6 +4,7 @@ import { Proxy } from '../../';
 import { PluginManager } from '../pluginManager';
 import { PacketContext } from '../packetManager';
 
+import { generateRandomString } from '../../../utils';
 import {
     CancelHandler,
     IAnswer,
@@ -13,12 +14,14 @@ import {
     SerializedQuestion
 } from './types';
 
-let currentBuilder: QuestionBuilder | undefined;
+const buildersStorage = new Map<string, QuestionBuilder>();
 
 export class QuestionBuilder {
 
-    readonly proxy: Proxy;
     static prefix = 'questionbuilder';
+
+    readonly proxy: Proxy;
+    readonly id = generateRandomString(6);
 
     #questions: QuestionSet = new Set();
     #paginationFormat = '%c §7/§r %m';
@@ -90,6 +93,8 @@ export class QuestionBuilder {
     }
 
     private async sendQuestion() {
+        const currentBuilder = buildersStorage.has(this.proxy.client.uuid);
+
         if (currentBuilder && this.#currentQuestion <= this.#questions.size) {
             const questions = [...this.#questions];
             const questionIndex = this.#currentQuestion - 1;
@@ -175,7 +180,7 @@ export class QuestionBuilder {
     }
 
     private saveContext(): void {
-        currentBuilder = this;
+        buildersStorage.set(this.proxy.client.uuid, this);
     }
 
     async build(): Promise<string[]> {
@@ -191,16 +196,17 @@ export class QuestionBuilder {
     }
 
     stop(): void {
-        QuestionBuilder.stop();
+        QuestionBuilder.stop(this.proxy.client.uuid);
     }
 
-    static stop(): void {
-        currentBuilder = undefined;
+    static stop(uuid: string): void {
+        buildersStorage.delete(uuid);
     }
 
     static get middleware(): (context: PacketContext) => void {
         return (context: PacketContext) => {
             const prefix = `${PluginManager.prefix}${QuestionBuilder.prefix}`;
+            const currentBuilder = buildersStorage.get(context.proxy.client.uuid);
             const message = context.packet.message;
 
             let skipValidation;
