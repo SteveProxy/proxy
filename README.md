@@ -31,10 +31,10 @@ The proxy fully implements the ability to write custom plugins, which you can in
 | [ChatManager](https://github.com/SteveProxy/proxy/tree/master/src/proxy/modules/chatManager) | Module for creating dynamic pages with which you can interact in the in-game chat. <br> Includes pagination system and callback buttons. |
 | [PacketManager](https://github.com/SteveProxy/proxy/tree/master/src/proxy/modules/packetManager) | Allows you to catch and modify any packets sent by the client to the server and vice versa, up to the cancellation of their sending. |
 | [PagesBuilder](https://github.com/SteveProxy/proxy/tree/master/src/proxy/modules/pagesBuilder) | Create interactive pages based on the Minecraft inventory interface. <br> It includes a pagination system, callback buttons, as well as some built-in components & methods to simplify the building of pages. |
-| [QuestionBuilder](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/QuestionBuilder.ts) | Module for creating Q&A constructs with waiting for the user's answer in the chat, as well as intermediate validation of answers. |
-| [PluginManager](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/PluginManager.ts) | Registration and interaction with other plugins. |
-| [Context](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/Context.ts) | Set of functions to simplify working with [node-minecraft-protocol](https://github.com/PrismarineJS/node-minecraft-protocol). |
-| [API](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/API.ts) | Set of methods for interacting with some HTTP APIs. |
+| [QuestionBuilder](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/questionBuilder) | Module for creating Q&A constructs with waiting for the user's answer in the chat, as well as intermediate validation of answers. |
+| [PluginManager](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/pluginManager) | Registration and interaction with other plugins. |
+| [Context](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/context) | Set of functions to simplify working with [node-minecraft-protocol](https://github.com/PrismarineJS/node-minecraft-protocol). |
+| [API](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/api) | Set of methods for interacting with some HTTP APIs. |
 
 ### 🔌 Plugins
 
