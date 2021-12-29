@@ -62,7 +62,7 @@ export class PluginManager {
             this.#isStarted = false;
 
             this.proxy.packetManager.stop();
-            QuestionBuilder.stop();
+            QuestionBuilder.stop(this.proxy.client.uuid);
         }
     }
 
