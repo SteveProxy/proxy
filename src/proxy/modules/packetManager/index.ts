@@ -55,7 +55,7 @@ export class PacketManager extends EventEmitter {
         }
     }
 
-    once(events: string | symbol | (string | symbol)[], listener: (context: PacketContext) => void): this {
+    once(events: string | symbol | (string | symbol)[], listener: (context: PacketContext) => unknown): this {
         events = Array.isArray(events) ? events : [events];
 
         events.forEach((event) => {
@@ -65,11 +65,21 @@ export class PacketManager extends EventEmitter {
         return this;
     }
 
-    on(events: string | symbol | (string | symbol)[], listener: (context: PacketContext) => void): this {
+    on(events: string | symbol | (string | symbol)[], listener: (context: PacketContext) => unknown): this {
         events = Array.isArray(events) ? events : [events];
 
         events.forEach((event) => {
             super.on(event, listener);
+        });
+
+        return this;
+    }
+
+    removeListener(events: string | symbol | (string | symbol)[], listener: (context: PacketContext) => unknown): this {
+        events = Array.isArray(events) ? events : [events];
+
+        events.forEach((event) => {
+            super.removeListener(event, listener);
         });
 
         return this;
