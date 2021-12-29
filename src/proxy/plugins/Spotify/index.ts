@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import SpotifyAPI from 'spotify-web-api-node';
 import { ClickAction, HoverAction, text } from 'rawjsonbuilder';
 
-import { Proxy } from '../../index';
+import { PacketContext, Proxy } from '../../index';
 import { Plugin, PluginConfigFactory } from '../plugin';
 import { Inventory, Item, NBT, Page, Slider } from '../../modules';
 
@@ -30,16 +30,26 @@ const SONG_ITEM = minecraftData.findItemOrBlockByName('name_tag').id;
 
 export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
 
-    private spotify: SpotifyAPI;
-    private client: AxiosInstance;
-    private state: ISpotify = this.proxy.config.plugins.spotify;
+    #spotify: SpotifyAPI;
+    #client: AxiosInstance;
+    #state: ISpotify = this.proxy.config.plugins.spotify;
 
-    private username = '';
-    private currentPlaying?: any;
-    private getCurrentPlayingInterval?: NodeJS.Timeout;
-    private actionbarUpdateInterval?: NodeJS.Timeout;
-    private cooldown = 0;
-    private authStarted = false;
+    #username = '';
+    #currentPlaying?: any;
+    #getCurrentPlayingInterval?: NodeJS.Timeout;
+    #actionbarUpdateInterval?: NodeJS.Timeout;
+    #cooldown = 0;
+    #authStarted = false;
+
+    #actionbarHandler = (context: PacketContext) => {
+        if (this.#currentPlaying?.is_playing) {
+            if (context.meta.name === 'chat' && context.packet.position !== 2) {
+                return;
+            }
+
+            context.setCanceled();
+        }
+    };
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -83,14 +93,14 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
             }
         ];
 
-        const { clientId, redirectUrl: redirectUri } = this.state;
+        const { clientId, redirectUrl: redirectUri } = this.#state;
 
-        this.spotify = new SpotifyAPI({
+        this.#spotify = new SpotifyAPI({
             clientId,
             redirectUri
         });
 
-        this.client = axios.create({
+        this.#client = axios.create({
             baseURL: redirectUri
         });
     }
@@ -99,7 +109,7 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
         const state = this.proxy.config.plugins.spotify;
         const { accessToken, code, expiresIn, refreshToken } = state;
 
-        this.state = state;
+        this.#state = state;
 
         if (!code) {
             this.proxy.client.context.send(`${this.meta.prefix} Для работы плагина необходима авторизация.`);
@@ -108,27 +118,33 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
             return;
         }
 
-        this.spotify.setRefreshToken(refreshToken);
+        this.#spotify.setRefreshToken(refreshToken);
 
         if (!accessToken || expiresIn <= Date.now()) {
             return this.refreshToken();
         }
 
-        this.spotify.setAccessToken(accessToken);
+        this.#spotify.setAccessToken(accessToken);
 
         this.getUser()
             .then(() => {
-                this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.username}.`);
+                this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.#username}.`);
 
                 this.getCurrentPlaying();
 
-                this.getCurrentPlayingInterval = setInterval(this.getCurrentPlaying.bind(this), 3 * 1000);
-                this.actionbarUpdateInterval = setInterval(this.actionbarUpdate.bind(this), 1000);
+                this.#getCurrentPlayingInterval = setInterval(this.getCurrentPlaying.bind(this), 3 * 1_000);
+                this.#actionbarUpdateInterval = setInterval(this.actionbarUpdate.bind(this), 1_000);
             });
+
+        this.proxy.packetManager.on(['action_bar', 'chat'], this.#actionbarHandler);
+
+        setTimeout(() => {
+            this.stop();
+        }, 5_000);
     }
 
     private gui(): void {
-        const { code, accessToken } = this.state;
+        const { code, accessToken } = this.#state;
 
         if (!code || !accessToken) {
             return this.proxy.client.context.send(
@@ -136,18 +152,18 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
             );
         }
 
-        if (!this.currentPlaying) {
+        if (!this.#currentPlaying) {
             return this.proxy.client.context.send(`${this.meta.prefix} §cВ данный момент ничего не играет!`);
         }
 
         this.proxy.client.context.pagesBuilder()
             .setInventoryType(Inventory.GENERIC_9X6)
             .addPages(() => {
-                const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
+                const { is_playing, progress_ms, device: { volume_percent }, item: { artists, name, explicit, duration_ms } } = this.#currentPlaying;
 
                 const page = new Page()
                     .setWindowTitle(
-                        text(`${this.meta.prefix} §f${this.username}`)
+                        text(`${this.meta.prefix} §f${this.#username}`)
                     );
 
                 page.setItems(
@@ -266,13 +282,13 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     }
 
     private actionbarUpdate(): void {
-        let { template: { explicit: templateExplicit, output } } = this.state;
+        let { template: { explicit: templateExplicit, output } } = this.#state;
 
-        if (this.currentPlaying) {
-            const { progress_ms, item: { artists, name, explicit, duration_ms } } = this.currentPlaying;
+        if (this.#currentPlaying) {
+            const { progress_ms, item: { artists, name, explicit, duration_ms } } = this.#currentPlaying;
 
-            if (this.currentPlaying.is_playing && progress_ms < duration_ms + 1_000) {
-                this.currentPlaying.progress_ms += 1_000;
+            if (this.#currentPlaying.is_playing && progress_ms < duration_ms + 1_000) {
+                this.#currentPlaying.progress_ms += 1_000;
 
                 output = output.replace('%e', explicit ? templateExplicit : '')
                     .replace('%n', name)
@@ -288,8 +304,8 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     }
 
     private getCurrentPlaying(): void {
-        this.spotify.getMyCurrentPlaybackState({
-            market: this.state.market
+        this.#spotify.getMyCurrentPlaybackState({
+            market: this.#state.market
         })
             .then(({ body: data }) => {
                 if (data.item) {
@@ -300,7 +316,7 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                     data.item.duration_ms = this.floorMilliseconds(data.item.duration_ms);
                     data.progress_ms = this.floorMilliseconds(Number(data.progress_ms));
 
-                    this.currentPlaying = data;
+                    this.#currentPlaying = data;
                 }
             })
             .catch(({ statusCode, syscall, code }) => {
@@ -326,9 +342,9 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     private getUser(): Promise<void> {
         this.proxy.client.context.send(`${this.meta.prefix} Загрузка данных пользователя...`);
 
-        return this.spotify.getMe()
+        return this.#spotify.getMe()
             .then(({ body: { display_name = '' } }) => {
-                this.username = display_name;
+                this.#username = display_name;
             })
             .catch(({ body: { error: { status, message } } }) => {
                 switch (status) {
@@ -347,18 +363,18 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     }
 
     private skipTo(switchType: 'next' | 'previous' = 'next'): void {
-        if (this.cooldown < Date.now()) {
+        if (this.#cooldown < Date.now()) {
             this.updateCooldown();
 
-            if (switchType === 'previous' && (this.currentPlaying.progress_ms > 10 * 1000 || this.currentPlaying.actions.disallows.skipping_prev)) {
+            if (switchType === 'previous' && (this.#currentPlaying.progress_ms > 10 * 1000 || this.#currentPlaying.actions.disallows.skipping_prev)) {
                 return this.seekTo(0);
             }
 
             (
                 switchType === 'next' ?
-                    this.spotify.skipToNext()
+                    this.#spotify.skipToNext()
                     :
-                    this.spotify.skipToPrevious()
+                    this.#spotify.skipToPrevious()
             )
                 .catch(({ statusCode }) => {
                     switch(statusCode) {
@@ -376,10 +392,10 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     }
 
     private seekTo(position: number): void {
-        if (this.currentPlaying.progress_ms !== position) {
-            this.currentPlaying.progress_ms = position;
+        if (this.#currentPlaying.progress_ms !== position) {
+            this.#currentPlaying.progress_ms = position;
 
-            this.spotify.seek(position)
+            this.#spotify.seek(position)
                 .catch((error) => {
                     this.proxy.client.context.send(
                         `${this.meta.prefix} §cПроизошла ошибка при изменении позиции воиспроизведения!`
@@ -391,10 +407,10 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     }
 
     private setVolume(volume: number): void {
-        if (this.currentPlaying.device.volume_percent !== volume) {
-            this.currentPlaying.device.volume_percent = volume;
+        if (this.#currentPlaying.device.volume_percent !== volume) {
+            this.#currentPlaying.device.volume_percent = volume;
 
-            this.spotify.setVolume(volume)
+            this.#spotify.setVolume(volume)
                 .catch((error) => {
                     this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при установки громкости!`);
 
@@ -404,28 +420,28 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     }
 
     private changePlaybackState(): void {
-        if (this.cooldown < Date.now()) {
+        if (this.#cooldown < Date.now()) {
             this.updateCooldown();
 
-            this.spotify[this.currentPlaying.is_playing ? 'pause' : 'play']()
+            this.#spotify[this.#currentPlaying.is_playing ? 'pause' : 'play']()
                 .catch((error) => {
                     this.proxy.client.context.send(
                         `${this.meta.prefix} §cПроизошла ошибка при изменение состояния воиспроизведения!`
                     );
 
-                    this.currentPlaying.is_playing = !this.currentPlaying.is_playing;
+                    this.#currentPlaying.is_playing = !this.#currentPlaying.is_playing;
 
                     console.log(error);
                 });
 
-            this.currentPlaying.is_playing = !this.currentPlaying.is_playing;
+            this.#currentPlaying.is_playing = !this.#currentPlaying.is_playing;
         }
     }
 
     private updateCooldown(): void {
         const COOLDOWN = 3;
 
-        this.cooldown = Date.now() + COOLDOWN * 1000;
+        this.#cooldown = Date.now() + COOLDOWN * 1000;
 
         this.proxy.client.context.setCooldown({
             id: [NEXT_SONG_ITEM, PREVIOUS_SONG_ITEM, SONG_ITEM],
@@ -436,10 +452,10 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     private refreshToken(): void {
         this.stop();
 
-        this.client.post('', `token=${this.state.refreshToken}`)
+        this.#client.post('', `token=${this.#state.refreshToken}`)
             .then(({ data }) => data)
             .then(({ access_token: accessToken, expires_in: expiresIn }: any) => {
-                this.spotify.setAccessToken(accessToken);
+                this.#spotify.setAccessToken(accessToken);
 
                 this.updateConfig({
                     accessToken,
@@ -474,7 +490,7 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                             .setBold()
                             .setClickEvent({
                                 action: ClickAction.OPEN_URL,
-                                value: this.spotify.createAuthorizeURL(this.state.scope, generateRandomString(6))
+                                value: this.#spotify.createAuthorizeURL(this.#state.scope, generateRandomString(6))
                             })
                             .setHoverEvent({
                                 action: HoverAction.SHOW_TEXT,
@@ -484,24 +500,24 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
             );
         }
 
-        if (this.authStarted) {
+        if (this.#authStarted) {
             return this.proxy.client.context.send(
                 `${this.meta.prefix} §cДождитесь окончания предыдущей попытки авторизации!`
             );
         }
 
-        this.authStarted = true;
+        this.#authStarted = true;
 
         this.proxy.client.context.send(`${this.meta.prefix} Авторизация...`);
 
-        await this.client.post('', `state=${state}`)
+        await this.#client.post('', `state=${state}`)
             .then(({ data }) => data)
             .then(({ code, access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, scope: scopes }) => {
-                if (this.state.code === code) {
+                if (this.#state.code === code) {
                     return this.proxy.client.context.send(`${this.meta.prefix} §eВы уже авторизованы!`);
                 }
 
-                if (this.state.scope.toString() !== this.state.scope.filter((scope) => scopes.includes(scope)).toString()) {
+                if (this.#state.scope.toString() !== this.#state.scope.filter((scope) => scopes.includes(scope)).toString()) {
                     this.proxy.client.context.send(
                         `${this.meta.prefix} §cВы не выдали нужные права приложению при авторизации, авторизуйтесь заново!`
                     );
@@ -535,7 +551,7 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
                 }
             });
 
-        this.authStarted = false;
+        this.#authStarted = false;
     }
 
     private clearCredentials(): void {
@@ -548,16 +564,18 @@ export class Spotify extends Plugin<PluginConfigFactory<'spotify'>> {
     }
 
     protected floorMilliseconds(value: number): number {
-        return Math.floor(value / 1000) * 1000;
+        return Math.floor(value / 1_000) * 1_000;
     }
 
     stop(): void {
-        if (this.actionbarUpdateInterval) {
-            clearInterval(this.actionbarUpdateInterval);
+        if (this.#actionbarUpdateInterval) {
+            clearInterval(this.#actionbarUpdateInterval);
         }
 
-        if (this.getCurrentPlayingInterval) {
-            clearInterval(this.getCurrentPlayingInterval);
+        if (this.#getCurrentPlayingInterval) {
+            clearInterval(this.#getCurrentPlayingInterval);
         }
+
+        this.proxy.packetManager.removeListener(['action_bar', 'chat'], this.#actionbarHandler);
     }
 }
