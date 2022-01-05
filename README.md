@@ -35,6 +35,7 @@ The proxy fully implements the ability to write custom plugins, which you can in
 | [PluginManager](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/pluginManager) | Registration and interaction with other plugins. |
 | [Context](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/context) | Set of functions to simplify working with [node-minecraft-protocol](https://github.com/PrismarineJS/node-minecraft-protocol). |
 | [API](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/api) | Set of methods for interacting with some HTTP APIs. |
+| [Auth](https://github.com/SteveProxy/proxy/blob/master/src/proxy/modules/auth) | Module for Minecraft authentication using Xbox Live services. |
 
 ### 🔌 Plugins
 
