@@ -84,59 +84,6 @@ export class Core extends Plugin {
         this.#serversBuilder.stop();
     }
 
-    #listenBossBarChanges(): void {
-        this.proxy.packetManager.on('boss_bar', ({ packet: { action, entityUUID } }) => {
-            switch (action) {
-                case 0:
-                    return this.#bossBar.add(entityUUID);
-                case 1:
-                    return this.#bossBar.delete(entityUUID);
-            }
-        });
-    }
-
-    #clearBossBar(): void {
-        this.#bossBar.forEach((entityUUID) => {
-            this.proxy.client.write('boss_bar', {
-                action: 1,
-                entityUUID
-            });
-        });
-
-        this.#bossBar.clear();
-    }
-
-    #listenTabChanges(): void {
-        this.proxy.packetManager.on('player_info', ({ packet: { action, data } }) => {
-            data.forEach(({ UUID }: { UUID: string }) => {
-                switch (action) {
-                    case 0:
-                        return this.#tab.add(UUID);
-                    case 4:
-                        return this.#tab.delete(UUID);
-                }
-            });
-        });
-    }
-
-    #clearTab(): void {
-        this.proxy.client.write('player_info', {
-            action: 4,
-            data: [...this.#tab]
-                .map((UUID) => ({
-                    UUID
-                }))
-        });
-
-        this.#tab.clear();
-    }
-
-    #sendBrandTab(): void {
-        this.proxy.client.context.sendTab({
-            header: parse(title)
-        });
-    }
-
     #help(): void {
         const plugins = [...this.proxy.pluginManager.plugins.values()]
             .filter(({ meta: { hidden, commands } }) => (
@@ -261,5 +208,58 @@ export class Core extends Plugin {
                 ))
             })
             .build();
+    }
+
+    #listenBossBarChanges(): void {
+        this.proxy.packetManager.on('boss_bar', ({ packet: { action, entityUUID } }) => {
+            switch (action) {
+                case 0:
+                    return this.#bossBar.add(entityUUID);
+                case 1:
+                    return this.#bossBar.delete(entityUUID);
+            }
+        });
+    }
+
+    #clearBossBar(): void {
+        this.#bossBar.forEach((entityUUID) => {
+            this.proxy.client.write('boss_bar', {
+                action: 1,
+                entityUUID
+            });
+        });
+
+        this.#bossBar.clear();
+    }
+
+    #listenTabChanges(): void {
+        this.proxy.packetManager.on('player_info', ({ packet: { action, data } }) => {
+            data.forEach(({ UUID }: { UUID: string }) => {
+                switch (action) {
+                    case 0:
+                        return this.#tab.add(UUID);
+                    case 4:
+                        return this.#tab.delete(UUID);
+                }
+            });
+        });
+    }
+
+    #clearTab(): void {
+        this.proxy.client.write('player_info', {
+            action: 4,
+            data: [...this.#tab]
+                .map((UUID) => ({
+                    UUID
+                }))
+        });
+
+        this.#tab.clear();
+    }
+
+    #sendBrandTab(): void {
+        this.proxy.client.context.sendTab({
+            header: parse(title)
+        });
     }
 }

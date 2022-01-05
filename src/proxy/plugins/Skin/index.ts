@@ -1,5 +1,6 @@
 import axios from 'axios';
 import minecraftPath from 'minecraft-path';
+import { promises as fs } from 'fs';
 import { text } from 'rawjsonbuilder';
 
 import { MINECRAFT_API_ENDPOINT, minecraftData, TEXTURES_ENDPOINT } from '../../../utils';
@@ -183,12 +184,19 @@ export class Skin extends Plugin {
     }
 
     async #readSkins(): Promise<ISkin[]> {
-        const skins = Object.values<Omit<ISkin, 'url'>>(
-            (await import(`file://${minecraftPath()}/launcher_skins.json`))
-                .default
-        );
+        const skins = await fs.readFile(`${minecraftPath()}/launcher_skins.json`, {
+            encoding: 'utf-8'
+        })
+            .then((skins) => (
+                JSON.parse(skins) as Record<string, Omit<ISkin, 'url'>>
+            ))
+            .catch(() => null);
 
-        return skins
+        if (!skins) {
+            this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при чтении библиотеки скинов!`);
+        }
+
+        return Object.values(skins!)
             .map((skin) => ({
                 ...skin,
                 url: `${TEXTURES_ENDPOINT}${skin.textureId}`
