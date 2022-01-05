@@ -435,25 +435,7 @@ export class PagesBuilder {
                     clearInterval(autoRerenderInterval);
                 }
 
-                this.proxy.bridge.write('window_click', {
-                    windowId: 0,
-                    slot: 1,
-                    mouseButton: 0,
-                    mode: 0,
-                    changedSlots: [],
-                    cursorItem: new Item({
-                        id: 1,
-                        position: 1,
-                        nbt: NBT.compound({
-                            display: NBT.compound({
-                                Name: NBT.string(
-                                    text('SteveProxy Restore Inventory')
-                                )
-                            })
-                        })
-                    })
-                        .toJSON()
-                });
+                this.proxy.bridge.context.syncInventory();
             });
 
             return;
