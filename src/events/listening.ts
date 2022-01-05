@@ -3,15 +3,17 @@ import { Server } from 'minecraft-protocol';
 import { Event } from './event';
 
 import { IClient } from '../proxy';
+import { EventName } from './';
 
-export class Listening extends Event<'listening'> {
+export type ListeningEvent = EventName<'listening'>;
+
+export class Listening extends Event<ListeningEvent> {
 
     constructor() {
         super('listening');
     }
 
     handler(client: IClient, server: Server): void {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore Invalid lib type
         const { address, port } = server.socketServer.address();
 

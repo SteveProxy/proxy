@@ -7,9 +7,13 @@ import { Proxy, IClient } from '../proxy';
 
 import { getVersion } from '../utils';
 
-const { bridge: { whitelist } } = config;
+import { EventName } from './';
 
-export class Login extends Event<'login'> {
+const { bridge: { whitelist } } = config.data!;
+
+export type LoginEvent = EventName<'login'>;
+
+export class Login extends Event<LoginEvent> {
 
     constructor() {
         super('login');
