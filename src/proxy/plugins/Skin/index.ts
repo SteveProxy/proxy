@@ -160,7 +160,7 @@ export class Skin extends Plugin {
                 variant: slim ? 'slim' : 'classic'
             }, {
                 headers: {
-                    Authorization: `Bearer ${this.proxy.bridge.session.accessToken}`
+                    Authorization: `Bearer ${this.proxy.bridge.session?.accessToken}`
                 }
             })
                 .then(() => {
