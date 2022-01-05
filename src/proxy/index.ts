@@ -84,7 +84,6 @@ export class Proxy {
 
         this.#auth.getSession()
             .then(() => {
-                this.pluginManager.restart();
                 this.connectToFallbackServer();
             });
 
@@ -161,7 +160,11 @@ export class Proxy {
                 copyMetadata: true
             });
 
-            this.pluginManager.clear();
+            if (!this.pluginManager.isStarted) {
+                this.pluginManager.start();
+            } else {
+                this.pluginManager.clear();
+            }
 
             if (this.isFallbackServer) {
                 this.pluginManager.execute('connect');
