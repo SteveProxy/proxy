@@ -263,7 +263,7 @@ export class Proxy {
                 if (this.bridge) {
                     bridge.removeAllListeners('packet');
 
-                    if ((reason || data !== SOCKET_CLOSED_EVENT) && reason !== SOCKET_CLOSED_EVENT) {
+                    if ((reason || data.toLowerCase() !== SOCKET_CLOSED_EVENT) && reason.toLowerCase() !== SOCKET_CLOSED_EVENT) {
                         const disconnectTime = getCurrentTime();
 
                         const builder = text(`${title} | §cСоединение разорвано. ${reason}`)

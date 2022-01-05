@@ -7,7 +7,7 @@ import packageMeta from '../../package.json';
 export const { version } = packageMeta;
 
 export const USERS_DATA_PATH = './users';
-export const SOCKET_CLOSED_EVENT = 'SocketClosed';
+export const SOCKET_CLOSED_EVENT = 'socketclosed';
 
 export const TEXTURES_ENDPOINT = 'http://textures.minecraft.net/texture/';
 export const MINECRAFT_API_ENDPOINT = 'https://api.minecraftservices.com/minecraft/profile/skins';
