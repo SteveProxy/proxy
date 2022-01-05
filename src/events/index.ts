@@ -1,5 +1,10 @@
-import { Login } from './login';
-import { Listening } from './listening';
+import { Login, LoginEvent } from './login';
+import { Listening, ListeningEvent } from './listening';
+
+export type EventName<N extends string> = N;
+export type Events =
+    LoginEvent
+    & ListeningEvent;
 
 export const events = <const>[
     Login,
