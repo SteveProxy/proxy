@@ -22,7 +22,7 @@ The presence of an intermediary between the client and the server allows you to 
 <br>
 This makes it possible to change the behavior of the client and create plugins whose capabilities are limited only to Minecraft functions.
 <br>
-The proxy fully implements the ability to write custom plugins, which you can interact with using chat or built-in modules.
+The proxy fully implements the ability to create custom plugins, which you can interact with using chat or built-in modules.
 
 ### 🔧 Built-in modules
 
