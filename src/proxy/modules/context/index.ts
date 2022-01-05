@@ -1,13 +1,17 @@
 import { stripIndent } from 'common-tags';
 import { BaseComponent, ComponentsUnion, text } from 'rawjsonbuilder';
 
-import { PagesBuilder } from '../pagesBuilder';
+import { config } from '../../../config';
+
+import { Item, NBT, PagesBuilder } from '../pagesBuilder';
 import { ChatBuilder } from '../chatManager';
 
 import { getVersion } from '../../../utils';
 
 import { QuestionBuilder } from '../questionBuilder';
 import {
+    ClientType,
+    IChangePositionOptions,
     IContext,
     IOpenWindowOptions,
     ISendTabOptions,
@@ -16,6 +20,8 @@ import {
     SendTitleOptions,
     SetCooldownOptions
 } from './types';
+
+const { bridge: { title } } = config.data!;
 
 export class Context {
 
@@ -35,7 +41,7 @@ export class Context {
         }
 
         this.client.end(stripIndent`
-        ${this.proxy.config.bridge.title}
+        ${title}
         
         ${reason}
         `);
@@ -68,7 +74,7 @@ export class Context {
         }
 
         this.client.write('chat', {
-            message: this.type === 'bridge' ?
+            message: this.type === ClientType.BRIDGE ?
                 options
                 :
                 text(options).toString(),
@@ -209,6 +215,39 @@ export class Context {
                 itemID: id,
                 cooldownTicks: cooldown * 20
             });
+        });
+    }
+
+    syncInventory(): void {
+        this.client.write('window_click', {
+            windowId: 0,
+            slot: 1,
+            mouseButton: 0,
+            mode: 0,
+            changedSlots: [],
+            cursorItem: new Item({
+                id: 1,
+                position: 1,
+                nbt: NBT.compound({
+                    display: NBT.compound({
+                        Name: NBT.string(
+                            text('SteveProxy Restore Inventory')
+                        )
+                    })
+                })
+            })
+                .toJSON()
+        });
+    }
+
+    changePosition({ x, y, z, yaw = 0, pitch = 0, flags = 0x00 }: IChangePositionOptions) {
+        this.client.write('position', {
+            x,
+            y,
+            z,
+            yaw,
+            pitch,
+            flags
         });
     }
 
