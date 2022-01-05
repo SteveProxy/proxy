@@ -95,7 +95,7 @@ export class Spotify extends Plugin<ISpotify> {
         });
     }
 
-    start(): void {
+    start(silent?: boolean): void {
         const state = this.proxy.userConfig.plugins.spotify;
         const { accessToken, code, expiresIn, refreshToken } = state;
 
@@ -116,9 +116,15 @@ export class Spotify extends Plugin<ISpotify> {
 
         this.#spotify.setAccessToken(accessToken);
 
+        if (!silent) {
+            this.proxy.client.context.send(`${this.meta.prefix} Загрузка данных пользователя...`);
+        }
+
         this.#getUser()
             .then(() => {
-                this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.#username}.`);
+                if (!silent) {
+                    this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.#username}.`);
+                }
 
                 this.#getCurrentPlaying();
 
@@ -330,8 +336,6 @@ export class Spotify extends Plugin<ISpotify> {
     }
 
     #getUser(): Promise<void> {
-        this.proxy.client.context.send(`${this.meta.prefix} Загрузка данных пользователя...`);
-
         return this.#spotify.getMe()
             .then(({ body: { display_name = '' } }) => {
                 this.#username = display_name;
@@ -452,7 +456,7 @@ export class Spotify extends Plugin<ISpotify> {
                     expiresIn
                 });
 
-                this.restart();
+                this.start(true);
             })
             .catch(({ response: { data: { statusCode } } }) => {
                 switch (statusCode) {
@@ -460,7 +464,7 @@ export class Spotify extends Plugin<ISpotify> {
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена, авторизуйтесь заново!`);
 
                         this.#clearCredentials();
-                        this.restart();
+                        this.start(true);
                         break;
                     default:
                         this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при обновлении токена.`);
