@@ -22,3 +22,8 @@ export interface IAnswer {
     answer: string;
     skipValidation?: boolean;
 }
+
+export enum QuestionCommand {
+    BACK = 'back',
+    CANCEL = 'cancel'
+}

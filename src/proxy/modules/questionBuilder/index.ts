@@ -1,6 +1,8 @@
 import { ClickAction, Component, HoverAction, text } from 'rawjsonbuilder';
 
-import { Proxy } from '../../';
+import { config } from '../../../config';
+
+import { Proxy, QuestionCommand } from '../../';
 import { PluginManager } from '../pluginManager';
 import { PacketContext } from '../packetManager';
 
@@ -13,6 +15,8 @@ import {
     QuestionSet,
     SerializedQuestion
 } from './types';
+
+const { bridge } = config.data!;
 
 const buildersStorage = new Map<string, QuestionBuilder>();
 
@@ -114,7 +118,7 @@ export class QuestionBuilder {
                     text('◀')
                         .setClickEvent({
                             action: ClickAction.RUN_COMMAND,
-                            value: `${PluginManager.prefix}${QuestionBuilder.prefix} back`
+                            value: `${PluginManager.prefix}${QuestionBuilder.prefix} ${QuestionCommand.BACK}`
                         })
                         .setHoverEvent({
                             action: HoverAction.SHOW_TEXT,
@@ -139,7 +143,7 @@ export class QuestionBuilder {
                     .setUnderlined()
                     .setClickEvent({
                         action: ClickAction.RUN_COMMAND,
-                        value: `${PluginManager.prefix}${QuestionBuilder.prefix} cancel`
+                        value: `${PluginManager.prefix}${QuestionBuilder.prefix} ${QuestionCommand.CANCEL}`
                     })
                     .setHoverEvent({
                         action: HoverAction.SHOW_TEXT,
@@ -221,10 +225,10 @@ export class QuestionBuilder {
                     .split(' ');
 
                 switch (command) {
-                    case 'back': {
+                    case QuestionCommand.BACK: {
                         if (currentBuilder.#validationStarted) {
                             return currentBuilder.proxy.client.context.send(
-                                `${currentBuilder.proxy.config.bridge.title} | §cДождитесь окончания проверки, перед возвратом к предыдущему вопросу!`
+                                `${bridge.title} | §cДождитесь окончания проверки, перед возвратом к предыдущему вопросу!`
                             );
                         }
 
@@ -238,7 +242,7 @@ export class QuestionBuilder {
 
                         break;
                     }
-                    case 'cancel':
+                    case QuestionCommand.CANCEL:
                         if (currentBuilder.#cancelHandler) {
                             currentBuilder.#cancelHandler();
                         }
