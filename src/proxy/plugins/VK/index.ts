@@ -6,8 +6,8 @@ import { ClickAction, HoverAction, text, translate } from 'rawjsonbuilder';
 import { middlewares } from './middlewares';
 import { API_VERSION } from './constants';
 
-import { Plugin, PluginConfigFactory } from '../plugin';
-import { Proxy } from '../../index';
+import { Proxy } from '../../';
+import { Plugin } from '../plugin';
 import { PluginManager } from '../../modules';
 import { VK as _VK } from './vk';
 import { Markdown } from './markdown';
@@ -15,24 +15,22 @@ import { Markdown } from './markdown';
 export interface IVK {
     token: string;
     user: number;
-    scope: string[];
 }
 
 const { AUTHORIZATION_FAILED, FAILED_PASSED_CAPTCHA, FAILED_PASSED_TWO_FACTOR, TOO_MUCH_TRIES, WRONG_OTP, USERNAME_OR_PASSWORD_IS_INCORRECT, INVALID_PHONE_NUMBER, PAGE_BLOCKED, OTP_FORMAT_IS_INCORRECT } = AuthErrorCode;
 const { AUTH, MESSAGES_USER_BLOCKED, MESSAGES_DENY_SEND, MESSAGES_PRIVACY, MESSAGES_CHAT_USER_NO_ACCESS, PARAM } = APIErrorCode;
 
-export class VK extends Plugin<PluginConfigFactory<'vk'>> {
+export class VK extends Plugin<IVK> {
 
-    private state: IVK = this.proxy.config.plugins.vk;
-    // @ts-ignore
-    vk: _VK;
-    private username = '';
+    #state: IVK = this.proxy.userConfig.plugins.vk;
+    vk!: _VK;
+    #username = '';
 
-    private authStarted = false;
-    private callbackService = new CallbackService();
+    #authStarted = false;
+    #callbackService = new CallbackService();
 
-    private notificationsUpdateInterval?: NodeJS.Timeout;
-    private lastNotificationsUpdate = Date.now();
+    #notificationsUpdateInterval?: NodeJS.Timeout;
+    #lastNotificationsUpdate = Date.now();
 
     constructor(proxy: Proxy) {
         super(proxy, {
@@ -41,20 +39,14 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
             prefix: '§9§lVK'
         }, {
             token: '',
-            user: 0,
-            scope: [
-                'friends',
-                'offline',
-                'notifications',
-                'messages'
-            ]
+            user: 0
         });
 
         this.meta.commands = [
             {
                 name: 'auth',
                 description: 'Авторизация в плагине',
-                handler: this.auth,
+                handler: this.#auth,
                 argsRequired: false,
                 args: [
                     'Логин',
@@ -64,7 +56,7 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
             {
                 name: 'send',
                 description: 'Отправка сообщения',
-                handler: this.send,
+                handler: this.#send,
                 args: [
                     'Получатель',
                     'Сообщение'
@@ -74,22 +66,21 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
             }
         ];
 
-        this.callbackService.onCaptcha(this.onCaptcha.bind(this));
-        this.callbackService.onTwoFactor(this.onTwoFactor.bind(this));
+        this.#callbackService.onCaptcha(this.#onCaptcha.bind(this));
+        this.#callbackService.onTwoFactor(this.#onTwoFactor.bind(this));
     }
 
     start(): void {
-        const state = this.proxy.config.plugins.vk;
+        const state = this.proxy.userConfig.plugins.vk;
         const { token, user } = state;
 
-        this.state = state;
+        this.#state = state;
 
         if (!token) {
-            this.proxy.client.context.send(`${this.meta.prefix} Для работы плагина необходима авторизация.`);
-
             return this.proxy.client.context.send(
-                text(this.meta.prefix)
-                    .addSpace()
+                text(`${this.meta.prefix} Для работы плагина необходима авторизация.`)
+                    .addNewLine()
+                    .addNewLine()
                     .addExtra(
                         text('Авторизоваться')
                             .setUnderlined()
@@ -124,14 +115,14 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
 
                 this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${name}.`);
 
-                this.username = name;
+                this.#username = name;
 
-                this.startNotificationsUpdates();
+                this.#startNotificationsUpdates();
             })
             .catch((error) => {
                 switch(error.code) {
                     case AUTH:
-                        this.clearCredentials();
+                        this.#clearCredentials();
                         this.restart();
                         break;
                     default:
@@ -143,15 +134,15 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
             });
     }
 
-    private startNotificationsUpdates(): void {
-        this.notificationsUpdateInterval = setInterval(() => {
-            this.getNotifications();
+    #startNotificationsUpdates(): void {
+        this.#notificationsUpdateInterval = setInterval(() => {
+            this.#getNotifications();
 
-            this.lastNotificationsUpdate = Date.now();
+            this.#lastNotificationsUpdate = Date.now();
         }, 15_000);
     }
 
-    private async getNotifications() {
+    async #getNotifications() {
         const notifications = await this.vk.api.notifications.get({})
             .then(({ items }) => items as NotificationsNotificationItem[])
             .catch((error) => {
@@ -162,7 +153,7 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
                 return [];
             });
 
-        notifications.filter(({ date = 0 }) => date >= this.lastNotificationsUpdate / 1000)
+        notifications.filter(({ date = 0 }) => date >= this.#lastNotificationsUpdate / 1000)
             .reverse()
             .forEach((notification) => {
                 this.proxy.client.context.send(
@@ -176,14 +167,14 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
             });
     }
 
-    private stopNotificationsUpdates(): void {
-        if (this.notificationsUpdateInterval) {
-            clearInterval(this.notificationsUpdateInterval);
+    #stopNotificationsUpdates(): void {
+        if (this.#notificationsUpdateInterval) {
+            clearInterval(this.#notificationsUpdateInterval);
         }
     }
 
-    private async auth(login = '', password = ''): Promise<void> {
-        if (this.authStarted) {
+    async #auth(login = '', password = ''): Promise<void> {
+        if (this.#authStarted) {
             return this.proxy.client.context.send(
                 `${this.meta.prefix} §cДождитесь окончания предыдущей попытки авторизации!`
             );
@@ -219,15 +210,20 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
                 ])
                 .build();
 
-            return this.auth(login, password);
+            return this.#auth(login, password);
         }
 
-        this.authStarted = true;
+        this.#authStarted = true;
 
         const direct = new DirectAuthorization({
             ...officialAppCredentials.iphone,
-            callbackService: this.callbackService,
-            scope: this.state.scope,
+            callbackService: this.#callbackService,
+            scope: [
+                'friends',
+                'offline',
+                'notifications',
+                'messages'
+            ],
             apiVersion: API_VERSION,
             login,
             password
@@ -243,7 +239,7 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
                 this.restart();
             })
             .catch(({ code, ...error }) => {
-                this.authStarted = false;
+                this.#authStarted = false;
 
                 switch (code) {
                     case USERNAME_OR_PASSWORD_IS_INCORRECT:
@@ -285,13 +281,13 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
                         return console.log(error);
                 }
 
-                this.auth();
+                this.#auth();
             });
 
-        this.authStarted = false;
+        this.#authStarted = false;
     }
 
-    private onCaptcha({ src }: ICallbackServiceCaptchaPayload, retry: CallbackServiceRetry): void {
+    #onCaptcha({ src }: ICallbackServiceCaptchaPayload, retry: CallbackServiceRetry): void {
         this.proxy.client.context.questionBuilder()
             .setQuestions(
                 translate(`${this.meta.prefix} Введите код с %s.`, [
@@ -307,14 +303,14 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
                         })
                 ])
             )
-            .onCancel(this.onCancel(retry))
+            .onCancel(this.#onCancel(retry))
             .build()
             .then(([code]) => retry(code));
     }
 
-    private onTwoFactor({ type, phoneMask }: ICallbackServiceTwoFactorPayload, retry: CallbackServiceRetry): void {
+    #onTwoFactor({ type, phoneMask }: ICallbackServiceTwoFactorPayload, retry: CallbackServiceRetry): void {
         const builder = this.proxy.client.context.questionBuilder()
-            .onCancel(this.onCancel(retry));
+            .onCancel(this.#onCancel(retry));
 
         switch (type) {
             case 'app':
@@ -329,7 +325,7 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
             .then(([code]) => retry(code));
     }
 
-    private onCancel(retry: CallbackServiceRetry): VoidFunction {
+    #onCancel(retry: CallbackServiceRetry): VoidFunction {
         return () => {
             retry(
                 new Error('Authorization canceled by user.')
@@ -337,7 +333,7 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
         };
     }
 
-    private send(peer_id: number, message: string) {
+    #send(peer_id: number, message: string) {
         this.vk.api.messages.send({
             peer_id,
             message,
@@ -372,7 +368,7 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
             });
     }
 
-    private clearCredentials() {
+    #clearCredentials() {
         this.updateConfig({
             token: '',
             user: 0
@@ -380,7 +376,7 @@ export class VK extends Plugin<PluginConfigFactory<'vk'>> {
     }
 
     stop(): void {
-        this.stopNotificationsUpdates();
+        this.#stopNotificationsUpdates();
 
         if (this.vk) {
             this.vk.updates.stop();
