@@ -44,12 +44,12 @@ export class Skin extends Plugin {
             {
                 name: '',
                 description: 'Библиотека скинов лаунчера',
-                handler: this.gui
+                handler: this.#gui
             },
             {
                 name: 'steal',
                 description: 'Установить скин игрока',
-                handler: this.steal,
+                handler: this.#steal,
                 args: [
                     'Никнейм игрока'
                 ]
@@ -74,35 +74,43 @@ export class Skin extends Plugin {
         this.proxy.packetManager.on('player_info', playerInfoHandler);
     }
 
-    async gui(): Promise<void> {
-        const skins = (await this.readSkins())
+    clear(): void {
+        this.start();
+
+        this.#builder.stop();
+    }
+
+    async #gui(): Promise<void> {
+        const skins = (await this.#readSkins())
             .reverse();
 
         return this.#builder.autoGeneratePages({
             windowTitle: text(`${this.meta.prefix} Библиотека скинов`),
             // eslint-disable-next-line new-cap
-            items: skins.map(({ url, slim, name }) => PlayerHead({
-                url,
-                name: text(name || 'Без названия', 'white')
-                    .setItalic(false),
-                lore: [
-                    text(''),
-                    text(
-                        this.isSelected(url) ?
-                            '§5Выбран'
-                            :
-                            '§7Нажмите, для того чтобы установить скин.'
-                    )
-                ],
-                onClick: async () => {
-                    await this.changeSkin({
-                        url,
-                        slim
-                    });
+            items: skins.map(({ url, slim, name }) => (
+                PlayerHead({
+                    url,
+                    name: text(name || 'Без названия', 'white')
+                        .setItalic(false),
+                    lore: [
+                        text(''),
+                        text(
+                            this.#isSelected(url) ?
+                                '§5Выбран'
+                                :
+                                '§7Нажмите, для того чтобы установить скин.'
+                        )
+                    ],
+                    onClick: async () => {
+                        await this.#changeSkin({
+                            url,
+                            slim
+                        });
 
-                    this.gui();
-                }
-            }))
+                        this.#gui();
+                    }
+                })
+            ))
         })
             .setDefaultButtons({
                 back: {
@@ -115,22 +123,22 @@ export class Skin extends Plugin {
             .build();
     }
 
-    private steal(nickname: string): void {
+    #steal(nickname: string): void {
         new API(this)
             .getPlayer(nickname)
             .then(({ textures: { skin: { url }, slim } }) => {
-                this.changeSkin({
+                this.#changeSkin({
                     url,
                     slim
                 });
             });
     }
 
-    private isSelected(url: string) {
+    #isSelected(url: string) {
         return url === this.#currentSkin;
     }
 
-    private async changeSkin({ url, slim }: IChangeSkinOptions): Promise<void> {
+    async #changeSkin({ url, slim }: IChangeSkinOptions): Promise<void> {
         if (this.#cooldown < Date.now()) {
             if (url === this.#currentSkin) {
                 return this.proxy.client.context.send(
@@ -138,7 +146,7 @@ export class Skin extends Plugin {
                 );
             }
 
-            this.updateCooldown();
+            this.#updateCooldown();
 
             this.proxy.client.context.send(`${this.meta.prefix} Установка скина...`);
 
@@ -163,10 +171,10 @@ export class Skin extends Plugin {
         }
     }
 
-    private updateCooldown(): void {
+    #updateCooldown(): void {
         const COOLDOWN = 10;
 
-        this.#cooldown = Date.now() + COOLDOWN * 1000;
+        this.#cooldown = Date.now() + COOLDOWN * 1_000;
 
         this.proxy.client.context.setCooldown({
             id: PLAYER_HEAD,
@@ -174,7 +182,7 @@ export class Skin extends Plugin {
         });
     }
 
-    private async readSkins(): Promise<ISkin[]> {
+    async #readSkins(): Promise<ISkin[]> {
         const skins = Object.values<Omit<ISkin, 'url'>>(
             (await import(`file://${minecraftPath()}/launcher_skins.json`))
                 .default
