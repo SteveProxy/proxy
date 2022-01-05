@@ -1,9 +1,6 @@
 import { JSONFile, Low } from 'lowdb';
 import { ServerOptions } from 'minecraft-protocol';
 
-import _config from '../config.json';
-
-import { ISpotify, IDiscord, IVK } from './proxy';
 import { IParsedIP } from './utils';
 
 export interface IConfig {
@@ -19,22 +16,15 @@ export interface IConfig {
         title: string;
         ignoredPackets: string[];
     };
-    plugins: {
-        spotify: ISpotify;
-        discord: IDiscord;
-        vk: IVK;
-    };
 }
 
-export const config = _config as unknown as IConfig;
+export const config = new Low(
+    new JSONFile<IConfig>('./config.json')
+);
 
-const adapter = new JSONFile<IConfig>('./config.json');
+await config.read();
 
-export const db = new Low(adapter);
-
-await db.read();
-
-db.data ||= {
+config.data ||= {
     proxy: {
         'online-mode': true,
         host: '0.0.0.0',
@@ -62,9 +52,8 @@ db.data ||= {
         ignoredPackets: [
             'keep_alive'
         ]
-    },
-    plugins: {}
-} as unknown as IConfig;
+    }
+};
 
-await db.write();
+await config.write();
 
