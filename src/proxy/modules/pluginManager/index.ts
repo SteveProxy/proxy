@@ -12,7 +12,7 @@ import { config } from '../../../config';
 
 import { ValuesOf } from '../../../utils';
 
-const { bridge: { prefix } } = config;
+const { bridge: { prefix } } = config.data!;
 
 export class PluginManager {
 
@@ -26,7 +26,7 @@ export class PluginManager {
     plugins = new Map<string, Plugin>();
     #cooldowns = new Map<string, number>();
 
-    #isStarted = false;
+    isStarted = false;
 
     #chatManager = (
         new ChatManager()
@@ -42,8 +42,8 @@ export class PluginManager {
     }
 
     start(): void {
-        if (!this.#isStarted) {
-            this.#isStarted = true;
+        if (!this.isStarted) {
+            this.isStarted = true;
 
             plugins.forEach((Plugin) => this.enablePlugin(Plugin));
 
@@ -52,23 +52,32 @@ export class PluginManager {
     }
 
     stop(): void {
-        if (this.#isStarted) {
+        if (this.isStarted) {
             [...this.plugins.values()]
                 .forEach((plugin) => plugin.stop());
 
             this.plugins = new Map();
             this.commands = new Map();
 
-            this.#isStarted = false;
+            this.isStarted = false;
 
-            this.proxy.packetManager.stop();
             QuestionBuilder.stop(this.proxy.client.uuid);
+            this.clear();
         }
     }
 
     restart(): void {
         this.stop();
         this.start();
+    }
+
+    clear(): void {
+        this.proxy.packetManager.stop();
+
+        [...this.plugins.values()]
+            .forEach((plugin) => plugin.clear());
+
+        this.listenChat();
     }
 
     execute(commandName: ICommand['name']): void {

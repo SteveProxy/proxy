@@ -1,5 +1,3 @@
-import { db, IConfig } from '../../config';
-
 import { Proxy } from '../';
 
 export interface IPluginMeta {
@@ -25,14 +23,7 @@ export interface ICommand {
     handler(...args: any[]): void;
 }
 
-type ConfigPluginUnion =
-    'vk'
-    | 'discord'
-    | 'spotify';
-
-export type PluginConfigFactory<N extends ConfigPluginUnion> = IConfig['plugins'][N];
-
-export class Plugin<C extends IConfig['plugins'][keyof IConfig['plugins']] | undefined = undefined> {
+export class Plugin<C extends Record<string, any> | undefined = undefined> {
 
     meta: IPlugin;
     proxy: Proxy;
@@ -45,22 +36,24 @@ export class Plugin<C extends IConfig['plugins'][keyof IConfig['plugins']] | und
 
         this.meta = meta as IPlugin;
 
-        // @ts-ignore
-        if (defaultConfig && !this.proxy.config.plugins[this.meta.name]) {
-            // @ts-ignore
+        if (defaultConfig && !this.proxy.userConfig.plugins?.[this.meta.name]) {
             this.updateConfig(defaultConfig);
         }
     }
 
     updateConfig(updates: Partial<C>): void {
-        // @ts-ignore
-        db.data!.plugins[this.meta.name] = {
-            // @ts-ignore
-            ...db.data!.plugins[this.meta.name],
+        if (!this.proxy.userConfig.plugins) {
+            this.proxy.userConfig.plugins = {};
+        }
+
+        const plugin = this.proxy.userConfig.plugins[this.meta.name];
+
+        this.proxy.userConfig.plugins[this.meta.name] = {
+            ...plugin,
             ...updates
         };
 
-        db.write();
+        this.proxy.user.write();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -73,4 +66,7 @@ export class Plugin<C extends IConfig['plugins'][keyof IConfig['plugins']] | und
         this.stop();
         this.start();
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    clear(): void {}
 }
