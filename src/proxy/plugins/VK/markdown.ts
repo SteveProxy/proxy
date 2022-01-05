@@ -25,7 +25,7 @@ export class Markdown {
 
             return '%s';
         })
-            .replaceAll(/'''(.+?)'''/g, '§l$1');
+            .replaceAll(/'''(.+?)'''/g, '§l$1§r');
 
         if (links.length) {
             return translate(text, links.map(([link, text, bold]) => (
@@ -149,7 +149,9 @@ export class Markdown {
                     return textComponent('● Неподдерживаемое вложение');
             }
         })
-            .map((attachment) => attachment.addNewLine());
+            .map((attachment) => (
+                attachment.addNewLine()
+            ));
     }
 
     static parseNotification(notification: NotificationsNotificationItem): TextComponent {
@@ -186,7 +188,7 @@ export class Markdown {
 
         Markdown.notificationFields.forEach((key) => {
             if (notification[key]) {
-                notification[key] = notification[key].replace('{date}', moment(date as number * 1000).fromNow());
+                notification[key] = notification[key].replace('{date}', moment(date! * 1_000).fromNow());
             }
         });
     }
