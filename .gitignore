@@ -1,5 +1,6 @@
-.idea
-node_modules
-build
-dist
+/.idea
+/node_modules
+/build
+/dist
+/users
 config.json
