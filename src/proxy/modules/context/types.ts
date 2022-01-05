@@ -2,10 +2,15 @@ import { ComponentsUnion, RawComponentsUnion } from 'rawjsonbuilder';
 
 import { IClient, Proxy } from '../../';
 
+export enum ClientType {
+    CLIENT = 'client',
+    BRIDGE = 'bridge'
+}
+
 export interface IContext {
     proxy: Proxy;
     client: IClient;
-    type: 'client' | 'bridge';
+    type: ClientType;
 }
 
 interface ISendOptions {
@@ -52,8 +57,16 @@ export interface IItem {
 }
 
 export type SetCooldownOptions = ISetCooldownOptions['id'] | ISetCooldownOptions;
-
 export interface ISetCooldownOptions {
     id: number | number[];
     cooldown?: number;
+}
+
+export interface IChangePositionOptions {
+    x: number;
+    y: number;
+    z: number;
+    yaw?: number;
+    pitch?: number;
+    flags?: number;
 }
