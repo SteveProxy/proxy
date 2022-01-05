@@ -10,8 +10,10 @@ export interface IPacketSwindlerOptions {
     packet: any;
     meta: PacketMeta;
     isFromServer: boolean;
-    send: (data: any) => unknown;
+    send: (data: Record<string, any>) => unknown;
 }
+
+const { bridge: { ignoredPackets } } = config.data!;
 
 export class PacketManager extends EventEmitter {
 
@@ -27,7 +29,7 @@ export class PacketManager extends EventEmitter {
     }
 
     packetSwindler({ packet, meta, isFromServer, send }: IPacketSwindlerOptions): void {
-        if (!config.bridge.ignoredPackets.includes(meta.name)) {
+        if (!ignoredPackets.includes(meta.name)) {
             const previousPacketTime = this.#currentPacketTime;
 
             this.#currentPacketTime = new Date()
