@@ -23,6 +23,8 @@ export interface IServer {
     icon: string;
 }
 
+const { bridge: { title }, proxy: { host, port } } = config.data!;
+
 export class Core extends Plugin {
 
     #tab: Set<string> = new Set();
@@ -43,12 +45,12 @@ export class Core extends Plugin {
             {
                 name: 'help',
                 description: 'Список доступных команд',
-                handler: this.help
+                handler: this.#help
             },
             {
                 name: 'connect',
                 description: 'Подключиться к серверу',
-                handler: this.connect,
+                handler: this.#connect,
                 args: [
                     'IP-Адрес'
                 ],
@@ -63,18 +65,26 @@ export class Core extends Plugin {
     }
 
     start(): void {
-        this.sendBrandTab();
+        this.#sendBrandTab();
 
-        this.listenTabChanges();
-        this.listenBossBarChanges();
+        this.#listenTabChanges();
+        this.#listenBossBarChanges();
     }
 
     stop(): void {
-        this.clearTab();
-        this.clearBossBar();
+        this.clear();
     }
 
-    listenBossBarChanges(): void {
+    clear(): void {
+        this.#clearTab();
+        this.#clearBossBar();
+
+        this.start();
+
+        this.#serversBuilder.stop();
+    }
+
+    #listenBossBarChanges(): void {
         this.proxy.packetManager.on('boss_bar', ({ packet: { action, entityUUID } }) => {
             switch (action) {
                 case 0:
@@ -85,7 +95,7 @@ export class Core extends Plugin {
         });
     }
 
-    clearBossBar(): void {
+    #clearBossBar(): void {
         this.#bossBar.forEach((entityUUID) => {
             this.proxy.client.write('boss_bar', {
                 action: 1,
@@ -96,7 +106,7 @@ export class Core extends Plugin {
         this.#bossBar.clear();
     }
 
-    listenTabChanges(): void {
+    #listenTabChanges(): void {
         this.proxy.packetManager.on('player_info', ({ packet: { action, data } }) => {
             data.forEach(({ UUID }: { UUID: string }) => {
                 switch (action) {
@@ -109,7 +119,7 @@ export class Core extends Plugin {
         });
     }
 
-    clearTab(): void {
+    #clearTab(): void {
         this.proxy.client.write('player_info', {
             action: 4,
             data: [...this.#tab]
@@ -121,20 +131,20 @@ export class Core extends Plugin {
         this.#tab.clear();
     }
 
-    private sendBrandTab(): void {
+    #sendBrandTab(): void {
         this.proxy.client.context.sendTab({
-            header: parse(config.bridge.title)
+            header: parse(title)
         });
     }
 
-    private help(): void {
+    #help(): void {
         const plugins = [...this.proxy.pluginManager.plugins.values()]
             .filter(({ meta: { hidden, commands } }) => (
                 !hidden && commands!.length
             ));
 
         const builder = this.proxy.client.context.chatBuilder()
-            .setPagesHeader(`${config.bridge.title} | Список доступных команд`);
+            .setPagesHeader(`${title} | Список доступных команд`);
 
         builder.addPages(
             text('')
@@ -194,7 +204,7 @@ export class Core extends Plugin {
         builder.build();
     }
 
-    async connect(ip = ''): Promise<void> {
+    async #connect(ip = ''): Promise<void> {
         if (ip) {
             return this.proxy.connect(ip);
         }
@@ -215,7 +225,7 @@ export class Core extends Plugin {
             ip: serializeIP(server.ip.value)
         }))
             .filter(({ ip }: IServer) => (
-                ip !== serializeIP(`${config.proxy.host}:${config.proxy.port}`)
+                ip !== serializeIP(`${host}:${port}`)
             ));
 
         if (!servers.length) {
@@ -245,7 +255,7 @@ export class Core extends Plugin {
                         value: Head.SERVER,
                         onClick: () => {
                             this.proxy.connect(ip);
-                            this.connect();
+                            this.#connect();
                         }
                     })
                 ))
