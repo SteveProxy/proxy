@@ -1,12 +1,23 @@
-import minecraftPath from 'minecraft-path';
+import { JSONFile, Low } from 'lowdb';
+import { stripIndents } from 'common-tags';
 import { ClickAction, HoverAction, parser, text } from 'rawjsonbuilder';
-import { createClient, states, Server, Client } from 'minecraft-protocol';
+import { Client, createClient, Server, states } from 'minecraft-protocol';
 
-import { config, db, IConfig } from '../config';
+import { config } from '../config';
 
-import { Context, PacketManager, PluginManager } from './modules';
+import { Auth, ClientType, Context, IMinecraftAuthResponse, PacketManager, PluginManager } from './modules';
 
-import { getCurrentTime, getVersion, IParsedIP, isValidIP, parseIP, serializeIP } from '../utils';
+import {
+    IParsedIP,
+    getCurrentTime,
+    getVersion,
+    isValidIP,
+    parseIP,
+    serializeIP,
+    SOCKET_CLOSED_EVENT,
+    LOBBY_LOGIN_PACKET,
+    USERS_DATA_PATH
+} from '../utils';
 
 export interface IProxyOptions {
     server: Server;
@@ -16,45 +27,70 @@ export interface IProxyOptions {
 export interface IClient extends Client {
     ended: boolean;
     context: Context;
+    id: number;
 }
+
+export interface IUser {
+    plugins: Record<string, any>;
+    microsoftSession: string;
+    minecraftSession: Pick<IMinecraftAuthResponse, 'access_token' | 'expires_in'>;
+}
+
+const { proxy, lobby, bridge: { title } } = config.data!;
 
 export class Proxy {
 
     bridge!: IClient;
-    client: IClient;
-    server: Server;
+    readonly client: IClient;
+    readonly server: Server;
+    readonly user: Low<IUser>;
+    #auth!: Auth;
 
     packetManager: PacketManager;
     pluginManager: PluginManager;
 
     currentServer = '';
-    fallbackServer = serializeIP(this.config.lobby);
+    fallbackServer = serializeIP(lobby);
     #connectionStarted = false;
 
     constructor({ server, client }: IProxyOptions) {
         client.context = new Context({
             client,
             proxy: this,
-            type: 'client'
+            type: ClientType.CLIENT
         });
 
         this.client = client;
         this.server = server;
+        this.user = new Low(
+            new JSONFile<IUser>(`${USERS_DATA_PATH}/${client.uuid}`)
+        );
 
         this.packetManager = new PacketManager(this);
         this.pluginManager = new PluginManager(this);
     }
 
-    get config(): IConfig {
-        return db.data as IConfig;
-    }
+    async start(): Promise<void> {
+        await this.#loadConfig()
+            .catch((error) => {
+                console.log(error);
 
-    start(): void {
-        this.connect(this.fallbackServer);
+                this.client.context.end('Произошла ошибка при загрузке данных профиля.');
+            });
+
+        this.#auth = new Auth(this);
+
+        this.#cleanEnvironment();
+
+        this.#auth.getSession()
+            .then(() => {
+                this.pluginManager.restart();
+                this.connectToFallbackServer();
+            });
 
         this.client.once('end', () => {
             if (this.bridge) {
-                this.bridge.end('');
+                this.bridge.end();
             }
 
             this.pluginManager.stop();
@@ -62,36 +98,46 @@ export class Proxy {
         });
     }
 
+    get userConfig(): IUser {
+        return this.user.data!;
+    }
+
+    get isLobby(): boolean {
+        return this.currentServer === this.fallbackServer;
+    }
+
     async connect(ip: string): Promise<void> {
         if (this.#connectionStarted) {
             return this.client.context.send(
-                `${config.bridge.title} | §cДождитесь окончания предыдущей попытки подключения!`
+                `${title} | §cДождитесь окончания предыдущей попытки подключения!`
             );
         }
 
         if (!isValidIP(ip)) {
-            return this.client.context.send(`${config.bridge.title} | §cНеверный IP-Адрес!`);
+            return this.client.context.send(`${title} | §cНеверный IP-Адрес!`);
         }
 
         if (this.currentServer === ip) {
             return this.client.context.send(
-                `${config.bridge.title} | §cВы уже подключены к этому серверу!`
+                `${title} | §cВы уже подключены к этому серверу!`
             );
         }
 
-        if (this.bridge) {
-            this.client.context.send(`${config.bridge.title} | Подключение к серверу...`);
-        }
+        this.client.context.send(`${title} | Подключение к серверу...`);
 
         this.#connectionStarted = true;
 
-        const bridge = await this.createBridge(
+        const bridge = await this.#createBridge(
             parseIP(ip)
         );
 
-        const isFallbackServer = ip === this.fallbackServer;
+        if (!bridge) {
+            return;
+        }
 
         bridge.once('login', (packet) => {
+            const { dimension, worldName, hashedSeed, previousGamemode, isDebug, isFlat, gameMode: gamemode } = packet;
+
             this.#connectionStarted = false;
             this.currentServer = ip;
 
@@ -101,58 +147,86 @@ export class Proxy {
 
             this.bridge = bridge;
 
-            this.startRedirect();
-
-            const playerDimension = packet.dimension;
-
-            if (getVersion(this.config.proxy.version) <= getVersion('1.8.9')) {
-                packet.dimension = packet.dimension >= 0 ? -1 : 0;
-            }
+            this.#startRedirect();
 
             this.client.write('login', packet);
             this.client.write('respawn', {
-                dimension: playerDimension,
-                worldName: packet.worldName,
-                hashedSeed: packet.hashedSeed,
-                gamemode: packet.gameMode,
-                previousGamemode: packet.previousGamemode,
-                isDebug: packet.isDebug,
-                isFlat: packet.isFlat,
+                dimension,
+                worldName,
+                hashedSeed,
+                gamemode,
+                previousGamemode,
+                isDebug,
+                isFlat,
                 copyMetadata: true
             });
 
-            this.pluginManager.restart();
+            this.pluginManager.clear();
 
-            if (isFallbackServer) {
+            if (this.isFallbackServer) {
                 this.pluginManager.execute('connect');
             }
         });
-    }
-
-    setFallbackServer(server: string | IParsedIP): void {
-        this.fallbackServer = serializeIP(server);
     }
 
     connectToFallbackServer(): void {
         this.connect(this.fallbackServer);
     }
 
-    get isLobby(): boolean {
+    setFallbackServer(server: string | IParsedIP): void {
+        this.fallbackServer = serializeIP(server);
+    }
+
+    get isFallbackServer(): boolean {
         return this.currentServer === this.fallbackServer;
     }
 
-    private async createBridge({ host, port }: IParsedIP): Promise<IClient> {
+    #cleanEnvironment() {
+        this.client.write('login', LOBBY_LOGIN_PACKET);
+        this.client.context.changePosition({
+            x: 0,
+            y: 64,
+            z: 0
+        });
+
+        const channel = this.client.protocolVersion >= getVersion('1.13-pre3') ?
+            'brand'
+            :
+            'MC|Brand';
+
+        this.client.registerChannel(channel, ['string', []]);
+        this.client.writeChannel(channel, title);
+    }
+
+    async #loadConfig() {
+        await this.user.read();
+
+        if (!this.user.data) {
+            this.user.data = {} as IUser;
+
+            await this.user.write();
+        }
+    }
+
+    async #createBridge({ host, port }: IParsedIP): Promise<IClient | void> {
+        const session = await this.#auth.getSession(true);
+
+        if (!session) {
+            return;
+        }
+
         const bridge = createClient({
-            ...config.proxy,
+            ...proxy,
+            ...session,
             host,
             port,
-            ...(await this.getSession())
+            skipValidation: true
         }) as IClient;
 
         bridge.context = new Context({
             client: bridge,
             proxy: this,
-            type: 'bridge'
+            type: ClientType.BRIDGE
         });
 
         const bridgeDisconnectEvents = [
@@ -186,10 +260,10 @@ export class Proxy {
                 if (this.bridge) {
                     bridge.removeAllListeners('packet');
 
-                    if (reason && reason !== 'SocketClosed') {
+                    if ((reason || data !== SOCKET_CLOSED_EVENT) && reason !== SOCKET_CLOSED_EVENT) {
                         const disconnectTime = getCurrentTime();
 
-                        const builder = text(`${config.bridge.title} | §cСоединение разорвано. ${reason}`)
+                        const builder = text(`${title} | §cСоединение разорвано. ${reason}`)
                             .addNewLine()
                             .addNewLine();
 
@@ -226,7 +300,11 @@ export class Proxy {
                         }
                     }
                 } else {
-                    this.client.context.end(`Соединение разорвано.\n\n${reason}`);
+                    this.client.context.end(stripIndents`
+                    Соединение разорвано.
+                    
+                    ${reason}
+                    `);
                 }
             });
         });
@@ -234,58 +312,39 @@ export class Proxy {
         return bridge;
     }
 
-    private startRedirect(): void {
+    #startRedirect(): void {
         this.client.removeAllListeners('packet');
 
-        this.redirect(this.bridge, this.client);
-        this.redirect(this.client, this.bridge);
+        this.#redirect(this.bridge, this.client);
+        this.#redirect(this.client, this.bridge);
     }
 
-    private redirect(from: IClient, to: IClient) {
+    #redirect(from: IClient, to: IClient) {
         const isFromServer = from === this.bridge;
 
         from.on('packet', (packet, meta) => {
             if (meta?.state === states.PLAY && from?.state === states.PLAY) {
                 switch (meta.name) {
-                    case 'compress':
-                        from.compressionThreshold = packet.threshold;
-                        to.compressionThreshold = packet.threshold;
+                    case 'compress': {
+                        const { threshold } = packet;
 
+                        from.compressionThreshold = threshold;
+                        to.compressionThreshold = threshold;
                         break;
+                    }
                     default:
                         this.packetManager.packetSwindler({
                             packet,
                             meta,
                             isFromServer,
-                            send: (data: any) => to.write(meta.name, data)
+                            send: (data) => (
+                                to.write(meta.name, data)
+                            )
                         });
-
                         break;
                 }
             }
         });
-    }
-
-    private async getSession(): Promise<any> {
-        try {
-            const { accounts, activeAccountLocalId, mojangClientToken: clientToken } = (await import(`file://${minecraftPath()}/launcher_accounts.json`))
-                .default;
-
-            const { accessToken, minecraftProfile: selectedProfile } = accounts[activeAccountLocalId];
-
-            return {
-                session: {
-                    accessToken,
-                    selectedProfile,
-                    clientToken
-                },
-                username: selectedProfile.name
-            };
-        } catch (error) {
-            this.client.context.end('Произошла ошибка при чтении файла с сессией.');
-
-            console.log(error);
-        }
     }
 }
 
