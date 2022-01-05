@@ -1,5 +1,6 @@
 export * from './api';
 export * from './context';
+export * from './auth';
 
 export * from './chatManager';
 export * from './packetManager';
