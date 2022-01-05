@@ -82,8 +82,11 @@ export class Skin extends Plugin {
     }
 
     async #gui(): Promise<void> {
-        const skins = (await this.#readSkins())
-            .reverse();
+        const skins = await this.#readSkins();
+
+        if (!skins) {
+            return;
+        }
 
         return this.#builder.autoGeneratePages({
             windowTitle: text(`${this.meta.prefix} Библиотека скинов`),
@@ -112,6 +115,7 @@ export class Skin extends Plugin {
                     }
                 })
             ))
+                .reverse()
         })
             .setDefaultButtons({
                 back: {
@@ -183,7 +187,7 @@ export class Skin extends Plugin {
         });
     }
 
-    async #readSkins(): Promise<ISkin[]> {
+    async #readSkins(): Promise<ISkin[] | void> {
         const skins = await fs.readFile(`${minecraftPath()}/launcher_skins.json`, {
             encoding: 'utf-8'
         })
@@ -193,7 +197,7 @@ export class Skin extends Plugin {
             .catch(() => null);
 
         if (!skins) {
-            this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при чтении библиотеки скинов!`);
+            return this.proxy.client.context.send(`${this.meta.prefix} §cПроизошла ошибка при чтении библиотеки скинов!`);
         }
 
         return Object.values(skins!)
