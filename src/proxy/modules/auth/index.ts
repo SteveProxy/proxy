@@ -69,7 +69,22 @@ export class Auth {
         }
 
         const microsoftToken = await this.#getMicrosoftToken()
-            .catch(() => null);
+            .catch((error) => {
+                const subError = error?.subError;
+
+                switch (subError) {
+                    case 'bad_token':
+                        this.#dropSession();
+
+                        this.#proxy.client.context.send(`${title} | Сессия устарела`);
+                        break;
+                    default:
+                        console.log(error);
+                        break;
+                }
+
+                return null;
+            });
 
         if (!microsoftToken) {
             return this.getSession();
@@ -325,7 +340,7 @@ export class Auth {
     #beforeCacheAccess(context: TokenCacheContext): void {
         const { microsoftSession } = this.#proxy.userConfig;
 
-        context.tokenCache.deserialize(microsoftSession);
+        context.tokenCache.deserialize(microsoftSession!);
     }
 
     /**
@@ -341,6 +356,15 @@ export class Auth {
 
             this.#fillMicrosoftCredentials(session);
         }
+    }
+
+    #dropSession(): void {
+        this.#microsoftAccessToken = '';
+
+        delete this.#proxy.userConfig.microsoftSession;
+        delete this.#proxy.userConfig.minecraftSession;
+
+        this.#proxy.user.write();
     }
 
     #fillMicrosoftCredentials(session: string): void {
