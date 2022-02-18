@@ -243,7 +243,7 @@ export class Proxy {
 
         bridgeDisconnectEvents.forEach((event) => {
             bridge.once(event, (data) => {
-                if (disconnected) {
+                if (disconnected && event !== 'kick_disconnect') {
                     return;
                 }
 
