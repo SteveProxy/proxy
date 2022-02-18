@@ -32,8 +32,8 @@ export interface IClient extends Client {
 
 export interface IUser {
     plugins: Record<string, any>;
-    microsoftSession: string;
-    minecraftSession: Pick<IMinecraftAuthResponse, 'access_token' | 'expires_in'>;
+    microsoftSession?: string;
+    minecraftSession?: Pick<IMinecraftAuthResponse, 'access_token' | 'expires_in'>;
 }
 
 const { proxy, lobby, bridge: { title } } = config.data!;
