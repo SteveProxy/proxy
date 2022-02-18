@@ -2,7 +2,7 @@ import _minecraftData from 'minecraft-data';
 
 import { config } from '../config';
 
-import packageMeta from '../../package.json';
+import packageMeta from '../../package.json' assert { type: 'json' };
 
 export const { version } = packageMeta;
 

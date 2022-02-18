@@ -1,7 +1,7 @@
 import { Component, HoverAction, keybind, text, translate } from 'rawjsonbuilder';
 
-import dictionary from './dictionary.json';
-import emoji from './emoji.json';
+import dictionary from './dictionary.json' assert { type: 'json' };
+import emoji from './emoji.json' assert { type: 'json' };
 
 import { Proxy } from '../../index';
 import { Plugin } from '../plugin';
