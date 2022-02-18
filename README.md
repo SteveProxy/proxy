@@ -26,6 +26,8 @@ The proxy fully implements the ability to create custom plugins, which you can i
 
 ### 📦 Installation
 
+Node.js 17.1+
+
 1. Configure `config.json` file.
 2. Run `npm i`.
 3. Run `npm start`.
