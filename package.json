@@ -29,7 +29,7 @@
     "prismarine-nbt": "^2.2.0",
     "rawjsonbuilder": "^2.1.1",
     "spotify-web-api-node": "^5.0.2",
-    "vk-io": "^4.5.0"
+    "vk-io": "^4.5.1"
   },
   "devDependencies": {
     "@types/chunk": "0.0.0",
