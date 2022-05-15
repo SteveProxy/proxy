@@ -26,5 +26,6 @@ export * from './pad';
 export * from './parseIP';
 export * from './randomInteger';
 export * from './serializeIP';
+export * from './clearUUID';
 
 export type ValuesOf<T extends readonly any[]> = T[number];
