@@ -5,11 +5,11 @@ import { config } from '../config';
 import { Event } from './event';
 import { Proxy, IClient } from '../proxy';
 
-import { getVersion } from '../utils';
+import { clearUUID, getVersion } from '../utils';
 
 import { EventName } from './';
 
-const { bridge: { whitelist } } = config.data!;
+const { proxy: { protocolVersion: proxyProtocolVersion, version }, bridge: { whitelist } } = config.data!;
 
 export type LoginEvent = EventName<'login'>;
 
@@ -20,20 +20,22 @@ export class Login extends Event<LoginEvent> {
     }
 
     handler(client: IClient, server: Server): void {
-        const { uuid, username } = client;
+        const { uuid, username, protocolVersion } = client;
 
         const proxy = new Proxy({
             server,
             client
         });
 
-        if (
-            whitelist.length && !(
-                whitelist.includes(uuid) ||
-                whitelist.includes(uuid.replace('-', '')) ||
-                whitelist.includes(username)
-            )
-        ) {
+        if (protocolVersion !== proxyProtocolVersion) {
+            return proxy.client.context.end(`Используйте версию ${version}`);
+        }
+
+        const isWhitelisted = whitelist.includes(uuid) ||
+            whitelist.includes(clearUUID(uuid)) ||
+            whitelist.includes(username);
+
+        if (whitelist.length && !isWhitelisted) {
             return proxy.client.context.end('Вас нет в белом списке сервера!'); // kick_disconnect doesn't work on 1.16.5
         }
 
