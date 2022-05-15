@@ -57,7 +57,7 @@ export class Discord extends Plugin {
 
     private ready(silent?: boolean) {
         if (!silent) {
-            this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.#client.user.username}.`);
+            this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${this.#client.user?.username}.`);
         }
 
         const { isLobby } = this.proxy;
