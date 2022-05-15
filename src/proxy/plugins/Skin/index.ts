@@ -25,7 +25,7 @@ export interface IChangeSkinOptions {
     slim: ISkin['slim'];
 }
 
-const PLAYER_HEAD = minecraftData.findItemOrBlockByName('player_head').id;
+const PLAYER_HEAD = minecraftData.itemsByName['player_head'].id;
 
 export class Skin extends Plugin {
 

@@ -48,7 +48,7 @@ const inventoryTypes = new Map<Inventory, IItemConstructor['count']>([
 
 const defaultButtons = new Map<ButtonAction, Omit<IItemConstructor, 'position'>>([
     [ButtonAction.FIRST, {
-        id: minecraftData.findItemOrBlockByName('spectral_arrow').id,
+        id: minecraftData.itemsByName['spectral_arrow'].id,
         nbt: NBT.compound({
             display: NBT.compound({
                 Name: NBT.string(
@@ -59,7 +59,7 @@ const defaultButtons = new Map<ButtonAction, Omit<IItemConstructor, 'position'>>
         })
     }],
     [ButtonAction.BACK, {
-        id: minecraftData.findItemOrBlockByName('arrow').id,
+        id: minecraftData.itemsByName['arrow'].id,
         nbt: NBT.compound({
             display: NBT.compound({
                 Name: NBT.string(
@@ -70,7 +70,7 @@ const defaultButtons = new Map<ButtonAction, Omit<IItemConstructor, 'position'>>
         })
     }],
     [ButtonAction.STOP, {
-        id: minecraftData.findItemOrBlockByName('barrier').id,
+        id: minecraftData.itemsByName['barrier'].id,
         nbt: NBT.compound({
             display: NBT.compound({
                 Name: NBT.string(
@@ -81,7 +81,7 @@ const defaultButtons = new Map<ButtonAction, Omit<IItemConstructor, 'position'>>
         })
     }],
     [ButtonAction.NEXT, {
-        id: minecraftData.findItemOrBlockByName('arrow').id,
+        id: minecraftData.itemsByName['arrow'].id,
         nbt: NBT.compound({
             display: NBT.compound({
                 Name: NBT.string(
@@ -92,7 +92,7 @@ const defaultButtons = new Map<ButtonAction, Omit<IItemConstructor, 'position'>>
         })
     }],
     [ButtonAction.LAST, {
-        id: minecraftData.findItemOrBlockByName('spectral_arrow').id,
+        id: minecraftData.itemsByName['spectral_arrow'].id,
         nbt: NBT.compound({
             display: NBT.compound({
                 Name: NBT.string(
@@ -276,7 +276,7 @@ export class PagesBuilder {
         page.setItems(new Array(36) // 36 = player inventory slots without armor & etc.
             .fill(null)
             .map((_, index) => new Item({
-                id: minecraftData.findItemOrBlockByName('black_stained_glass_pane').id,
+                id: minecraftData.itemsByName['black_stained_glass_pane'].id,
                 position: this.#inventorySlots + index as IItemConstructor['position'],
                 nbt: NBT.compound({
                     display: NBT.compound({

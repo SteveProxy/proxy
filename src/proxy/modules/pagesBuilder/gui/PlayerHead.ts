@@ -19,7 +19,7 @@ export function PlayerHead(options: IPlayerHeadOptions): Omit<IItemConstructor, 
 export function PlayerHead(options: IPlayerHeadOptions & { position: IItemConstructor['position'] }): Item;
 export function PlayerHead({ name, lore, onClick, position, value, url }: IPlayerHeadOptions): Item | Omit<IItemConstructor, 'position'> {
     const itemOptions = {
-        id: minecraftData.findItemOrBlockByName('player_head').id,
+        id: minecraftData.itemsByName['player_head'].id,
         nbt: NBT.compound({
             display: NBT.compound({
                 Name: name ?

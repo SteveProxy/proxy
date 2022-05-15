@@ -20,9 +20,9 @@ export interface ISpotify {
     };
 }
 
-const NEXT_SONG_ITEM = minecraftData.findItemOrBlockByName('green_stained_glass').id;
-const PREVIOUS_SONG_ITEM = minecraftData.findItemOrBlockByName('red_stained_glass').id;
-const SONG_ITEM = minecraftData.findItemOrBlockByName('name_tag').id;
+const NEXT_SONG_ITEM = minecraftData.itemsByName['green_stained_glass'].id;
+const PREVIOUS_SONG_ITEM = minecraftData.itemsByName['red_stained_glass'].id;
+const SONG_ITEM = minecraftData.itemsByName['name_tag'].id;
 
 const AUTH_SCOPE = [
     'user-modify-playback-state',

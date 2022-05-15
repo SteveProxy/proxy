@@ -27,7 +27,7 @@ export class VK extends _VK {
         const profile = !hasUserInCache ?
             context.isUser ?
                 await this.api.users.get({
-                    user_ids: String(context.senderId)
+                    user_ids: [context.senderId]
                 })
                     .then(([{ first_name, last_name }]) => ({
                         name: `${first_name} ${last_name}`
@@ -52,11 +52,11 @@ export class VK extends _VK {
             await this.api.messages.getConversationsById({
                 peer_ids: context.peerId
             })
-                .then(({ items: [conservation] }) => conservation)
+                .then(({ items }) => items?.[0])
             :
             conservationsCache.get(context.peerId) as MessagesConversation;
 
-        if (!hasConservationInCache) {
+        if (!hasConservationInCache && conservation) {
             conservationsCache.set(context.peerId, conservation);
         }
 

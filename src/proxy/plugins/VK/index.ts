@@ -115,7 +115,7 @@ export class VK extends Plugin<IVK> {
 
                 this.proxy.client.context.send(`${this.meta.prefix} Авторизован под ${name}.`);
 
-                this.#username = name;
+                this.#username = name!;
 
                 this.#startNotificationsUpdates();
             })

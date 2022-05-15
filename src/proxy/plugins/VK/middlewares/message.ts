@@ -51,7 +51,7 @@ export class Message extends Middleware {
         }
 
         builder.addExtra(
-            text(name)
+            text(name!)
                 .setInsertion(`${PluginManager.prefix}${this.meta.name} send ${context.peerId}`)
                 .setClickEvent({
                     action: ClickAction.OPEN_URL,

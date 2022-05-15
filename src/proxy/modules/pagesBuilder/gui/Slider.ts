@@ -36,7 +36,7 @@ export function Slider({ cellsCount, initialPosition, value, nbt, onClick, max }
                 const { nbt, CELL_VALUE } = getNBT(index);
 
                 return new Item({
-                    id: minecraftData.findItemOrBlockByName('lime_stained_glass_pane').id,
+                    id: minecraftData.itemsByName['lime_stained_glass_pane'].id,
                     position: initialPosition + index as IItemConstructor['position'],
                     nbt,
                     onClick: () => onClick(CELL_VALUE)
@@ -50,7 +50,7 @@ export function Slider({ cellsCount, initialPosition, value, nbt, onClick, max }
                 const { nbt, CELL_VALUE } = getNBT(index);
 
                 return new Item({
-                    id: minecraftData.findItemOrBlockByName('gray_stained_glass_pane').id,
+                    id: minecraftData.itemsByName['gray_stained_glass_pane'].id,
                     position: initialPosition + index as IItemConstructor['position'],
                     nbt,
                     onClick: () => onClick(CELL_VALUE)
