@@ -34,7 +34,7 @@ export class Login extends Event<LoginEvent> {
                 whitelist.includes(username)
             )
         ) {
-            return proxy.client.context.end('Вас нет в белом списке сервера!'); // kick_disconnect doesnt work on 1.16.5
+            return proxy.client.context.end('Вас нет в белом списке сервера!'); // kick_disconnect doesn't work on 1.16.5
         }
 
         this.registerCustomChannels(client);
