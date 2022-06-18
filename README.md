@@ -1,5 +1,5 @@
 <h3 align='center'>
-    <img src='https://github.com/SteveProxy/proxy/raw/master/.github/logo.png'>
+    <img src='https://github.com/SteveProxy/proxy/raw/master/.github/logo.png' width='128px' height='128px'>
     <br>
     SteveProxy
 </h3>
