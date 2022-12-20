@@ -39,7 +39,7 @@
     "@types/node": "^17.0.33",
     "@types/spotify-web-api-node": "^5.0.7",
     "@types/tough-cookie": "^4.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.23.0",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.23.0",
     "eslint": "^8.15.0",
     "ts-node": "^10.7.0",
