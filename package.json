@@ -24,7 +24,7 @@
     "lowdb": "^3.0.0",
     "minecraft-data": "^3.1.1",
     "minecraft-path": "^1.0.0",
-    "minecraft-protocol": "^1.34.0",
+    "minecraft-protocol": "^1.38.0",
     "moment": "^2.29.3",
     "prismarine-nbt": "^2.2.1",
     "rawjsonbuilder": "^2.1.1",
